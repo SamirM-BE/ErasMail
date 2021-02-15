@@ -102,7 +102,7 @@ def get_all_emails(host, username, password):
                 'sender_email' : sender_email,
                 'receiver' : username,
                 'size' : data[b'RFC822.SIZE'], 
-                'received_at' : parsed_header['Date'],
+                'received_at' : convert_to_datetime(parsed_header['Date']),
                 'message_id' : get_message_id(parsed_header.get('Message-ID', '')),
                 
                 'attachments' : get_attachments(data[b'BODYSTRUCTURE']),
