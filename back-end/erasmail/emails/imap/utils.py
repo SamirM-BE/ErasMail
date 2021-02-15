@@ -17,7 +17,6 @@ def make_readable_header(header_byte):
         
     return str(make_header(decode_header(header_str))).strip()
 
-
 def uniq(alist):
     #set = {}
     #return [set.setdefault(e,e) for e in alist if e not in set.keys()]
