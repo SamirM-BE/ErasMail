@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -6,49 +7,38 @@ User = get_user_model()
 # Create your models here.
 class Newsletter(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
-    list_unsubscribe = models.CharField(max_length=255)
+    list_unsubscribe = models.CharField(max_length=5000)
     one_click = models.BooleanField(default=False)
     unsubscribed = models.BooleanField(default=False)
     sender_email = models.EmailField()
 
     def __str__(self) -> str:
-        return f"pk: {self.pk}  sender: {self.sender_email}"
-
+        return f'pk: {self.pk}  sender: {self.sender_email}'
 
 class EmailHeaders(models.Model):
 
     uid = models.IntegerField()
     seen = models.BooleanField(default=False)
-    subject = models.CharField(max_length=255, blank=True)
-    sender_name = models.CharField(max_length=255, blank=True)
+    subject = models.CharField(max_length=5000, blank=True)
+    sender_name = models.CharField(max_length=5000, blank=True)
     sender_email = models.EmailField()
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
-    size = models.IntegerField()
+    size = models.IntegerField(default=0)
     received_at = models.DateTimeField(null=True)
-    message_id = models.CharField(max_length=255)
-    folder = models.CharField(max_length=255)
+    message_id = models.CharField(max_length=5000)
+    folder = models.CharField(max_length=5000)
+    thread_id = models.IntegerField(null=True)
+    co2 = models.FloatField(validators=[MinValueValidator(0.0)])
 
-    unsubscribe = models.ForeignKey(
-        Newsletter, on_delete=models.CASCADE, blank=True, null=True
-    )
+    unsubscribe = models.ForeignKey(Newsletter, related_name='newsletters', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return (
-            f"from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}"
-        )
-
+        return f'from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}'
 
 class Attachment(models.Model):
-    email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    email_header = models.ForeignKey(EmailHeaders, related_name='attachments', on_delete=models.CASCADE)
+    name = models.CharField(max_length=5000)
     size = models.IntegerField()
 
-
-class Reference(models.Model):
-    email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
-    reference = models.CharField(max_length=255)
-
-
-class InReplyTo(models.Model):
-    email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
-    in_reply_to = models.CharField(max_length=255)
+    def __str__(self):
+        return f'{self.name} {self.size}'

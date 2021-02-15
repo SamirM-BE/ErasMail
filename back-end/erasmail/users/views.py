@@ -23,8 +23,6 @@ class LoginView(APIView):
         app_password = request.data['app_password']
         host = request.data['host']
 
-        print(request.data)
-
         try:
             server = IMAPClient(host)
             server.login(email, app_password)
@@ -32,12 +30,11 @@ class LoginView(APIView):
 
             user, is_created = CustomUser.objects.get_or_create(email=email)
 
-            print(user, is_created)
-
             token = get_tokens_for_user(user)
-            print(token)
 
-            return Response(token, status=status.HTTP_201_CREATED)
+            if is_created:
+                return Response(token, status=status.HTTP_201_CREATED)
+            return Response(token, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 

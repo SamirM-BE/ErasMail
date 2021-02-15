@@ -26,4 +26,10 @@ export default {
 </script>
 
 <style>
+.notification {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%
+}
 </style>

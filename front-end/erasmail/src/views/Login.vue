@@ -1,69 +1,62 @@
 <template>
-  <div>
-      <Navbar></Navbar>
-      <div class="hero is-fullheight">
-        <div class="hero-body">
-          <div class="container">
-            <div class="columns is-centered">
-              <div class="column is-one-third">
-                <form class="box" v-on:submit.prevent="login">
-                  <div class="logo has-text-centered">
-                    <!-- <img src="https://i.imgur.com/vRJbfum.png" width="112" height="28"> -->
-                    <strong> ErasMail </strong>
-                  </div>
+  <div class="columns is-centered">
+    <div class="column is-one-third">
+      <form class="box" v-on:submit.prevent="login">
+        <div class="logo has-text-centered">
+          <!-- <img src="https://i.imgur.com/vRJbfum.png" width="112" height="28"> -->
+          <strong> ErasMail </strong>
+        </div>
 
-                  <hr/>
+        <hr />
 
-                  <div v-show="incorrectAuth" class="icon-text has-text-danger has-text-centered">
-                    <span class="icon">
-                      <i class="fa fa-exclamation-triangle"></i>
-                    </span>
-                    <span>Incorrect email or password !</span>
-                    <hr/>
-                  </div>
+        <div v-show="incorrectAuth" class="icon-text has-text-danger has-text-centered">
+          <span class="icon">
+            <i class="fa fa-exclamation-triangle"></i>
+          </span>
+          <span>Incorrect email or password !</span>
+          <hr />
+        </div>
 
-                  <div class="field">
-                    <label for="email" class="label">Email</label>
-                    <div class="control has-icons-left">
-                      <span class="icon is-small is-left">
-                        <i class="fa fa-envelope"></i>
-                      </span>
-                      <input id="email" class="input" type="email" placeholder="e.g. alex@example.com" v-model="email" />
-                    </div>
-                  </div>
-
-                  <div class="field">
-                    <label for="app_password" class="label">Application Password</label>
-                    <div class="control has-icons-left">
-                      <span class="icon is-small is-left">
-                        <i class="fa fa-lock"></i>
-                      </span>
-                      <input id="app_password" class="input" type="text" placeholder="awdlfovxkfxcbbdb" v-model="app_password" />
-                    </div>
-                  </div>
-
-                  <div class="field">
-                    <label for="host" class="label">Host</label>
-                    <div class="control">
-                      <input id="host" class="input" type="text" placeholder="imap.gmail.com" v-model="host" />
-                    </div>
-                  </div>
-
-                  <hr />
-                  <button class="button is-primary is-fullwidth" :disabled="hideSubmit">
-                    Log in
-                  </button>
-                </form>
-              </div>
-            </div>
+        <div class="field">
+          <label for="email" class="label">Email</label>
+          <div class="control has-icons-left">
+            <span class="icon is-small is-left">
+              <i class="fa fa-envelope"></i>
+            </span>
+            <input id="email" class="input" type="email" placeholder="e.g. alex@example.com" v-model="email" />
           </div>
         </div>
-      </div>
+
+        <div class="field">
+          <label for="app_password" class="label">Application Password</label>
+          <div class="control has-icons-left">
+            <span class="icon is-small is-left">
+              <i class="fa fa-lock"></i>
+            </span>
+            <input id="app_password" class="input" type="text" placeholder="awdlfovxkfxcbbdb" v-model="app_password" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="host" class="label">Host</label>
+          <div class="control has-icons-left">
+            <span class="icon is-small is-left">
+              <i class="fas fa-server"></i>
+            </span>
+            <input id="host" class="input" type="text" placeholder="imap.gmail.com" v-model="host" />
+          </div>
+        </div>
+
+        <hr />
+        <button class="button has-text-white has-background-primary-dark is-fullwidth" :disabled="hideSubmit">
+          Log in
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script>
-import Navbar from '../components/Navbar.vue';
 
 export default {
   name: "Login",
@@ -81,7 +74,6 @@ export default {
     },
   },
   components: {
-    Navbar,
   },
   methods: {
     login() {
@@ -92,6 +84,7 @@ export default {
           host: this.host,
         })
         .then(() => {
+          // redirect only when 200 or 201
           this.$router.push({
             name: "loading"
           });
@@ -106,10 +99,13 @@ export default {
 </script>
 
 <style scoped>
-  .logo {
-    padding: 5%;
-    border-color: lightgray !important;
-    border: solid;
-    border-width: thin;
-  }
+.logo {
+  padding: 5%;
+  border-color: lightgray !important;
+  border: solid;
+  border-width: thin;
+}
+.button:hover{
+  background-color: hsl(171, 100%, 33%) !important;
+}
 </style>

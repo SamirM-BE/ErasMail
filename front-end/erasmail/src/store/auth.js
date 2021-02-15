@@ -88,7 +88,6 @@ export const auth = {
             }
         },
         userLogin(context, usercredentials) {
-            // return new Promise((resolve, reject) => {
             return axiosBase.post('/api/users/login', {
                     email: usercredentials.email,
                     app_password: usercredentials.app_password,
@@ -102,10 +101,6 @@ export const auth = {
                         host: usercredentials.host
                     })
                 })
-                .catch(err => {
-                    console.log(`Error return while trying to execute userLogin : ${err}`)
-                })
-            // })
         }
     }
 }

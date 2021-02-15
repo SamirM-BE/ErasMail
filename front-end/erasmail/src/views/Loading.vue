@@ -1,50 +1,40 @@
 <template>
-  <div id="screen">
-    <div class="hero is-fullheight">
-      <div class="hero-head">
-        <LoginSuccessfullyNotification
-          :notification_message="'You have successfully logged in'"
-        >
-        </LoginSuccessfullyNotification>
+  <SuccessNotification :notification_message="'You have successfully logged in'">
+  </SuccessNotification>
+  <section class="section is-flex is-justify-content-center">
+    <div class="container">
+      <div class="columns is-centered is-vcentered mb15">
+        <div class="column is-4 has-text-centered logo">
+          <strong> ErasMail </strong>
+        </div>
+        <div class="column is-5">
+          <strong class="title">Welcome to ErasMail</strong>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam consequatur omnis quasi cum impedit
+            ipsum
+            amet sapiente libero beatae, enim voluptatibus velit perferendis, atque sunt soluta architecto, quo
+            debitis alias!</p>
+        </div>
       </div>
-      <div class="hero-body">
-        <div class="container">
-          <div class="columns is-centered test">
-            <div class="column is-4 has-text-centered logo">
-              <strong> ErasMail </strong>
-            </div>
-            <div class="column is-4">
-              <strong class="title">Welcome to ErasMail</strong>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam
-                consequatur omnis quasi cum impedit ipsum amet sapiente libero
-                beatae, enim voluptatibus velit perferendis, atque sunt soluta
-                architecto, quo debitis alias!
-              </p>
-            </div>
-          </div>
-          <div class="columns is-centered">
-            <div class="column is-4 has-text-centered">
-              <p>Analyzing your emails</p>
-              <ProgressbarEmail></ProgressbarEmail>
-            </div>
-          </div>
-          <div class="columns is-centered">
-            <div class="column has-text-centered">
-              <p>{{ awareness_messages[index] }}</p>
-            </div>
-          </div>
+      <div class="columns is-centered">
+        <div class="column is-4 has-text-centered">
+          <p>Analyzing your emails</p>
+          <ProgressbarEmail></ProgressbarEmail>
+        </div>
+      </div>
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <p>{{ awareness_messages[index] }}</p>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script>
 import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
 import ProgressbarEmail from "../components/ProgressbarEmail";
-import LoginSuccessfullyNotification from "../components/LoginSuccessfullyNotification";
+import SuccessNotification from "../components/SuccessNotification";
 
 const display_time = 7; // display time of awareness messages in seconds
 
@@ -76,7 +66,7 @@ export default {
   },
   components: {
     ProgressbarEmail,
-    LoginSuccessfullyNotification,
+    SuccessNotification,
   },
   created() {
     if (this.loggedIn) {
@@ -107,7 +97,7 @@ export default {
 </script>
 
 <style scoped>
-.test {
+.mb15 {
   margin-bottom: 15%;
 }
 .logo {
@@ -115,5 +105,8 @@ export default {
   border-color: lightgray !important;
   border: solid;
   border-width: thin;
+}
+.section {
+  width: 100%;
 }
 </style>

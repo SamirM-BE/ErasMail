@@ -1,13 +1,14 @@
 <template>
-  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+  <nav class="navbar is-primary has-background-primary-dark is-fixed-top" role="navigation" aria-label="main navigation">
     <!-- LOGO ErasMail -->
     <div class="navbar-brand">
-      <router-link class="navbar-item " :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
+      <router-link class="navbar-item" :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
 
-      <a role="button" class="navbar-burger" @click="showNav = !showNav" :class="{ 'is-active': showNav }" aria-label="menu" aria-expanded="false" data-target="navbar">
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
+      <a role="button" class="navbar-burger" @click="showNav = !showNav" :class="{ 'is-active': showNav }"
+        aria-label="menu" aria-expanded="false" data-target="navbar">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
       </a>
     </div>
 
@@ -15,9 +16,9 @@
     <div id="navbar" class="navbar-menu" :class="{ 'is-active': showNav }">
       <!-- Left side -->
       <div class="navbar-start">
-        <a class="navbar-item is-hidden"> Home </a>
-
-        <a class="navbar-item is-hidden"> Documentation </a>
+        <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'threads' }">Threads</router-link> 
+         
+        <a class="navbar-item is-hidden">Documentation</a>
 
         <div class="navbar-item has-dropdown is-hoverable is-hidden">
           <a class="navbar-link"> More </a>
@@ -30,13 +31,14 @@
             <a class="navbar-item"> Report an issue </a>
           </div>
         </div>
+
       </div>
       <!-- Right side -->
       <div class="navbar-end">
         <div class="navbar-item">
           <div class="buttons">
-            <router-link v-if="!loggedIn" class="button is-primary" :to="{ name: 'login' }" exact>Login</router-link>
-            <router-link v-else class="button is-danger" :to="{ name: 'logout' }" exact>Logout</router-link>
+            <router-link v-if="!loggedIn && currentRouteName !== 'login'" class="button is-primary" :to="{ name: 'login' }" exact>Login</router-link>
+            <router-link v-if="loggedIn" class="button is-danger" :to="{ name: 'logout' }" exact>Logout</router-link>
           </div>
         </div>
       </div>
@@ -49,15 +51,23 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "Navbar",
-  data(){
+  data() {
     return {
-      showNav: false
-    }
+      showNav: false,
+    };
   },
-  computed: mapGetters("auth", ["loggedIn"]),
+  computed: {
+    ...mapGetters("auth", ["loggedIn"]),
+    currentRouteName() {
+        return this.$route.name;
+    }
+  } 
 };
 </script>
 
 <style scoped>
+.navbar-item:hover{
+  background-color: hsl(171, 100%, 33%) !important;
+}
 </style>
 

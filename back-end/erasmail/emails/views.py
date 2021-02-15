@@ -1,16 +1,26 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 
-from .imap.imap_helper import get_all_emails, move_to_trash
+from .imap.fetch import get_all_emails
+from .imap.delete import move_to_trash
+from .imap.attachments import remove_attachments
+from .imap.jwzthreading import conversation_threading
 
-from .models import Newsletter, EmailHeaders, Attachment, Reference, InReplyTo
+from .utils.pollution import emailPollution
+
+from .models import Newsletter, EmailHeaders, Attachment
+
+from .models import Newsletter, EmailHeaders, Attachment
+from .serializers import EmailHeadersSerializer
+
+import re
 
 User = get_user_model()
-
 
 class EmailView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -19,89 +29,106 @@ class EmailView(APIView):
         email = request.user.email
 
         # request body
-        app_password = request.data["app_password"]
-        host = request.data["host"]
+        app_password = request.data['app_password']
+        host = request.data['host']
 
         user = request.user
+
+        EmailHeaders.objects.filter(receiver=user).delete() # This remove all old history if the logout was not done successfully
+
+
         try:
-            emails_headers = get_all_emails(host, email, app_password)
+            print('start imap fetching')
+            mail_messages = get_all_emails(host, email, app_password)
+            print('finish imap fetching')
 
-            for email_headers in emails_headers:
+            print('save in the DB')
+            for mail in mail_messages:
 
-                if email_headers["list_unsubscribe"]:
+                if mail.list_unsubscribe :
                     try:
-                        unsubscribe = Newsletter.objects.get(
-                            receiver=user, sender_email=email_headers["sender_email"]
-                        )
+                        unsubscribe = Newsletter.objects.get(receiver=user, sender_email=mail.sender_email)
                         # if the one_click is set we don't change anything because it is the best way to unsubscribe
-                        if (not unsubscribe.one_click) and email_headers[
-                            "list_unsubscribe_post"
-                        ]:
+                        if (not unsubscribe.one_click) and mail.list_unsubscribe_post: 
                             unsubscribe.one_click = True
-                            unsubscribe.list_unsubscribe = email_headers[
-                                "list_unsubscribe"
-                            ]
+                            unsubscribe.list_unsubscribe = mail.list_unsubscribe
+                            
                             unsubscribe.save()
-                        elif (not unsubscribe.one_click) and email_headers[
-                            "list_unsubscribe"
-                        ][:6] == "mailto":
+                        elif (not unsubscribe.one_click) and mail.list_unsubscribe[:6] == "mailto":
                             unsubscribe.one_click = False
-                            unsubscribe.list_unsubscribe = email_headers[
-                                "list_unsubscribe"
-                            ]
+                            unsubscribe.list_unsubscribe = mail.list_unsubscribe
+                            
                             unsubscribe.save()
                     except Newsletter.DoesNotExist as e:
-                        unsubscribe = Newsletter.objects.create(
-                            receiver=user,
-                            list_unsubscribe=email_headers["list_unsubscribe"],
-                            one_click=email_headers["list_unsubscribe_post"],
-                            sender_email=email_headers["sender_email"],
-                        )
+                        unsubscribe = Newsletter.objects.create(receiver=user, list_unsubscribe=mail.list_unsubscribe
+                        ,
+                                                                one_click=mail.list_unsubscribe_post, sender_email=mail.sender_email)
                     except Newsletter.MultipleObjectsReturned as e:
-                        print(
-                            f"Multiple objects Newsletter returned\nError from Django = {e}"
-                        )
+                        print(f'Multiple objects Newsletter returned\nError from Django = {e}')
                 else:
                     unsubscribe = None
 
                 email_headers_model = EmailHeaders.objects.create(
-                    uid=email_headers["uid"],
-                    seen=email_headers["seen"],
-                    subject=email_headers["subject"],
-                    sender_name=email_headers["sender_name"],
-                    sender_email=email_headers["sender_email"],
+                    uid=mail.uid,
+                    seen=mail.seen,
+                    subject=mail.subject,
+                    sender_name=mail.sender_name,
+                    sender_email=mail.sender_email,
                     receiver=user,
-                    size=email_headers["size"],
-                    received_at=email_headers["received_at"],
-                    message_id=email_headers["message_id"],
-                    folder=email_headers["folder"],
+                    size=mail.size,
+                    received_at=mail.received_at,
+                    message_id=mail.message_id,
+                    folder=mail.folder,
                     unsubscribe=unsubscribe,
+                    co2=emailPollution(mail.size, mail.received_at)
                 )
 
                 [
                     Attachment.objects.create(
                         email_header=email_headers_model, name=name, size=size
                     )
-                    for name, size in email_headers["attachments"]
+                    for name, size in mail.attachments
                 ]
+            print('start threading')
+            threads = conversation_threading(mail_messages)
+            print('finish threading')
 
-                [
-                    Reference.objects.create(
-                        email_header=email_headers_model, reference=reference
-                    )
-                    for reference in email_headers["references"]
-                ]
-
-                [
-                    InReplyTo.objects.create(
-                        email_header=email_headers_model, in_reply_to=in_reply_to
-                    )
-                    for in_reply_to in email_headers["in_reply_to"]
-                ]
+            print('update DB with threads')
+            for idx, thread in enumerate(threads):  # imporove with a generator
+                folder_uids = thread.get_folder_uid()
+                for folder, uid in folder_uids:
+                    email_header = EmailHeaders.objects.get(receiver=user, uid=uid, folder=folder)
+                    email_header.thread_id = idx
+                    email_header.save()
+            print('finish')
 
             return Response(status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request):
+        email = request.user.email
+        user = request.user
+
+        # request body
+        app_password = request.data.get('app_password', None)
+        host = request.data.get('host', None)
+        folder_uids = request.data.get('uids', False)
+        # uids template
+        # "uids": {
+        #     "INBOX":[3, 5],
+        #     "SENT" :[14, 53],
+        #     }
+        if folder_uids:
+            move_to_trash(host, email, app_password, folder_uids)
+            [[EmailHeaders.objects.get(receiver=user, folder=folder_name, uid=uid).delete() for uid in uids] for folder_name, uids in folder_uids.items()]
+        else:
+            EmailHeaders.objects.filter(receiver=user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Attachments(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def delete(self, request):
         email = request.user.email
@@ -111,17 +138,62 @@ class EmailView(APIView):
         app_password = request.data.get("app_password", None)
         host = request.data.get("host", None)
         folder_uids = request.data.get("uids", False)
+        # uids template
+        # "uids": {
+        #     "INBOX":[3, 5],
+        #     "SENT" :[14, 53],
+        #     }
         if folder_uids:
-            move_to_trash(host, email, app_password, folder_uids)
+            remove_attachments(host, email, app_password, folder_uids)
             [
                 [
-                    EmailHeaders.objects.get(
-                        receiver=user, folder=folder_name, uid=uid
+                    Attachment.objects.filter(
+                        email_header__receiver=user, email_header__folder=folder_name, email_header__uid=uid
                     ).delete()
                     for uid in uids
                 ]
                 for folder_name, uids in folder_uids.items()
             ]
-        else:
-            EmailHeaders.objects.filter(receiver=user).delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ThreadView(APIView):
+    permission_classes = (IsAuthenticated,)  # changed
+
+    def get(self, request):
+        user = request.user
+
+        emails_threads = EmailHeaders.objects.filter(
+            receiver=user, thread_id__isnull=False
+        ).order_by('received_at')
+
+        serializer = EmailHeadersSerializer(emails_threads, many=True)
+        threads = {}
+
+        restrip_pat = re.compile(
+            """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE)
+
+        for mail in serializer.data:
+
+            data = threads.get(mail["thread_id"], {
+                'subject': '',
+                'co2': 0,
+                'size': 0,
+                'children': [],
+            })
+
+            if not data['subject']:
+                subj = restrip_pat.sub('', mail['subject'])
+                # remove space at the beginning. This is exactly the space between RE: and the subject name
+                data['subject'] = subj.strip()
+
+            data['co2'] += mail['co2']
+            data['size'] += mail['size']
+            data['children'].append(mail)
+
+            threads[mail["thread_id"]] = data
+
+        response = {'subject': 'Threads', 'children': threads.values()}
+
+        return Response(data=response, status=status.HTTP_200_OK)
