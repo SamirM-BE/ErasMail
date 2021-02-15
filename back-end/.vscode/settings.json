@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "venv/bin/python"
+    "python.pythonPath": "/Users/gevorgyan/Desktop/ErasMail/back-end/venv/bin/python3.9",
+    "python.formatting.provider": "autopep8"
 }

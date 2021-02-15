@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from .models import CustomUser
 from .serializers import UserSerializer
@@ -12,20 +12,22 @@ from .token import get_tokens_for_user
 
 from imapclient import IMAPClient
 
+from datetime import timedelta
+
 class LoginView(APIView):
     permission_classes = (AllowAny,)
 
 
     def post(self, request):
         email = request.data['email']
-        application_password = request.data['application_password']
+        app_password = request.data['app_password']
         host = request.data['host']
 
         print(request.data)
 
         try:
             server = IMAPClient(host)
-            server.login(email, application_password)
+            server.login(email, app_password)
             server.logout()
 
             user, is_created = CustomUser.objects.get_or_create(email=email)
@@ -47,8 +49,8 @@ class LogoutView(APIView):
         # the body of request must contain the refresh token with the name : 'refresh'
         try:
             refresh_token = request.data['refresh']
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            rf_token = RefreshToken(refresh_token)
+            rf_token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -57,17 +59,13 @@ class LogoutView(APIView):
 class UserRetrieveDestroyView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get_object(self, email):
-        user = generics.get_object_or_404(CustomUser, email=email)
-        return user
-
     def get(self, request):
-        print(request.user.email)
-        user = self.get_object(request.user.email)
+        print(request.user)
+        user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
     
     def delete(self, request):
-        user = self.get_object(request.user.email)
+        user = request.user
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

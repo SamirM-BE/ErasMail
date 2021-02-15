@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'users',
+    'emails',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +62,9 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:8080',
-    'http://172.20.231.145:8080'
+    'http://127.0.0.1:8080',
+    'http://172.20.231.145:8080',
+    'http://192.168.1.31:8080',
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -92,11 +95,25 @@ WSGI_APPLICATION = 'erasmail.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+
 DATABASES = {
+
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+
+        'NAME': config("DB_NAME"),
+
+        'USER': config("DB_USER"),
+
+        'PASSWORD': config("DB_PASSWORD"),
+
+        'HOST': config("DB_HOST"),
+
+        'PORT': 5432,
+
     }
+
 }
 
 
@@ -148,6 +165,6 @@ REST_FRAMEWORK = {
 }
 
 # SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(seconds=15),
-#     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(seconds=15),
+#     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(seconds=10),
+#     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(seconds=20),
 # }

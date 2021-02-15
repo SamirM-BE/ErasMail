@@ -1,5 +1,6 @@
 <template>
-  <div class="container">
+  <div>
+    <Navbar></Navbar>
     <h1 v-if="!loggedIn">Public content</h1>
     <h1 v-else>Private content : {{ email }}</h1>
   </div>
@@ -8,6 +9,7 @@
 <script>
 import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
+import Navbar from "../components/Navbar";
 
 export default {
   name: "Home",
@@ -17,6 +19,9 @@ export default {
     };
   },
   computed: mapGetters("auth", ["loggedIn"]),
+  components: {
+    Navbar,
+  },
   created() {
     if (this.loggedIn) {
       getAPI
@@ -27,7 +32,6 @@ export default {
         })
         .then((response) => {
           this.email = response.data.email;
-          console.log(response.data);
         })
         .catch((err) => {
           console.log(err);
