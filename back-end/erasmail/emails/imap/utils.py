@@ -25,9 +25,9 @@ def uniq(alist):
     #return [set.setdefault(e,e) for e in alist if e not in set.keys()]
     return list(set(alist))
 
-def convert_to_datetime(date):
-    a = email.utils.parsedate(date)
-    b = time.mktime(a)
-    c = datetime.datetime.fromtimestamp(b)
+def rfc_date_to_datetime(date):
+    email_date = email.utils.parsedate(date)
+    sec_local_time = time.mktime(email_date)
+    email_datetime = datetime.datetime.fromtimestamp(sec_local_time)
 
-    return c
+    return email_datetime

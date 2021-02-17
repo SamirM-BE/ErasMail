@@ -57,17 +57,13 @@ class LogoutView(APIView):
 class UserRetrieveDestroyView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def get_object(self, email):
-        user = generics.get_object_or_404(CustomUser, email=email)
-        return user
-
     def get(self, request):
-        print(request.user.email)
-        user = self.get_object(request.user.email)
+        print(request.user)
+        user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
     
     def delete(self, request):
-        user = self.get_object(request.user.email)
+        user = request.user
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

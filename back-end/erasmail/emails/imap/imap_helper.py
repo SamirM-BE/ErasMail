@@ -2,7 +2,7 @@ import re
 
 from imapclient import IMAPClient, imapclient
 from email.parser import BytesHeaderParser
-from utils import *
+from .utils import *
 
 
 # FROM header might contain a name and an email or only an email
@@ -60,12 +60,11 @@ def get_list_unsubscribe(list_unsubscribe):
         list_unsubscribe =  [(re.search('<(.*)>', item).group(1)) for item in  unsubscribe_splited]
     return list_unsubscribe
 
-def is_undesirable_folders(folder):
-    return b'\\Noselect' in folder[0] or imapclient.TRASH in folder[0] or imapclient.DRAFTS in folder[0] or imapclient.JUNK in folder[0]
+def is_undesirable_folder(folder):
+    return b'\\Noselect' in folder[0] or imapclient.JUNK in folder[0] or imapclient.TRASH in folder[0] or imapclient.DRAFTS in folder[0]
 
 def get_all_emails(host, username, password):
 
-    # all_to_fetch =  ['BODYSTRUCTURE', 'RFC822.SIZE', 'BODY.PEEK[HEADER.FIELDS (From)]' ,'BODY.PEEK[HEADER.FIELDS (Subject)]','BODY.PEEK[HEADER.FIELDS (References)]', 'BODY.PEEK[HEADER.FIELDS (In-Reply-To)]', 'BODY.PEEK[HEADER.FIELDS (Message-ID)]', 'BODY.PEEK[HEADER.FIELDS (List-Unsubscribe)]', 'BODY.PEEK[HEADER.FIELDS (List-Unsubscribe-Post)]' ]
     all_to_fetch = ['BODYSTRUCTURE', 'RFC822.SIZE', 'BODY.PEEK[HEADER]', 'FLAGS']
     
 
@@ -80,7 +79,7 @@ def get_all_emails(host, username, password):
     fetched_emails = []
     
     for folder in folders:
-        if is_undesirable_folders(folder):
+        if is_undesirable_folder(folder):
             continue
 
         selected_folder = folder[2] # (b'\\HasNoChildren',), b'/', 'INBOX')
@@ -100,9 +99,8 @@ def get_all_emails(host, username, password):
                 'subject' : make_readable_header(parsed_header['Subject']),
                 'sender_name' : sender_name,
                 'sender_email' : sender_email,
-                'receiver' : username,
                 'size' : data[b'RFC822.SIZE'], 
-                'received_at' : convert_to_datetime(parsed_header['Date']),
+                'received_at' : rfc_date_to_datetime(parsed_header['Date']),
                 'message_id' : get_message_id(parsed_header.get('Message-ID', '')),
                 
                 'attachments' : get_attachments(data[b'BODYSTRUCTURE']),
@@ -123,22 +121,23 @@ def get_all_emails(host, username, password):
     return fetched_emails
 
 
-HOST = 'outlook.office365.com'
-USERNAME = 'test.memory.20.21@outlook.be'
-PASSWORD = 'ighymaubdccnvjxv'
 
-HOST = 'imap.gmail.com'
-USERNAME = 'test.memory.20.21@gmail.com'
-PASSWORD = 'awdlfovxkfxcbbdb'
+# HOST = 'outlook.office365.com'
+# USERNAME = 'test.memory.20.21@outlook.be'
+# PASSWORD = 'ighymaubdccnvjxv'
 
-ans = get_all_emails(HOST, USERNAME, PASSWORD)
+# HOST = 'imap.gmail.com'
+# USERNAME = 'test.memory.20.21@gmail.com'
+# PASSWORD = 'awdlfovxkfxcbbdb'
 
-for e in ans:
-    print('-------------------------------------------------------')
-    print('-------------------------------------------------------')
-    print()
-    print(e)
-    print()
+# ans = get_all_emails(HOST, USERNAME, PASSWORD)
+
+# for e in ans:
+#     print('-------------------------------------------------------')
+#     print('-------------------------------------------------------')
+#     print()
+#     print(e)
+#     print()
 
 
 

@@ -5,9 +5,9 @@ User = get_user_model()
 
 # Create your models here.
 class EmailHeaders(models.Model):
-    uid = models.IntegerField()
+    uid = models.IntegerField(unique=True)
     seen = models.BooleanField(default=False)
-    subject = models.CharField(max_length=255)
+    subject = models.CharField(max_length=255, blank=True)
     sender_name = models.CharField(max_length=255, blank=True)
     sender_email = models.EmailField()
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -35,6 +35,7 @@ class InReplyTo(models.Model):
 class Newsletter(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
     # list_unsubscribe_type = models.CharField(max_length=255)
+
     list_unsubscribe = models.CharField(max_length=255)
     one_click = models.BooleanField(default=False)
     unsubscribed = models.BooleanField(default=False)
