@@ -54,11 +54,17 @@ def get_in_reply_to(in_reply_to_header):
 def get_seen_flag(flags):
     return b'\\Seen' in flags
 
-def get_list_unsubscribe(list_unsubscribe):
+def get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post):
     if list_unsubscribe:
-        unsubscribe_splited = str(list_unsubscribe).split(',')
-        list_unsubscribe =  [(re.search('<(.*)>', item).group(1)) for item in  unsubscribe_splited]
-    return list_unsubscribe
+        list_unsubscribe_url = re.search("<(http.*?)>", list_unsubscribe)
+        list_unsubscribe_mailto = re.search("<(mailto.*?)>", list_unsubscribe)
+        if list_unsubscribe_post and list_unsubscribe_url:
+            return list_unsubscribe_url.group(1)
+        elif list_unsubscribe_mailto:
+            return list_unsubscribe_mailto.group(1)
+        else: # if list_unsubscribe_url
+            return list_unsubscribe_url.group(1)
+    return ''
 
 def is_undesirable_folder(folder):
     return b'\\Noselect' in folder[0] or imapclient.JUNK in folder[0] or imapclient.TRASH in folder[0] or imapclient.DRAFTS in folder[0]
@@ -93,6 +99,7 @@ def get_all_emails(host, username, password):
             
             sender_name, sender_email = get_sender_from_header(parsed_header['From'])
 
+            list_unsubscribe_post = bool(parsed_header.get('List-Unsubscribe-Post', False))
             email_headers = {
                 'folder' : selected_folder,
                 'uid' : msg_id,
@@ -107,8 +114,8 @@ def get_all_emails(host, username, password):
                 'references' : get_references(parsed_header.get('References', '')),
                 'in_reply_to' : get_in_reply_to(parsed_header.get('In-Reply-To', '')),
 
-                'list_unsubscribe' : get_list_unsubscribe(parsed_header.get('List-Unsubscribe', [])), # List-Unsubscribe
-                'list_unsubscribe_post' : parsed_header.get('List-Unsubscribe-Post', False), # List-Unsubscribe-Post
+                'list_unsubscribe' : get_list_unsubscribe(parsed_header.get('List-Unsubscribe', ''), list_unsubscribe_post), # List-Unsubscribe
+                'list_unsubscribe_post' : list_unsubscribe_post, # List-Unsubscribe-Post
 
                 'seen': get_seen_flag(data[b'FLAGS']),
             }
@@ -121,23 +128,25 @@ def get_all_emails(host, username, password):
     return fetched_emails
 
 
+if __name__ == '__main__':
+    HOST = 'outlook.office365.com'
+    USERNAME = 'test.memory.20.21@outlook.be'
+    PASSWORD = 'ighymaubdccnvjxv'
 
-# HOST = 'outlook.office365.com'
-# USERNAME = 'test.memory.20.21@outlook.be'
-# PASSWORD = 'ighymaubdccnvjxv'
+    HOST = 'imap.gmail.com'
+    USERNAME = 'test.memory.20.21@gmail.com'
+    PASSWORD = 'awdlfovxkfxcbbdb'
 
-# HOST = 'imap.gmail.com'
-# USERNAME = 'test.memory.20.21@gmail.com'
-# PASSWORD = 'awdlfovxkfxcbbdb'
+    ans = get_all_emails(HOST, USERNAME, PASSWORD)
 
-# ans = get_all_emails(HOST, USERNAME, PASSWORD)
+    for e in ans:
+        if e['list_unsubscribe']:
+            print('-------------------------------------------------------')
+            print('-------------------------------------------------------')
+            print()
+            print(e)
+            print()
 
-# for e in ans:
-#     print('-------------------------------------------------------')
-#     print('-------------------------------------------------------')
-#     print()
-#     print(e)
-#     print()
 
 
 

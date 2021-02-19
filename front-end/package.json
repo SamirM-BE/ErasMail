@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "buefy": "^0.9.4"
-  },
-  "devDependencies": {
-    "vue-cli-plugin-buefy": "~0.3.8"
-  }
-}

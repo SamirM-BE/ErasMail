@@ -26,8 +26,4 @@ def uniq(alist):
     return list(set(alist))
 
 def rfc_date_to_datetime(date):
-    email_date = email.utils.parsedate(date)
-    sec_local_time = time.mktime(email_date)
-    email_datetime = datetime.datetime.fromtimestamp(sec_local_time)
-
-    return email_datetime
+    return email.utils.parsedate_to_datetime(date)
