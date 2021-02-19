@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth import get_user_model
 
-from .imap.imap_helper import get_all_emails
+from .imap.imap_helper import get_all_emails, move_to_trash
 
 from .models import Newsletter, EmailHeaders, Attachment, Reference, InReplyTo
 
@@ -18,8 +18,8 @@ class EmailView(APIView):
         email = request.user.email
 
         # request body
-        application_password = request.data["application_password"]
-        host = request.data["host"]
+        application_password = request.data['application_password']
+        host = request.data['host']
 
         user = request.user
         try:
@@ -29,7 +29,7 @@ class EmailView(APIView):
 
                 if email_headers['list_unsubscribe']:
                     try:
-                        unsubscribe = Newsletter.objects.get(sender_email=email_headers['sender_email'])
+                        unsubscribe = Newsletter.objects.get(receiver=user, sender_email=email_headers['sender_email'])
                         # if the one_click is set we don't change anything because it is the best way to unsubscribe
                         if (not unsubscribe.one_click) and email_headers['list_unsubscribe_post']: 
                             unsubscribe.one_click = True
@@ -47,28 +47,40 @@ class EmailView(APIView):
                 else:
                     unsubscribe = None
 
-                # TODO
+                # TODO : Gerer le cas ou l'user ferme la fenetre de navigation sans logout quid ?? on ne fait pas appelle a delete dans ce cas
                 # solution 1 supprimer DB avant de fetch
                 # solution 2 create or update
                 email_headers_model = EmailHeaders.objects.create(uid=email_headers['uid'], seen=email_headers['seen'], subject=email_headers['subject'],
                                              sender_name=email_headers['sender_name'], sender_email=email_headers['sender_email'],
                                              receiver=user, size=email_headers['size'], received_at=email_headers['received_at'],
                                              message_id=email_headers['message_id'], folder=email_headers['folder'], unsubscribe=unsubscribe)
-                for name, size in email_headers['attachments']:
-                    Attachment.objects.create(email_header=email_headers_model, name=name, size=size)
                 
-                for reference in email_headers['references']:
-                    Reference.objects.create(email_header=email_headers_model, reference=reference)
+                [Attachment.objects.create(email_header=email_headers_model, name=name, size=size) for name, size in email_headers['attachments']]
+                
+                [Reference.objects.create(email_header=email_headers_model, reference=reference) for reference in email_headers['references']]
 
-                for in_reply_to in email_headers['in_reply_to']:
-                    InReplyTo.objects.create(email_header=email_headers_model, in_reply_to=in_reply_to)
-
-
+                [InReplyTo.objects.create(email_header=email_headers_model, in_reply_to=in_reply_to) for in_reply_to in email_headers['in_reply_to']]
+                    
             return Response(status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request):
+        email = request.user.email
         user = request.user
-        EmailHeaders.objects.filter(receiver=user).delete()
+
+        # request body
+        application_password = request.data.get('application_password', None)
+        host = request.data.get('host', None)
+        folder_uids = request.data.get('uids', False)
+        # uids template
+        # "uids": {
+        #     "INBOX":[3, 5]
+        #     }
+        if folder_uids:
+            move_to_trash(host, email, application_password, folder_uids)
+            [[EmailHeaders.objects.get(receiver=user, folder=folder_name, uid=uid).delete() for uid in uids] for folder_name, uids in folder_uids.items()]
+        else:
+            EmailHeaders.objects.filter(receiver=user).delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)

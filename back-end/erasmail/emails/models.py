@@ -29,9 +29,6 @@ class EmailHeaders(models.Model):
 
     unsubscribe = models.ForeignKey(Newsletter, on_delete=models.CASCADE, blank=True, null=True)
 
-    # def is_an_old_email(self):
-    #     return self.received_at >= timezone.now() - datetime.timedelta(days= 365 * 3)
-
     def __str__(self):
         return f'from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}'
 
