@@ -9,7 +9,7 @@
 <script>
 import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
-import Navbar from "../components/Navbar"
+import Navbar from "../components/Navbar";
 
 export default {
   name: "Home",

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <progress class="progress is-small is-primary" max="100">15%</progress>
+        <progress class="progress is-small is-primary" max="100"></progress>
     </div>
 </template>
 
