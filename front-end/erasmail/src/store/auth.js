@@ -38,10 +38,11 @@ export const auth = {
             state.accessToken = access
         },
         destroyAuth(state) {
-            localStorage.removeItem('token-access')
-            localStorage.removeItem('token-refresh')
-            localStorage.removeItem('app-password')
-            localStorage.removeItem('host')
+            // localStorage.removeItem('token-access')
+            // localStorage.removeItem('token-refresh')
+            // localStorage.removeItem('app-password')
+            // localStorage.removeItem('host')
+            localStorage.clear()
             state.accessToken = null
             state.refreshToken = null
             state.app_password = null
@@ -51,65 +52,68 @@ export const auth = {
     actions: {
         // run the below action to get a new access token on expiration
         refreshToken(context) {
-            return new Promise((resolve, reject) => {
-                axiosBase.post('api/token-refresh/', {
+            // return new Promise((resolve, reject) => {
+            return axiosBase.post('api/token-refresh/', {
                     refresh: context.state.refreshToken
                 }) // send the stored refresh token to the backend API
-                    .then(response => { // if API sends back new access and refresh token update the store
-                        console.log('New access successfully generated')
-                        context.commit('updateAccess', response.data.access)
-                        resolve(response.data.access)
-                    })
-                    .catch(err => {
-                        console.log('error in refreshToken Task')
-                        reject(err) // error generating new access and refresh token because refresh token has expired
-                    })
-            })
+                .then(response => { // if API sends back new access and refresh token update the store
+                    console.log('New access successfully generated')
+                    context.commit('updateAccess', response.data.access)
+                    return response.data.access
+                })
+                .catch(err => {
+                    console.log(`Error return while trying to refresh the token in vueX: ${err}`)
+                    return err // error generating new access and refresh token because refresh token has expired
+                })
+            // })
         },
-        async userLogout(context) {
+        userLogout(context) {
             if (context.getters.loggedIn) {
-                 const promise1 = await getAPI.delete('/api/emails/', {
+                let promise_delete_emails = getAPI.delete('/api/emails/', {
                     headers: {
                         Authorization: `Bearer ${context.state.accessToken}`
                     }
                 })
-                // })
-                const promise2 = await getAPI.post('/api/users/logout', { refresh: context.state.refreshToken }, {
-                        headers: {
-                            Authorization: `Bearer ${context.state.accessToken}`
-                        }
-                    }).then(() => {
+                let promise_user_logout = getAPI.post('/api/users/logout', {
+                    refresh: context.state.refreshToken
+                }, {
+                    headers: {
+                        Authorization: `Bearer ${context.state.accessToken}`
+                    }
+                })
+                let promise_destroy_auth = new Promise((resolve) => {
+                    context.commit('destroyAuth')
+                    console.log("The local storage has been flushed")
+                    resolve()
+                })
+                return Promise.all([promise_delete_emails, promise_user_logout, promise_destroy_auth])
+                    .catch(err => {
+                        console.log(`Error return while trying to execute userLogout : ${err}`)
                         context.commit('destroyAuth')
-
+                        return err
                     })
-                
-
-
-                Promise.all([promise1, promise2])
-
             }
         },
         userLogin(context, usercredentials) {
-            return new Promise((resolve, reject) => {
-                axiosBase.post('/api/users/login', {
+            // return new Promise((resolve, reject) => {
+            return axiosBase.post('/api/users/login', {
                     email: usercredentials.email,
                     app_password: usercredentials.app_password,
                     host: usercredentials.host
                 })
-                    .then(response => {
-                        console.log(response.data)
-                        context.commit('updateStorage', {
-                            access: response.data.access,
-                            refresh: response.data.refresh,
-                            app_password: usercredentials.app_password,
-                            host: usercredentials.host
-                        })
-                        resolve()
+                .then(response => {
+                    console.log(response.data)
+                    context.commit('updateStorage', {
+                        access: response.data.access,
+                        refresh: response.data.refresh,
+                        app_password: usercredentials.app_password,
+                        host: usercredentials.host
                     })
-                    .catch(err => {
-                        reject(err)
-                    })
-            })
+                })
+                .catch(err => {
+                    console.log(`Error return while trying to execute userLogin : ${err}`)
+                })
+            // })
         }
     }
 }

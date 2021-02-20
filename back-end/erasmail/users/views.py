@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from .models import CustomUser
 from .serializers import UserSerializer
@@ -11,6 +11,8 @@ from .serializers import UserSerializer
 from .token import get_tokens_for_user
 
 from imapclient import IMAPClient
+
+from datetime import timedelta
 
 class LoginView(APIView):
     permission_classes = (AllowAny,)
@@ -47,8 +49,8 @@ class LogoutView(APIView):
         # the body of request must contain the refresh token with the name : 'refresh'
         try:
             refresh_token = request.data['refresh']
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            rf_token = RefreshToken(refresh_token)
+            rf_token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
