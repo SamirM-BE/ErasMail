@@ -31,8 +31,8 @@ export default {
         .post(
           "/api/emails/",
           {
-            application_password: localStorage.getItem("app_password"),
-            host: localStorage.getItem("host"),
+            app_password: this.$store.state.auth.app_password,
+            host: this.$store.state.auth.host,
           },
           {
             headers: {

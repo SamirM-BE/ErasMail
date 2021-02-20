@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='customuser',
-            name='application_password',
+            name='app_password',
         ),
     ]

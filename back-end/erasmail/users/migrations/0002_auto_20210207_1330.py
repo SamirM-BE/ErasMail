@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='customuser',
-            name='application_password',
+            name='app_password',
             field=models.CharField(default='test', max_length=250),
             preserve_default=False,
         ),

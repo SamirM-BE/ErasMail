@@ -18,12 +18,12 @@ class EmailView(APIView):
         email = request.user.email
 
         # request body
-        application_password = request.data['application_password']
+        app_password = request.data['app_password']
         host = request.data['host']
 
         user = request.user
         try:
-            emails_headers = get_all_emails(host, email, application_password)
+            emails_headers = get_all_emails(host, email, app_password)
 
             for email_headers in emails_headers:
 
@@ -70,7 +70,7 @@ class EmailView(APIView):
         user = request.user
 
         # request body
-        application_password = request.data.get('application_password', None)
+        app_password = request.data.get('app_password', None)
         host = request.data.get('host', None)
         folder_uids = request.data.get('uids', False)
         # uids template
@@ -78,9 +78,8 @@ class EmailView(APIView):
         #     "INBOX":[3, 5]
         #     }
         if folder_uids:
-            move_to_trash(host, email, application_password, folder_uids)
+            move_to_trash(host, email, app_password, folder_uids)
             [[EmailHeaders.objects.get(receiver=user, folder=folder_name, uid=uid).delete() for uid in uids] for folder_name, uids in folder_uids.items()]
         else:
             EmailHeaders.objects.filter(receiver=user).delete()
-
         return Response(status=status.HTTP_204_NO_CONTENT)

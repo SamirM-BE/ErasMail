@@ -18,14 +18,14 @@ class LoginView(APIView):
 
     def post(self, request):
         email = request.data['email']
-        application_password = request.data['application_password']
+        app_password = request.data['app_password']
         host = request.data['host']
 
         print(request.data)
 
         try:
             server = IMAPClient(host)
-            server.login(email, application_password)
+            server.login(email, app_password)
             server.logout()
 
             user, is_created = CustomUser.objects.get_or_create(email=email)

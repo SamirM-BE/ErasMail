@@ -33,12 +33,12 @@
                   </div>
 
                   <div class="field">
-                    <label for="application_password" class="label">Application Password</label>
+                    <label for="app_password" class="label">Application Password</label>
                     <div class="control has-icons-left">
                       <span class="icon is-small is-left">
                         <i class="fa fa-lock"></i>
                       </span>
-                      <input id="application_password" class="input" type="text" placeholder="awdlfovxkfxcbbdb" v-model="application_password" />
+                      <input id="app_password" class="input" type="text" placeholder="awdlfovxkfxcbbdb" v-model="app_password" />
                     </div>
                   </div>
 
@@ -71,13 +71,13 @@ export default {
     return {
       incorrectAuth: false,
       email: "",
-      application_password: "",
+      app_password: "",
       host: "",
     };
   },
   computed: {
     hideSubmit() {
-      return this.email == "" || this.application_password == "" || this.host == "";
+      return this.email == "" || this.app_password == "" || this.host == "";
     },
   },
   components: {
@@ -85,13 +85,10 @@ export default {
   },
   methods: {
     login() {
-      localStorage.setItem('host', this.host)
-      localStorage.setItem('app_password', this.application_password)
-
       this.$store
         .dispatch("auth/userLogin", {
           email: this.email,
-          application_password: this.application_password,
+          app_password: this.app_password,
           host: this.host,
         })
         .then(() => {
