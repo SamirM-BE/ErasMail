@@ -38,10 +38,6 @@ export const auth = {
             state.accessToken = access
         },
         destroyAuth(state) {
-            // localStorage.removeItem('token-access')
-            // localStorage.removeItem('token-refresh')
-            // localStorage.removeItem('app-password')
-            // localStorage.removeItem('host')
             localStorage.clear()
             state.accessToken = null
             state.refreshToken = null
@@ -52,7 +48,6 @@ export const auth = {
     actions: {
         // run the below action to get a new access token on expiration
         refreshToken(context) {
-            // return new Promise((resolve, reject) => {
             return axiosBase.post('api/token-refresh/', {
                     refresh: context.state.refreshToken
                 }) // send the stored refresh token to the backend API
@@ -63,9 +58,8 @@ export const auth = {
                 })
                 .catch(err => {
                     console.log(`Error return while trying to refresh the token in vueX: ${err}`)
-                    return err // error generating new access and refresh token because refresh token has expired
+                    context.commit('destroyAuth')
                 })
-            // })
         },
         userLogout(context) {
             if (context.getters.loggedIn) {
@@ -83,7 +77,6 @@ export const auth = {
                 })
                 let promise_destroy_auth = new Promise((resolve) => {
                     context.commit('destroyAuth')
-                    console.log("The local storage has been flushed")
                     resolve()
                 })
                 return Promise.all([promise_delete_emails, promise_user_logout, promise_destroy_auth])
@@ -102,7 +95,6 @@ export const auth = {
                     host: usercredentials.host
                 })
                 .then(response => {
-                    console.log(response.data)
                     context.commit('updateStorage', {
                         access: response.data.access,
                         refresh: response.data.refresh,

@@ -32,7 +32,6 @@ export default {
         })
         .then((response) => {
           this.email = response.data.email;
-          console.log(response.data);
         })
         .catch((err) => {
           console.log(err);

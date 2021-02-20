@@ -27,22 +27,22 @@ getAPI.interceptors.response.use((response) => {
   if (error.response.status !== 401) {
     return new Promise((_, reject) => {
       reject(error);
-    });
-  } else if (error.config.url == 'api/token-refresh/') {
-    console.log('Les canards ont-ils froid ? Bonne question ! Un froid de cannard !')
-    store.dispatch('auth/userLogout')
-      .then(() => {
-        this.$router.push({
-          name: 'login'
-        })
-        return new Promise((_, reject) => {
-          reject(error)
-        })
-      }).catch((error) => {
-        console.log(`The refresh token has expired, userLogout  (interceptor) : ${error}`)
-      })
-  }
-
+    }); 
+   } 
+  //  else if (error.config.url == 'api/token-refresh/') {
+  //   console.log('Les canards ont-ils froid ? Bonne question ! Un froid de cannard !')
+  //   store.dispatch('auth/userLogout')
+  //     .then(() => {
+  //       this.$router.push({
+  //         name: 'login'
+  //       })
+  //       return new Promise((_, reject) => {
+  //         reject(error)
+  //       })
+  //     }).catch((error) => {
+  //       console.log(`The refresh token has expired, userLogout  (interceptor) : ${error}`)
+  //     })
+  // }
   return store.dispatch('auth/refreshToken')
     .then(access => {
       const config = error.config;
@@ -57,9 +57,10 @@ getAPI.interceptors.response.use((response) => {
         })
       })
     })
-    .catch((error) => {
-      Promise.reject(error);
-    });
+    // .catch((error) => {
+    //   console.log('FAUX')
+    //   Promise.reject(error);
+    // });
 })
 
 
