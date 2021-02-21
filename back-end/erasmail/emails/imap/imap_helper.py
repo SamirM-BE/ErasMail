@@ -95,7 +95,6 @@ def get_all_emails(host, username, password):
     fetched_emails = []
     
     for folder in folders:
-        print(folder)
         if is_undesirable_folder(folder):
             continue
 
@@ -155,3 +154,24 @@ def move_to_trash(host, username, password, folder_uids):
 
     server.logout()
 
+if __name__ == '__main__':
+    pass
+    # HOST = 'imap.gmail.com'
+    # USERNAME = 'test.memory.20.21@gmail.com'
+    # PASSWORD = 'awdlfovxkfxcbbdb'
+
+    # HOST = 'outlook.office365.com'
+    # USERNAME = 'test.memory.20.21@outlook.be'
+    # PASSWORD = 'ighymaubdccnvjxv'
+
+    # ans = get_all_emails(HOST, USERNAME, PASSWORD)
+
+
+    # print(count, count_n)
+    # for e in ans:
+    #     if e['list_unsubscribe']:
+    #         print('-------------------------------------------------------')
+    #         print('-------------------------------------------------------')
+    #         print()
+    #         print(e)
+    #         print()

@@ -35,7 +35,7 @@
 </template>
 
 <script>
-//import { getAPI } from "../axios-api";
+import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
 import ProgressbarEmail from "../components/ProgressbarEmail";
 import LoginSuccessfullyNotification from "../components/LoginSuccessfullyNotification";
@@ -72,31 +72,31 @@ export default {
     ProgressbarEmail,
     LoginSuccessfullyNotification,
   },
-  // created() {
-  //   if (this.loggedIn) {
-  //     getAPI
-  //       .post(
-  //         "/api/emails/",
-  //         {
-  //           app_password: this.$store.state.auth.app_password,
-  //           host: this.$store.state.auth.host,
-  //         },
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-  //           },
-  //         }
-  //       )
-  //       .then(() => {
-  //         this.$router.push({
-  //           name: "home",
-  //         });
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // },
+  created() {
+    if (this.loggedIn) {
+      getAPI
+        .post(
+          "/api/emails/",
+          {
+            app_password: this.$store.state.auth.app_password,
+            host: this.$store.state.auth.host,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+            },
+          }
+        )
+        .then(() => {
+          this.$router.push({
+            name: "home",
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  },
 };
 </script>
 
