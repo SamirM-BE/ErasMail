@@ -9,7 +9,7 @@
                 <form class="box" v-on:submit.prevent="login">
                   <div class="logo has-text-centered">
                     <!-- <img src="https://i.imgur.com/vRJbfum.png" width="112" height="28"> -->
-                    <strong> ErasMail </strong>
+                    <strong>ErasMail </strong>
                   </div>
 
                   <hr/>
@@ -18,22 +18,22 @@
                     <span class="icon">
                       <i class="fa fa-exclamation-triangle"></i>
                     </span>
-                    <span>Incorrect email or password !</span>
+                    <span>{{ $t('views.login.incorrectEmailOr') }}</span>
                     <hr/>
                   </div>
 
                   <div class="field">
-                    <label for="email" class="label">Email</label>
+                    <label for="email" class="label">E-mail</label>
                     <div class="control has-icons-left">
                       <span class="icon is-small is-left">
                         <i class="fa fa-envelope"></i>
                       </span>
-                      <input id="email" class="input" type="email" placeholder="e.g. alex@example.com" v-model="email" />
+                      <input id="email" class="input" type="email" placeholder="alex@gmail.com" v-model="email" />
                     </div>
                   </div>
 
                   <div class="field">
-                    <label for="app_password" class="label">Application Password</label>
+                    <label for="app_password" class="label">{{ $t('views.login.applicationPassword') }}</label>
                     <div class="control has-icons-left">
                       <span class="icon is-small is-left">
                         <i class="fa fa-lock"></i>
@@ -43,16 +43,14 @@
                   </div>
 
                   <div class="field">
-                    <label for="host" class="label">Host</label>
+                    <label for="host" class="label">{{ $t('views.login.host') }}</label>
                     <div class="control">
                       <input id="host" class="input" type="text" placeholder="imap.gmail.com" v-model="host" />
                     </div>
                   </div>
 
                   <hr />
-                  <button class="button is-primary is-fullwidth" :disabled="hideSubmit">
-                    Log in
-                  </button>
+                  <button class="button is-primary is-fullwidth" :disabled="hideSubmit">{{ $t('views.login.logIn') }}</button>
                 </form>
               </div>
             </div>

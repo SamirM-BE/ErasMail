@@ -10,16 +10,16 @@
         <div class="container">
           <div class="columns is-centered test">
             <div class="column is-4 has-text-centered logo">
-              <strong> ErasMail </strong>
+              <strong>ErasMail</strong>
             </div>
             <div class="column is-4">
-              <strong class="title">Welcome to ErasMail</strong>
+              <strong class="title">{{ $t('views.loading.welcomeToErasmail') }}</strong>
               <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam consequatur omnis quasi cum impedit ipsum amet sapiente libero beatae, enim voluptatibus velit perferendis, atque sunt soluta architecto, quo debitis alias!</p>
             </div>
           </div>
           <div class="columns is-centered">
             <div class="column is-4 has-text-centered">
-              <p>Analyzing your emails</p>
+              <p>{{ $t('views.loading.analyzingYourEmails') }}</p>
               <ProgressbarEmail></ProgressbarEmail>
             </div>
           </div>

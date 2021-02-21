@@ -1,0 +1,28 @@
+{
+  "navbar": {
+    "mainNavigation": "main navigation",
+    "home": " Home ",
+    "more": "More",
+    "about": "About",
+    "contact": " Contact ",
+    "reportAnIssue": " Report an issue ",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "views": {
+    "home": {
+      "publicContent": "Public content",
+      "privateContent": "Private content : {email}"
+    },
+    "loading": {
+      "welcomeToErasmail": "Welcome to ErasMail",
+      "analyzingYourEmails": "Analyzing your emails"
+    },
+    "login": {
+      "incorrectEmailOr": "Incorrect email or password !",
+      "applicationPassword": "Application Password",
+      "host": "Host",
+      "logIn": "Log in"
+    }
+  }
+}

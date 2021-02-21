@@ -1,8 +1,8 @@
 <template>
   <div>
     <Navbar></Navbar>
-    <h1 v-if="!loggedIn">Public content</h1>
-    <h1 v-else>Private content : {{ email }}</h1>
+    <h1 v-if="!loggedIn">{{ $t('views.home.publicContent') }}</h1>
+    <h1 v-else>{{ $t('views.home.privateContent', { email: email }) }}</h1>
   </div>
 </template>
 

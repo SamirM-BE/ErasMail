@@ -1,0 +1,28 @@
+{
+  "navbar": {
+    "mainNavigation": "navigation principale",
+    "home": "Accueil",
+    "more": "Plus d'informations",
+    "about": "A propos",
+    "contact": " Contact",
+    "reportAnIssue": "Signaler un problème",
+    "login": "Se connecter",
+    "logout": "Se déconnecter"
+  },
+  "views": {
+    "home": {
+      "publicContent": "Contenu public",
+      "privateContent": "Contenu privé : {email}"
+    },
+    "loading": {
+      "welcomeToErasmail": "Bienvenue sur ErasMail",
+      "analyzingYourEmails": "Nous analysons vos e-mails"
+    },
+    "login": {
+      "incorrectEmailOr": "Mauvais e-mail out mot de passe !",
+      "applicationPassword": "Mot de passe d'application",
+      "host": "Hôte",
+      "logIn": "Connectez vous"
+    }
+  }
+}
