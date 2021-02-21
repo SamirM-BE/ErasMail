@@ -23,7 +23,7 @@ class EmailHeaders(models.Model):
     sender_email = models.EmailField()
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
     size = models.IntegerField()
-    received_at = models.DateTimeField()
+    received_at = models.DateTimeField(null=True)
     message_id = models.CharField(max_length=255)
     folder = models.CharField(max_length=255)
 

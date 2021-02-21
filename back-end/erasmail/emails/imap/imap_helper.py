@@ -1,9 +1,9 @@
+from collections import defaultdict
 import re
 
 from imapclient import IMAPClient, imapclient
 from email.parser import BytesHeaderParser
 from .utils import *
-
 
 # FROM header might contain a name and an email or only an email
 # this functions extracts the email and the name (if possible)
@@ -29,15 +29,19 @@ def get_attachments(bodystructure_header):
     else:
         for part in bodystructure_header:
             if type(part) == tuple and len(part) > 0 and (part[0] == b'attachment' or part[0] == b'ATTACHMENT'):
-                attachments += [ tuple((make_readable_header(bodystructure_header[2][1]), bodystructure_header[6])) ]
+                if type(bodystructure_header[2]) == tuple and bodystructure_header[2][1]:  # bodystructure_header[2][1] possible position du ficher 
+                    # bodystructure_header[6] position de la taille
+                    attachments += [ tuple((make_readable_header(bodystructure_header[2][1]), bodystructure_header[6]))] 
+                elif type(part[1]) == tuple and part[1][1]: # part[1][1] possible position du ficher
+                    attachments += [ tuple((make_readable_header(part[1][1]), bodystructure_header[6]))] # faire des stats
     return attachments
 
 def get_message_id(message_id_header):
     message_id_re = re.compile('<([^>]+)>')
     message_id = message_id_re.search(make_readable_header(message_id_header))
     if message_id:
-        message_id = message_id.group(1)
-    return message_id
+        return message_id.group(1)
+    return ''
 
 def get_references(references_header):
     refences_re = re.compile('<([^>]+)>')
@@ -62,18 +66,24 @@ def get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post):
             return list_unsubscribe_url.group(1)
         elif list_unsubscribe_mailto:
             return list_unsubscribe_mailto.group(1)
-        else: # if list_unsubscribe_url
+        elif list_unsubscribe_url:
             return list_unsubscribe_url.group(1)
+        elif list_unsubscribe[:6] == 'mailto' or list_unsubscribe[:4] == 'http': # in this case the header has only one field without <>
+            return list_unsubscribe
     return ''
 
 def is_undesirable_folder(folder):
     return b'\\Noselect' in folder[0] or imapclient.JUNK in folder[0] or imapclient.TRASH in folder[0] or imapclient.DRAFTS in folder[0]
 
-def get_all_emails(host, username, password):
+def fetch_messages_bulk(server, messages):
 
     all_to_fetch = ['BODYSTRUCTURE', 'RFC822.SIZE', 'BODY.PEEK[HEADER]', 'FLAGS']
-    
+    messages_chunked = chunks(messages, 1300)
+    fetched = defaultdict()
+    [fetched.update(server.fetch([i for i in chunk if i] , all_to_fetch)) for chunk in messages_chunked]
+    return fetched
 
+def get_all_emails(host, username, password):
     server = IMAPClient(host)
     server.login(username, password)
 
@@ -85,29 +95,34 @@ def get_all_emails(host, username, password):
     fetched_emails = []
     
     for folder in folders:
+        print(folder)
         if is_undesirable_folder(folder):
             continue
 
         selected_folder = folder[2] # (b'\\HasNoChildren',), b'/', 'INBOX')
+
+
         server.select_folder(selected_folder)
         messages = server.search(['All'])
-        fetched = server.fetch(messages, all_to_fetch)
+        fetched = fetch_messages_bulk(server, messages)
 
         
         for msg_id, data in fetched.items():
             parsed_header = parser.parsebytes(data[b'BODY[HEADER]']) # Parse a byte structure as a dictionary structure
+            parsed_header = make_readable_headers(parsed_header)
             
-            sender_name, sender_email = get_sender_from_header(parsed_header['From'])
+            sender_name, sender_email = get_sender_from_header(parsed_header.get('From', ''))
 
             list_unsubscribe_post = bool(parsed_header.get('List-Unsubscribe-Post', False))
+
             email_headers = {
                 'folder' : selected_folder,
                 'uid' : msg_id,
-                'subject' : make_readable_header(parsed_header['Subject']),
+                'subject' : parsed_header.get('Subject', ''),
                 'sender_name' : sender_name,
                 'sender_email' : sender_email,
                 'size' : data[b'RFC822.SIZE'], 
-                'received_at' : rfc_date_to_datetime(parsed_header['Date']),
+                'received_at' : rfc_date_to_datetime(parsed_header.get('Date', '')),
                 'message_id' : get_message_id(parsed_header.get('Message-ID', '')),
                 
                 'attachments' : get_attachments(data[b'BODYSTRUCTURE']),
@@ -139,27 +154,4 @@ def move_to_trash(host, username, password, folder_uids):
         server.unselect_folder()
 
     server.logout()
-
-
-if __name__ == '__main__':
-    HOST = 'outlook.office365.com'
-    USERNAME = 'test.memory.20.21@outlook.be'
-    PASSWORD = 'ighymaubdccnvjxv'
-
-    HOST = 'imap.gmail.com'
-    USERNAME = 'test.memory.20.21@gmail.com'
-    PASSWORD = 'awdlfovxkfxcbbdb'
-
-    ans = get_all_emails(HOST, USERNAME, PASSWORD)
-
-    for e in ans:
-        if e['list_unsubscribe']:
-            print('-------------------------------------------------------')
-            print('-------------------------------------------------------')
-            print()
-            print(e)
-            print()
-
-
-
 
