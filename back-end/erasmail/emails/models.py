@@ -22,7 +22,7 @@ class EmailHeaders(models.Model):
     sender_name = models.CharField(max_length=255, blank=True)
     sender_email = models.EmailField()
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
-    size = models.IntegerField()
+    size = models.IntegerField(default=0)
     received_at = models.DateTimeField(null=True)
     message_id = models.CharField(max_length=255)
     folder = models.CharField(max_length=255)
@@ -40,6 +40,9 @@ class Attachment(models.Model):
 class Reference(models.Model):
     email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
     reference = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return self.reference
 
 class InReplyTo(models.Model):
     email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
