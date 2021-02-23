@@ -43,15 +43,6 @@ class Container:
     def is_dummy (self):
         return self.message is None
     
-    def get_thread_size(self):
-        counter = 0
-        if self.message:
-            counter += self.message.message.size
-        for child in self.children:
-            #print(type(child))
-            counter +=  child.get_thread_size()
-        return counter
-
     def add_child (self, child):
         if child.parent:
             child.parent.remove_child(child)
@@ -81,6 +72,25 @@ class Container:
                 if child not in seen:
                     stack.append(child)
         return False
+    
+    def has_attachement(self):
+        if self.message and self.message.message.attachment_set.count() > 0:
+            return True
+
+        for child in self.children:
+            if child.has_attachement():
+                return True
+
+        return False
+    
+    def get_thread_size(self):
+        counter = 0
+        if self.message:
+            counter += self.message.message.size
+        for child in self.children:
+            #print(type(child))
+            counter +=  child.get_thread_size()
+        return counter
 
 class Message (object):
     """Represents a message to be threaded.
@@ -296,7 +306,7 @@ def print_container(ctr, depth=0, debug=0):
         # Printing the repr() is more useful for debugging
         sys.stdout.write(repr(ctr))
     else:
-        sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(ctr.message.message.uid)))
+        sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(ctr.message.message.uid) + " date:" + str(ctr.message.message.received_at)))
 
     sys.stdout.write('\n')
     for c in ctr.children:
@@ -308,22 +318,30 @@ def conversation_threading():
     for email in emails:
         msglist.append(make_message(email))
     
-    print('Threading...')
     subject_table = thread(msglist)
 
     # Output
     L = subject_table.items()
+    L = [x for x in L if len(x[1]) > 1]
     L = sorted(L)
+
+    print(L)
 
     for subj, container in L:
         length = len(container)
         if length > 1:
             print('-----------------------------')
-            print('length', length, 'size', container.get_thread_size())
+            print('length', length, 'size', container.get_thread_size(), 'subject:', subj, 'has attachment:', container.has_attachement())
             print_container(container)
 
+
+# SOLUTION :
+# mettre un field threadID dans EmailHeaders
+# les meme convsersation auront le meme thread ID
+# au front end on ordonne via le datetime
     
 
+# mettre un threadID + ordre via datetime 
 
 
 # from emails.models import EmailHeaders
