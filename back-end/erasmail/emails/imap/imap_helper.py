@@ -73,7 +73,7 @@ def get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post):
     return ''
 
 def is_undesirable_folder(folder):
-    return b'\\Noselect' in folder[0] or imapclient.JUNK in folder[0] or imapclient.TRASH in folder[0] or imapclient.DRAFTS in folder[0]
+    return b'\\Noselect' in folder[0] or imapclient.JUNK in folder[0] or imapclient.TRASH in folder[0] or imapclient.DRAFTS in folder[0] or imapclient.ALL in folder[0]
 
 def fetch_messages_bulk(server, messages):
 

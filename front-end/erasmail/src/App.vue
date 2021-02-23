@@ -30,7 +30,7 @@ export default {
     },
     unloadHandler() {
       this.gap_time = new Date().getTime() - this.beforeUnload_time;
-      if (this.gap_time <= 5) {
+      if (this.gap_time <= 10) {
         return this.$store.dispatch("auth/userLogout");
       }
     },
