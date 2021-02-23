@@ -24,7 +24,9 @@ def make_readable_headers(headers):
     return {key: make_readable_header(headers[key]) for key in headers.keys()}
 
 def uniq(alist):
-    return list(set(alist))
+    l = []
+    [l.append(x) for x in alist if x not in l]
+    return l
 
 def rfc_date_to_datetime(date):
     try:
