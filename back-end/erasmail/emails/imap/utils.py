@@ -1,5 +1,3 @@
-from email.header import decode_header, make_header
-import email.utils
 from itertools import zip_longest
 
 

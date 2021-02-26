@@ -1,6 +1,5 @@
 from collections import defaultdict
 from imapclient import IMAPClient, imapclient
-from email.parser import BytesHeaderParser
 from .utils import *
 from .message import MailMessage
 
@@ -8,10 +7,12 @@ from .message import MailMessage
 def is_undesirable_folder(folder):
     return (
         b"\\Noselect" in folder[0]
+        or b'\\Important' in folder[0]
         or imapclient.JUNK in folder[0]
         or imapclient.TRASH in folder[0]
         or imapclient.DRAFTS in folder[0]
         or imapclient.ALL in folder[0]
+        or imapclient.FLAGGED in folder[0]
     )
 
 
@@ -43,11 +44,11 @@ def get_all_emails(host, username, password):
     # parser = BytesHeaderParser()  # Creates a header parser
 
     folders = server.list_folders()
-
     fetched_emails = []
 
     for folder in folders:
         if is_undesirable_folder(folder):
+            # print(folder)
             continue
 
         selected_folder = folder[2]  # (b'\\HasNoChildren',), b'/', 'INBOX')
