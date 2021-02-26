@@ -1,5 +1,10 @@
-from .utils import *
+from utils import *
 import re
+from email.header import decode_header
+from email.parser import BytesHeaderParser
+
+parser = BytesHeaderParser()  # Creates a header parser
+
 
 # BODYSTRUCTURE is a complex header containing multiple parts of informations
 # This function extracts the attachment part of the bodystructure
@@ -10,52 +15,88 @@ def get_attachments(bodystructure_header):
             attachments += get_attachments(part)
     else:
         for part in bodystructure_header:
-            if type(part) == tuple and len(part) > 0 and (part[0] == b'attachment' or part[0] == b'ATTACHMENT'):
-                if type(bodystructure_header[2]) == tuple and bodystructure_header[2][1]:  # bodystructure_header[2][1] possible position du ficher 
+            if (
+                type(part) == tuple
+                and len(part) > 0
+                and (part[0] == b"attachment" or part[0] == b"ATTACHMENT")
+            ):
+                if (
+                    type(bodystructure_header[2]) == tuple
+                    and bodystructure_header[2][1]
+                ):  # bodystructure_header[2][1] possible position du ficher
                     # bodystructure_header[6] position de la taille
-                    attachments += [ tuple((make_readable_header(bodystructure_header[2][1]), bodystructure_header[6]))] 
-                elif type(part[1]) == tuple and part[1][1]: # part[1][1] possible position du ficher
-                    attachments += [ tuple((make_readable_header(part[1][1]), bodystructure_header[6]))] # faire des stats
+                    attachments += [
+                        tuple(
+                            (
+                                make_readable_header(bodystructure_header[2][1]),
+                                bodystructure_header[6],
+                            )
+                        )
+                    ]
+                elif (
+                    type(part[1]) == tuple and part[1][1]
+                ):  # part[1][1] possible position du ficher
+                    attachments += [
+                        tuple(
+                            (make_readable_header(part[1][1]), bodystructure_header[6])
+                        )
+                    ]  # faire des stats
     return attachments
+
 
 # FROM header might contain a name and an email or only an email
 # this functions extracts the email and the name (if possible)
 def get_sender_from_header(from_header):
     redeable_from_header = make_readable_header(from_header)
-    
-    idx = redeable_from_header.find('<')
+
+    idx = redeable_from_header.find("<")
     if idx == -1:
-        return ('', redeable_from_header)
+        return ("", redeable_from_header)
 
     sender_name = redeable_from_header[0:idx].lower().strip('" ')
-    sender_email = redeable_from_header[idx+1:-1].lower()
+    sender_email = redeable_from_header[idx + 1 : -1].lower()
 
     return (sender_name, sender_email)
 
 
 def get_message_id(message_id_header):
-    message_id_re = re.compile('<([^>]+)>')
-    message_id = message_id_re.search(make_readable_header(message_id_header))
-    if message_id:
+    if message_id_header:
+        message_id = decode_header(str(message_id_header))
+        message_id_re = re.compile("<([^>]+)>")
+        message_id = message_id_re.search(
+            decode_value(message_id[0][0], message_id[0][1])
+        )
         return message_id.group(1)
-    return ''
+    else:
+        return ""
+
 
 def get_references(references_header):
-    refences_re = re.compile('<([^>]+)>')
-    references = refences_re.findall(make_readable_header(references_header))
+    refences_re = re.compile("<([^>]+)>")
+    references = decode_header(str(references_header))
+    references = refences_re.findall(decode_value(references[0][0], references[0][1]))
     references = uniq(references)
     return references
 
+
 def get_in_reply_to(in_reply_to_header):
-    in_reply_to_re = re.compile('<([^>]+)>')
-    in_reply_tos = in_reply_to_re.findall(make_readable_header(in_reply_to_header))
-    in_reply_tos = uniq(in_reply_tos)
-    return in_reply_tos
+    if in_reply_to_header:
+        in_reply_tos = decode_header(str(in_reply_to_header))
+        in_reply_to_re = re.compile("<([^>]+)>")
+        in_reply_tos = in_reply_to_re.findall(
+            decode_value(in_reply_tos[0][0], in_reply_tos[0][1])
+        )
+        return uniq(in_reply_tos)
+    else:
+        return []
+
 
 def get_seen_flag(flags):
-    return b'\\Seen' in flags
+    return b"\\Seen" in flags
+
 
 def get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post):
+    list_unsubscribe = str(list_unsubscribe)
     if list_unsubscribe:
         list_unsubscribe_url = re.search("<(http.*?)>", list_unsubscribe)
         list_unsubscribe_mailto = re.search("<(mailto.*?)>", list_unsubscribe)
@@ -65,28 +106,62 @@ def get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post):
             return list_unsubscribe_mailto.group(1)
         elif list_unsubscribe_url:
             return list_unsubscribe_url.group(1)
-        elif list_unsubscribe[:6] == 'mailto' or list_unsubscribe[:4] == 'http': # in this case the header has only one field without <>
+        elif (
+            list_unsubscribe[:6] == "mailto" or list_unsubscribe[:4] == "http"
+        ):  # in this case the header has only one field without <>
             return list_unsubscribe
-    return ''
+    return ""
+
+
+def get_subject(subject_header) -> str:
+    if subject_header:
+        msg_subject = decode_header(str(subject_header))
+        return decode_value(msg_subject[0][0], msg_subject[0][1])
+    else:
+        return ""
+
+
+def get_sender_name(from_header) -> str:
+    if from_header:
+        msg_sender_name = decode_header(str(from_header))
+        return decode_value(msg_sender_name[0][0], msg_sender_name[0][1])
+    else:
+        return ""
+
 
 class MailMessage:
-    def __init__(self, folder, uid, subject, sender, size, received_at, message_id, attachments, references, in_reply_to, list_unsubscribe, list_unsubscribe_post, seen):
+    def __init__(
+        self,
+        folder,
+        uid,
+        flags,
+        size,
+        envelope,
+        references,
+        list_unsubscribe,
+        list_unsubscribe_post,
+        bodystructure,
+    ):
         self.folder = folder
         self.uid = uid
-        self.subject = subject
-        self.sender_name, self.sender_email = get_sender_from_header(sender)
-        self.size = size 
-        self.received_at = rfc_date_to_datetime(received_at)
-        self.message_id = get_message_id(message_id)
-        self.attachments = get_attachments(attachments)
-        self.references = get_references(references)
-        self.in_reply_to = get_in_reply_to(in_reply_to)
-        self.list_unsubscribe = get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post)
-        self.list_unsubscribe_post = bool(list_unsubscribe_post)
-        self.seen = get_seen_flag(seen)
+        self.seen = get_seen_flag(flags)
+        self.size = size
+        self.subject = get_subject(envelope.subject)
+        self.sender_name = get_sender_name(envelope.from_[0].name)
+        self.sender_email = (
+            str(envelope.from_[0].mailbox) + "@" + str(envelope.from_[0].host)
+        )
+        self.received_at = envelope.date
+        self.message_id = get_message_id(envelope.message_id)
+        self.in_reply_to = get_in_reply_to(envelope.in_reply_to)  # [] if none
+        self.references = get_references(references)  # [] if none
+        self.list_unsubscribe = get_list_unsubscribe(list_unsubscribe, list_unsubscribe)
+        self.list_unsubscribe_post = b"One-Click" in list_unsubscribe_post
+        self.attachments = get_attachments(bodystructure)
 
     def __str__(self):
-        return str({
+        return str(
+            {
                 "folder": self.folder,
                 "uid": self.uid,
                 "subject": self.subject,
@@ -101,7 +176,5 @@ class MailMessage:
                 "list_unsubscribe": self.list_unsubscribe,  # List-Unsubscribe
                 "list_unsubscribe_post": self.list_unsubscribe_post,  # List-Unsubscribe-Post
                 "seen": self.seen,
-            })
-
-        
-        
+            }
+        )
