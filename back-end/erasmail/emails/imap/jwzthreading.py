@@ -314,10 +314,9 @@ def print_container(ctr, depth=0, debug=0):
 
 def conversation_threading():
     emails = EmailHeaders.objects.filter(receiver__pk=1)
-    msglist = []
-    for email in emails:
-        msglist.append(make_message(email))
+    from time import time
     
+    msglist = (make_message(email) for email in emails) # this is a generator => we need to read once 0.08299803733825684
     subject_table = thread(msglist)
 
     # Output
@@ -336,6 +335,7 @@ def conversation_threading():
 
 
 # SOLUTION :
+# le mettre dans le loading 
 # mettre un field threadID dans EmailHeaders
 # les meme convsersation auront le meme thread ID
 # au front end on ordonne via le datetime
