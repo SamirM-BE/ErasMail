@@ -24,7 +24,7 @@ class EmailView(APIView):
 
         user = request.user
 
-        EmailHeaders.objects.filter(receiver=user).delete()
+        EmailHeaders.objects.filter(receiver=user).delete() # This remove all old history if the logout was not done successfully
 
 
         try:
@@ -67,7 +67,7 @@ class EmailView(APIView):
 
 
             for idx, thread in enumerate(threads):
-                folder_uids = thread[1].get_folder_uid()
+                folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:
                     email_header = EmailHeaders.objects.get(receiver=user, uid=uid, folder=folder)
                     email_header.thread_id = idx

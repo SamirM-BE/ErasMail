@@ -304,11 +304,7 @@ def conversation_threading(emails: MailMessage):
     subject_table = thread(msglist)
 
     # Output
-    L = subject_table.items()
-    L = [x for x in L if len(x[1]) > 1]
-    L = sorted(L)
-
-    return L
+    return (x for x in subject_table.values() if len(x) > 1)
     
     # print(L)
 
