@@ -12,6 +12,8 @@ from .models import Newsletter, EmailHeaders, Attachment
 
 from .serializers import EmailHeadersSerializer
 
+import re
+
 User = get_user_model()
 
 
@@ -133,22 +135,23 @@ class EmailView(APIView):
 
 
 class ThreadView(APIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        # user = request.user
-        # TODO : idée : faire une class thread p-e avec le thread
-        # TODO : s'assurer que la liste est ordonne selon le datetime
-        #        voir si en clef on mettrais pas le subject
+        user = request.user
 
         emails_threads = EmailHeaders.objects.filter(
-            receiver__pk=1, thread_id__isnull=False
-        )  # .order_by('received_at')
-        serializer = EmailHeadersSerializer(emails_threads, many=True)
+            receiver=user, thread_id__isnull=False
+        ).order_by('received_at')
 
+        serializer = EmailHeadersSerializer(emails_threads, many=True)
         response = {}
 
+        restrip_pat = re.compile(
+            """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE)
         for mail in serializer.data:
-            response[mail["thread_id"]] = response.get(mail["thread_id"], []) + [mail]
+            subj = restrip_pat.sub('', mail["subject"]) 
+            subj = subj.strip()  # remove space at the beginning. This is exactly the space between RE: and the subject name
+            response[subj] = response.get(subj, []) + [mail]
 
         return Response(data=response, status=status.HTTP_200_OK)

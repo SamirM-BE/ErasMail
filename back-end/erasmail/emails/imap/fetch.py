@@ -1,9 +1,8 @@
 from collections import defaultdict
 from imapclient import IMAPClient, imapclient
 from email.parser import BytesHeaderParser
-from utils import *
-from delete import *
-from message import MailMessage
+from .utils import *
+from .message import MailMessage
 
 
 def is_undesirable_folder(folder):

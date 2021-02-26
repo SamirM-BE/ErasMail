@@ -2,7 +2,6 @@
 # https://github.com/akuchling/jwzthreading
 
 from .message import MailMessage
-from .imap_helper import get_all_emails
 
 import re
 from collections import deque
@@ -11,6 +10,7 @@ restrip_pat = re.compile("""(
   (Re(\[\d+\])?:) | (\[ [^]]+ \])
 \s*)+
 """, re.IGNORECASE | re.VERBOSE)
+
 
 class Container:
     """Contains a tree of messages.
@@ -26,36 +26,36 @@ class Container:
     """
 
     #__slots__ = ['message', 'parent', 'children', 'id']
-    def __init__ (self):
+    def __init__(self):
         self.parent = None
         self.message = None
         self.children = []
 
-    def __repr__ (self):
+    def __repr__(self):
         return '<%s %x: %r>' % (self.__class__.__name__, id(self), self.message)
 
     def __len__(self):
         counter = 0
         if self.message:
-            counter +=1
+            counter += 1
         for child in self.children:
-            counter +=  len(child)
+            counter += len(child)
         return counter
 
-    def is_dummy (self):
+    def is_dummy(self):
         return self.message is None
-    
-    def add_child (self, child):
+
+    def add_child(self, child):
         if child.parent:
             child.parent.remove_child(child)
         self.children.append(child)
         child.parent = self
 
-    def remove_child (self, child):
+    def remove_child(self, child):
         self.children.remove(child)
         child.parent = None
 
-    def has_descendant (self, ctr):
+    def has_descendant(self, ctr):
         """(Container): bool
         Returns true if 'ctr' is a descendant of this Container.
         """
@@ -78,10 +78,12 @@ class Container:
     def get_folder_uid(self):
         folder_uid = []
         if self.message:
-            folder_uid.append((self.message.message.folder, self.message.message.uid))
+            folder_uid.append(
+                (self.message.message.folder, self.message.message.uid))
         for child in self.children:
-            folder_uid +=  child.get_folder_uid()
+            folder_uid += child.get_folder_uid()
         return folder_uid
+
 
 class Message (object):
     """Represents a message to be threaded.
@@ -103,10 +105,11 @@ class Message (object):
         self.references = []
         self.subject = None
 
-    def __repr__ (self):
+    def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.message_id)
 
-def make_message (msg: MailMessage) -> Message:
+
+def make_message(msg: MailMessage) -> Message:
     """(msg:rfc822.Message) : Message
     Create a Message object for threading purposes from an RFC822
     message.
@@ -122,7 +125,7 @@ def make_message (msg: MailMessage) -> Message:
 
     # Get list of unique message IDs from the References: header
     new.references = msg.references
-    
+
     # Get In-Reply-To: header and add it to references
     in_reply_to = msg.in_reply_to
     if in_reply_to:
@@ -132,7 +135,8 @@ def make_message (msg: MailMessage) -> Message:
 
     return new
 
-def prune_container (container: Container):
+
+def prune_container(container: Container):
     """(container:Container) : [Container]
     Recursively prune a tree of containers, as described in step 4
     of the algorithm.  Returns a list of the children that should replace
@@ -150,11 +154,11 @@ def prune_container (container: Container):
         container.add_child(c)
 
     if (container.message is None and
-        len(container.children) == 0):
+            len(container.children) == 0):
         # 4.A: nuke empty containers
         return []
     elif (container.message is None and
-          (len(container.children)==1 or
+          (len(container.children) == 1 or
            container.parent is not None)):
         # 4.B: promote children
         L = container.children[:]
@@ -165,7 +169,8 @@ def prune_container (container: Container):
         # Leave this node in place
         return [container]
 
-def thread (msglist: Message):
+
+def thread(msglist: Message):
     """([Message]) : {string:Container}
     The main threading function.  This takes a list of Message
     objects, and returns a dictionary mapping subjects to Containers.
@@ -225,7 +230,6 @@ def thread (msglist: Message):
 
     root_set = new_root_set
 
-
     # 5. Group root set by subject
     subject_table = {}
     for container in root_set:
@@ -281,6 +285,7 @@ def thread (msglist: Message):
 
     return subject_table
 
+
 def print_container(ctr, depth=0, debug=0):
     import sys
     sys.stdout.write(depth*' ')
@@ -288,11 +293,13 @@ def print_container(ctr, depth=0, debug=0):
         # Printing the repr() is more useful for debugging
         sys.stdout.write(repr(ctr))
     else:
-        sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(ctr.message.message.uid) + " folder:" + str(ctr.message.message.folder)))
+        sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(
+            ctr.message.message.uid) + " folder:" + str(ctr.message.message.folder)))
 
     sys.stdout.write('\n')
     for c in ctr.children:
         print_container(c, depth+1)
+
 
 def conversation_threading(emails: MailMessage):
 
@@ -301,7 +308,7 @@ def conversation_threading(emails: MailMessage):
 
     # Output
     return (x for x in subject_table.values() if len(x) > 1)
-    
+
     # print(L)
 
     # for subj, container in L:
@@ -313,13 +320,13 @@ def conversation_threading(emails: MailMessage):
 
 
 # SOLUTION :
-# le mettre dans le loading 
+# le mettre dans le loading
 # mettre un field threadID dans EmailHeaders
 # les meme convsersation auront le meme thread ID
 # au front end on ordonne via le datetime
-    
 
-# mettre un threadID + ordre via datetime 
+
+# mettre un threadID + ordre via datetime
 
 
 # from emails.models import EmailHeaders

@@ -1,4 +1,4 @@
-from utils import *
+from .utils import *
 import re
 from email.header import decode_header
 from email.parser import BytesHeaderParser
@@ -25,7 +25,8 @@ def get_attachments(bodystructure_header):
                     and bodystructure_header[2][1]
                 ):  # bodystructure_header[2][1] possible position du ficher
                     # bodystructure_header[6] position de la taille
-                    attachment_name = decode_header(bodystructure_header[2][1].decode())
+                    attachment_name = decode_header(
+                        bodystructure_header[2][1].decode())
                     attachment_name = decode_value(
                         attachment_name[0][0], attachment_name[0][1]
                     )
@@ -65,7 +66,7 @@ def get_sender_from_header(from_header):
         return ("", redeable_from_header)
 
     sender_name = redeable_from_header[0:idx].lower().strip('" ')
-    sender_email = redeable_from_header[idx + 1 : -1].lower()
+    sender_email = redeable_from_header[idx + 1: -1].lower()
 
     return (sender_name, sender_email)
 
@@ -87,7 +88,8 @@ def get_message_id(message_id_header):
 def get_references(references_header):
     refences_re = re.compile("<([^>]+)>")
     references = decode_header(str(references_header))
-    references = refences_re.findall(decode_value(references[0][0], references[0][1]))
+    references = refences_re.findall(
+        decode_value(references[0][0], references[0][1]))
     references = uniq(references)
     return references
 
@@ -175,7 +177,8 @@ class MailMessage:
         self.message_id = get_message_id(envelope.message_id)
         self.in_reply_to = get_in_reply_to(envelope.in_reply_to)  # [] if none
         self.references = get_references(references)  # [] if none
-        self.list_unsubscribe = get_list_unsubscribe(list_unsubscribe, list_unsubscribe)
+        self.list_unsubscribe = get_list_unsubscribe(
+            list_unsubscribe, list_unsubscribe)
         self.list_unsubscribe_post = b"One-Click" in list_unsubscribe_post
         self.attachments = get_attachments(bodystructure)
 
