@@ -5,8 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth import get_user_model
 
-from .imap.imap_helper import get_all_emails, move_to_trash
-
+from .imap.fetch import get_all_emails
+from .imap.delete import move_to_trash
 from .models import Newsletter, EmailHeaders, Attachment, Reference, InReplyTo
 
 User = get_user_model()

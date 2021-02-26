@@ -1,8 +1,8 @@
 from collections import defaultdict
-
 from imapclient import IMAPClient, imapclient
 from email.parser import BytesHeaderParser
 from utils import *
+from delete import *
 from message import MailMessage
 
 
@@ -83,32 +83,17 @@ def get_all_emails(host, username, password):
     return fetched_emails
 
 
-def move_to_trash(host, username, password, folder_uids):
-    server = IMAPClient(host)
-    server.normalise_times = False
-    server.login(username, password)
-
-    trash_folder = server.find_special_folder(imapclient.TRASH)
-
-    for folder_name, uids in folder_uids.items():
-        server.select_folder(folder_name)
-        server.move(uids, trash_folder)
-        server.unselect_folder()
-
-    server.logout()
-
-
 if __name__ == "__main__":
-    HOST = "imap.gmail.com"
-    USERNAME = "test.memory.20.21@gmail.com"
-    PASSWORD = "awdlfovxkfxcbbdb"
+    # HOST = "imap.gmail.com"
+    # USERNAME = "test.memory.20.21@gmail.com"
+    # PASSWORD = "awdlfovxkfxcbbdb"
 
-    # HOST = 'outlook.office365.com'
-    # USERNAME = 'test.memory.20.21@outlook.be'
-    # PASSWORD = 'ighymaubdccnvjxv'
+    HOST = "outlook.office365.com"
+    USERNAME = "test.memory.20.21@outlook.be"
+    PASSWORD = "ighymaubdccnvjxv"
 
     emails = get_all_emails(HOST, USERNAME, PASSWORD)
 
-    for mail in emails:
-        print(mail)
-        print("_____________________________________________________")
+    # for mail in emails:
+    #     print(mail)
+    #     print("_____________________________________________________")

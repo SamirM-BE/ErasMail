@@ -3,40 +3,10 @@ import email.utils
 from itertools import zip_longest
 
 
-def make_readable_header(header):
-    """Decode MIME header into utf-8, making it human readable
-    Args:
-        header (bytes, str, email.header.Header): the full or partial header.
-    Returns:
-        email.header.Header: the header in a human readable way.
-    """
-    if type(header) == email.header.Header:
-        header_str = str(header)
-    elif type(header) == bytes:
-        try:
-            header_str = header.decode("utf-8")
-        except UnicodeDecodeError:
-            header_str = header.decode("latin-1")
-    else:
-        header_str = header
-    return str(make_header(decode_header(header_str))).strip()
-
-
-def make_readable_headers(headers):
-    return {key: make_readable_header(headers[key]) for key in headers.keys()}
-
-
 def uniq(alist):
     l = []
     [l.append(x) for x in alist if x not in l]
     return l
-
-
-def rfc_date_to_datetime(date):
-    try:
-        return email.utils.parsedate_to_datetime(date)
-    except Exception:
-        return None
 
 
 def chunks(iterable: iter, n: int, fill_value=None) -> iter:

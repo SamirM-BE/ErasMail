@@ -25,10 +25,14 @@ def get_attachments(bodystructure_header):
                     and bodystructure_header[2][1]
                 ):  # bodystructure_header[2][1] possible position du ficher
                     # bodystructure_header[6] position de la taille
+                    attachment_name = decode_header(bodystructure_header[2][1].decode())
+                    attachment_name = decode_value(
+                        attachment_name[0][0], attachment_name[0][1]
+                    )
                     attachments += [
                         tuple(
                             (
-                                make_readable_header(bodystructure_header[2][1]),
+                                attachment_name,
                                 bodystructure_header[6],
                             )
                         )
@@ -36,18 +40,25 @@ def get_attachments(bodystructure_header):
                 elif (
                     type(part[1]) == tuple and part[1][1]
                 ):  # part[1][1] possible position du ficher
+                    attachment_name = decode_header(part[1][1].decode())
+                    attachment_name = decode_value(
+                        attachment_name[0][0], attachment_name[0][1]
+                    )
                     attachments += [
                         tuple(
-                            (make_readable_header(part[1][1]), bodystructure_header[6])
+                            (
+                                attachment_name,
+                                bodystructure_header[6],
+                            )
                         )
-                    ]  # faire des stats
+                    ]
     return attachments
 
 
 # FROM header might contain a name and an email or only an email
 # this functions extracts the email and the name (if possible)
 def get_sender_from_header(from_header):
-    redeable_from_header = make_readable_header(from_header)
+    redeable_from_header = decode_value(decode_header(from_header))
 
     idx = redeable_from_header.find("<")
     if idx == -1:
@@ -66,9 +77,11 @@ def get_message_id(message_id_header):
         message_id = message_id_re.search(
             decode_value(message_id[0][0], message_id[0][1])
         )
-        return message_id.group(1)
-    else:
-        return ""
+        if message_id:
+            return message_id.group(1)
+        else:
+            return ""
+    return ""
 
 
 def get_references(references_header):
