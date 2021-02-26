@@ -38,6 +38,7 @@ def fetch_messages_bulk(server, messages):
 
 def get_all_emails(host, username, password):
     server = IMAPClient(host)
+    server.normalise_times = False
     server.login(username, password)
 
     # parser = BytesHeaderParser()  # Creates a header parser
@@ -84,6 +85,7 @@ def get_all_emails(host, username, password):
 
 def move_to_trash(host, username, password, folder_uids):
     server = IMAPClient(host)
+    server.normalise_times = False
     server.login(username, password)
 
     trash_folder = server.find_special_folder(imapclient.TRASH)
