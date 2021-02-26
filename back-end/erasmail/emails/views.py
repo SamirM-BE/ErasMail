@@ -6,8 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 
 from .imap.imap_helper import get_all_emails, move_to_trash
+from .imap.jwzthreading import conversation_threading
 
-from .models import Newsletter, EmailHeaders, Attachment, Reference, InReplyTo
+from .models import Newsletter, EmailHeaders, Attachment
 
 User = get_user_model()
 
@@ -22,6 +23,10 @@ class EmailView(APIView):
         host = request.data['host']
 
         user = request.user
+
+        EmailHeaders.objects.filter(receiver=user).delete()
+
+
         try:
             mail_messages = get_all_emails(host, email, app_password)
 
@@ -56,16 +61,17 @@ class EmailView(APIView):
                                              message_id=mail.message_id, folder=mail.folder, unsubscribe=unsubscribe)
                 
                 [Attachment.objects.create(email_header=email_headers_model, name=name, size=size) for name, size in mail.attachments]
-                
-                [Reference.objects.create(email_header=email_headers_model, reference=reference) for reference in mail.references]
 
-                [InReplyTo.objects.create(email_header=email_headers_model, in_reply_to=in_reply_to) for in_reply_to in mail.in_reply_to]
-
-                # ICI FAIRE MAKEMESSAGE avec un append mettre email_headers_model et insatancier déjà references et in_reply_to depuis email_headers
             
-            # LANCER LE THREADING
+            threads = conversation_threading(mail_messages)
 
-            # STOCKER LES màj
+
+            for idx, thread in enumerate(threads):
+                folder_uids = thread[1].get_folder_uid()
+                for folder, uid in folder_uids:
+                    email_header = EmailHeaders.objects.get(receiver=user, uid=uid, folder=folder)
+                    email_header.thread_id = idx
+                    email_header.save()
                     
             return Response(status=status.HTTP_201_CREATED)
         except Exception as e:

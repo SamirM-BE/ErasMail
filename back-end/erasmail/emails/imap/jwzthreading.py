@@ -1,6 +1,5 @@
-from django.db.models import Q
-
-from ..models import EmailHeaders
+from .message import MailMessage
+from .imap_helper import get_all_emails
 
 import re
 from collections import deque
@@ -72,25 +71,14 @@ class Container:
                 if child not in seen:
                     stack.append(child)
         return False
-    
-    def has_attachement(self):
-        if self.message and self.message.message.attachment_set.count() > 0:
-            return True
 
-        for child in self.children:
-            if child.has_attachement():
-                return True
-
-        return False
-    
-    def get_thread_size(self):
-        counter = 0
+    def get_folder_uid(self):
+        folder_uid = []
         if self.message:
-            counter += self.message.message.size
+            folder_uid.append((self.message.message.folder, self.message.message.uid))
         for child in self.children:
-            #print(type(child))
-            counter +=  child.get_thread_size()
-        return counter
+            folder_uid +=  child.get_folder_uid()
+        return folder_uid
 
 class Message (object):
     """Represents a message to be threaded.
@@ -115,7 +103,7 @@ class Message (object):
     def __repr__ (self):
         return '<%s: %r>' % (self.__class__.__name__, self.message_id)
 
-def make_message (msg: EmailHeaders) -> Message:
+def make_message (msg: MailMessage) -> Message:
     """(msg:rfc822.Message) : Message
     Create a Message object for threading purposes from an RFC822
     message.
@@ -130,14 +118,12 @@ def make_message (msg: EmailHeaders) -> Message:
     new.subject = msg.subject
 
     # Get list of unique message IDs from the References: header
-    refs = msg.reference_set.all()
-    if refs.count() > 0:
-        new.references = [ref.reference for ref in refs]
+    new.references = msg.references
     
     # Get In-Reply-To: header and add it to references
-    in_reply_to = msg.inreplyto_set.all()
-    if in_reply_to.count() > 0:
-        msg_id = in_reply_to[0].in_reply_to
+    in_reply_to = msg.in_reply_to
+    if in_reply_to:
+        msg_id = in_reply_to[0]
         if msg_id not in new.references:
             new.references.append(msg_id)
 
@@ -306,17 +292,15 @@ def print_container(ctr, depth=0, debug=0):
         # Printing the repr() is more useful for debugging
         sys.stdout.write(repr(ctr))
     else:
-        sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(ctr.message.message.uid) + " date:" + str(ctr.message.message.received_at)))
+        sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(ctr.message.message.uid) + " folder:" + str(ctr.message.message.folder)))
 
     sys.stdout.write('\n')
     for c in ctr.children:
         print_container(c, depth+1)
 
-def conversation_threading():
-    emails = EmailHeaders.objects.filter(receiver__pk=1)
-    from time import time
-    
-    msglist = (make_message(email) for email in emails) # this is a generator => we need to read once 0.08299803733825684
+def conversation_threading(emails: MailMessage):
+
+    msglist = (make_message(email) for email in emails)
     subject_table = thread(msglist)
 
     # Output
@@ -324,14 +308,16 @@ def conversation_threading():
     L = [x for x in L if len(x[1]) > 1]
     L = sorted(L)
 
-    print(L)
+    return L
+    
+    # print(L)
 
-    for subj, container in L:
-        length = len(container)
-        if length > 1:
-            print('-----------------------------')
-            print('length', length, 'size', container.get_thread_size(), 'subject:', subj, 'has attachment:', container.has_attachement())
-            print_container(container)
+    # for subj, container in L:
+    #     print('-----------------------------')
+    #     print('length', len(container), 'subject:', subj)
+    #     print_container(container)
+    #     print('**********')
+    #     print(container.get_folder_uid())
 
 
 # SOLUTION :

@@ -26,6 +26,7 @@ class EmailHeaders(models.Model):
     received_at = models.DateTimeField(null=True)
     message_id = models.CharField(max_length=255)
     folder = models.CharField(max_length=255)
+    thread_id = models.IntegerField(null=True)
 
     unsubscribe = models.ForeignKey(Newsletter, on_delete=models.CASCADE, blank=True, null=True)
 
@@ -36,14 +37,3 @@ class Attachment(models.Model):
     email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     size = models.IntegerField()
-
-class Reference(models.Model):
-    email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
-    reference = models.CharField(max_length=255)
-
-    def __str__(self) -> str:
-        return self.reference
-
-class InReplyTo(models.Model):
-    email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
-    in_reply_to = models.CharField(max_length=255)
