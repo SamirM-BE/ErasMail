@@ -28,12 +28,15 @@ class EmailHeaders(models.Model):
     folder = models.CharField(max_length=255)
     thread_id = models.IntegerField(null=True)
 
-    unsubscribe = models.ForeignKey(Newsletter, on_delete=models.CASCADE, blank=True, null=True)
+    unsubscribe = models.ForeignKey(Newsletter, related_name='newsletters', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return f'from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}'
 
 class Attachment(models.Model):
-    email_header = models.ForeignKey(EmailHeaders, on_delete=models.CASCADE)
+    email_header = models.ForeignKey(EmailHeaders, related_name='attachments', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     size = models.IntegerField()
+
+    def __str__(self):
+        return f'{self.name} {self.size}'

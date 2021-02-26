@@ -1,14 +1,16 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 
 from .imap.imap_helper import get_all_emails, move_to_trash
 from .imap.jwzthreading import conversation_threading
 
 from .models import Newsletter, EmailHeaders, Attachment
+from .serializers import EmailHeadersSerializer
 
 User = get_user_model()
 
@@ -95,3 +97,23 @@ class EmailView(APIView):
         else:
             EmailHeaders.objects.filter(receiver=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ThreadView(APIView):
+    permission_classes = (AllowAny,)
+    
+    def get(self, request):
+        # user = request.user
+        # TODO : idée : faire une class thread p-e avec le thread
+        # TODO : s'assurer que la liste est ordonne selon le datetime
+        #        voir si en clef on mettrais pas le subject
+        
+        emails_threads = EmailHeaders.objects.filter(receiver__pk=1, thread_id__isnull=False) # .order_by('received_at')
+        serializer = EmailHeadersSerializer(emails_threads, many=True)
+
+        response = {}
+
+        for mail in serializer.data:
+            response[mail['thread_id']] = response.get(mail['thread_id'], []) + [mail]
+
+
+        return Response(data=response, status=status.HTTP_200_OK)

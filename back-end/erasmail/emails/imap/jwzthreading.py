@@ -1,3 +1,6 @@
+# https://www.jwz.org/doc/threading.html
+# https://github.com/akuchling/jwzthreading
+
 from .message import MailMessage
 from .imap_helper import get_all_emails
 
@@ -215,10 +218,6 @@ def thread (msglist: Message):
     for container in root_set:
         assert container.parent == None
 
-    ##print 'before'
-    ##for ctr in root_set:
-    ##    print_container(ctr)
-
     new_root_set = []
     for container in root_set:
         L = prune_container(container)
@@ -226,9 +225,6 @@ def thread (msglist: Message):
 
     root_set = new_root_set
 
-    ##print '\n\nafter'
-    ##for ctr in root_set:
-    ##     print_container(ctr)
 
     # 5. Group root set by subject
     subject_table = {}
