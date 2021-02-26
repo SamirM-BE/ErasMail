@@ -63,7 +63,7 @@ def get_all_emails(host, username, password):
             # parsed_header = make_readable_headers(parsed_header)
 
             email_headers = MailMessage(
-                folder,
+                selected_folder,
                 uid,
                 data[b"FLAGS"],
                 data[b"RFC822.SIZE"],

@@ -61,7 +61,7 @@ def get_sender_from_header(from_header):
 
 def get_message_id(message_id_header):
     if message_id_header:
-        message_id = decode_header(str(message_id_header))
+        message_id = decode_header(message_id_header.decode())
         message_id_re = re.compile("<([^>]+)>")
         message_id = message_id_re.search(
             decode_value(message_id[0][0], message_id[0][1])
@@ -81,7 +81,7 @@ def get_references(references_header):
 
 def get_in_reply_to(in_reply_to_header):
     if in_reply_to_header:
-        in_reply_tos = decode_header(str(in_reply_to_header))
+        in_reply_tos = decode_header(in_reply_to_header.decode())
         in_reply_to_re = re.compile("<([^>]+)>")
         in_reply_tos = in_reply_to_re.findall(
             decode_value(in_reply_tos[0][0], in_reply_tos[0][1])
@@ -115,7 +115,7 @@ def get_list_unsubscribe(list_unsubscribe, list_unsubscribe_post):
 
 def get_subject(subject_header) -> str:
     if subject_header:
-        msg_subject = decode_header(str(subject_header))
+        msg_subject = decode_header(subject_header.decode())
         return decode_value(msg_subject[0][0], msg_subject[0][1])
     else:
         return ""
@@ -123,8 +123,15 @@ def get_subject(subject_header) -> str:
 
 def get_sender_name(from_header) -> str:
     if from_header:
-        msg_sender_name = decode_header(str(from_header))
+        msg_sender_name = decode_header(from_header.decode())
         return decode_value(msg_sender_name[0][0], msg_sender_name[0][1])
+    else:
+        return ""
+
+
+def get_sender_email(mailbox, host) -> str:
+    if mailbox and host:
+        return mailbox.decode() + "@" + host.decode()
     else:
         return ""
 
@@ -148,8 +155,8 @@ class MailMessage:
         self.size = size
         self.subject = get_subject(envelope.subject)
         self.sender_name = get_sender_name(envelope.from_[0].name)
-        self.sender_email = (
-            str(envelope.from_[0].mailbox) + "@" + str(envelope.from_[0].host)
+        self.sender_email = get_sender_email(
+            envelope.from_[0].mailbox, envelope.from_[0].host
         )
         self.received_at = envelope.date
         self.message_id = get_message_id(envelope.message_id)
