@@ -6,15 +6,14 @@
 </template>
 
 <script>
-import {
-    convert_size
-} from "../utils";
+const byteSize = require('byte-size')
 
 export default {
     props: ["subject", "size"],
     computed: {
     readable_size() {
-      return convert_size(this.size);
+      let size_unit = byteSize(this.size)
+      return `${size_unit.value} ${size_unit.unit}`;
     },
   },
 }
