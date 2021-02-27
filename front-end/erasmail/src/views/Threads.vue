@@ -20,9 +20,9 @@
 
 
 <script>
-// import {
-//     getAPI
-// } from "../axios-api";
+import {
+    getAPI
+} from "../axios-api";
 import {
     mapGetters
 } from "vuex";
@@ -33,7 +33,7 @@ export default {
     name: "Home",
     data() {
         return {
-            threads: JSON.parse(localStorage.getItem('threads')),
+            threads: {} //JSON.parse(localStorage.getItem('threads')),
         };
     },
     computed: {
@@ -44,27 +44,26 @@ export default {
         Navbar,
         ThreadBox,
     },
-    // created() {
-    //     if (this.loggedIn) {
-    //         getAPI
-    //             .get(
-    //                 "/api/emails/threads", {
-    //                     headers: {
-    //                         Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-    //                     },
-    //                 }
-    //             ).then((response) => {
-    //                 console.log(response.data)
-    //                 this.threads = response.data
-    //                 localStorage.setItem('threads', JSON.stringify(response.data))
-    //                 var threads = localStorage.getItem('threads');
-    //                 console.log(JSON.parse(threads))
-    //             })
-    //             .catch((err) => {
-    //                 console.log(err);
-    //             });
-    //     }
-    // },
+    created() {
+        if (this.loggedIn) {
+            getAPI
+                .get(
+                    "/api/emails/threads", {
+                        headers: {
+                            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                        },
+                    }
+                ).then((response) => {
+                    this.threads = response.data
+
+                    localStorage.setItem('threads', JSON.stringify(response.data))
+                    console.log(JSON.parse(localStorage.getItem('threads')))
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        }
+    },
 }
 </script>
 
