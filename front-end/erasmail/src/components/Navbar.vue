@@ -2,12 +2,13 @@
   <nav class="navbar is-light" role="navigation" aria-label="main navigation">
     <!-- LOGO ErasMail -->
     <div class="navbar-brand">
-      <router-link class="navbar-item " :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
+      <router-link class="navbar-item" :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
 
-      <a role="button" class="navbar-burger" @click="showNav = !showNav" :class="{ 'is-active': showNav }" aria-label="menu" aria-expanded="false" data-target="navbar">
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
-      <span aria-hidden="true"></span>
+      <a role="button" class="navbar-burger" @click="showNav = !showNav" :class="{ 'is-active': showNav }"
+        aria-label="menu" aria-expanded="false" data-target="navbar">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
       </a>
     </div>
 
@@ -15,8 +16,8 @@
     <div id="navbar" class="navbar-menu" :class="{ 'is-active': showNav }">
       <!-- Left side -->
       <div class="navbar-start">
-        <a class="navbar-item is-hidden"> Home </a>
-
+        <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'threads' }">Threads</router-link> 
+         
         <a class="navbar-item is-hidden"> Documentation </a>
 
         <div class="navbar-item has-dropdown is-hoverable is-hidden">
@@ -49,10 +50,10 @@ import { mapGetters } from "vuex";
 
 export default {
   name: "Navbar",
-  data(){
+  data() {
     return {
-      showNav: false
-    }
+      showNav: false,
+    };
   },
   computed: mapGetters("auth", ["loggedIn"]),
 };

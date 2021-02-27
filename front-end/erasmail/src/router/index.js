@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Logout from '../views/Logout.vue'
 import Loading from '../views/Loading.vue'
+import Threads from '../views/Threads.vue'
 
 const routes = [
   {
@@ -24,6 +25,11 @@ const routes = [
     path: '/loading',
     name: 'loading',
     component: Loading,
+  },
+  {
+    path: '/threads',
+    name: 'threads',
+    component: Threads,
   },
 ]
 
