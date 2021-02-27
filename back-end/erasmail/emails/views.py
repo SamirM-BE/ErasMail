@@ -1,3 +1,4 @@
+from rest_framework import response
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics, status
@@ -145,14 +146,14 @@ class ThreadView(APIView):
         ).order_by('received_at')
 
         serializer = EmailHeadersSerializer(emails_threads, many=True)
-        response = {}
+        threads = {}
 
         restrip_pat = re.compile(
             """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE)
             
         for mail in serializer.data:
             
-            data = response.get(mail["thread_id"], {
+            data = threads.get(mail["thread_id"], {
                 'subject': '',
                 'has_attachmemnt': False,
                 'size': 0,
@@ -170,6 +171,10 @@ class ThreadView(APIView):
             data['size'] += mail['size']
             data['children'].append(mail)
             
-            response[mail["thread_id"]] = data
+            threads[mail["thread_id"]] = data
+
+        response = {'name': 'threads', 'children': sorted([x for x in  threads.values()], key=lambda x: x['size'], reverse=True)}
+
+
 
         return Response(data=response, status=status.HTTP_200_OK)

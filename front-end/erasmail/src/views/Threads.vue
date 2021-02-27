@@ -3,12 +3,13 @@
         <Navbar></Navbar>
         <div class="section">
             <div class="columns">
-                <div class="column logo p-0">
-                    <div v-for="n in 5" :key="n" class="thread_box">
-                        I'm in a box.
+                <div class="column is-half logo p-0">
+                    <div class="thread_field">
+                        <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx" :subject="thread.subject" :size="thread.size">
+                    </ThreadBox>
                     </div>
                 </div>
-                <div class="column has-text-centered logo">
+                <div class="column is-half logo p-0">
                     SAMIR
                 </div>
             </div>
@@ -26,18 +27,13 @@ import {
     mapGetters
 } from "vuex";
 import Navbar from "../components/Navbar";
+import ThreadBox from "../components/ThreadBox";
 
 export default {
     name: "Home",
     data() {
         return {
-            threads: null,
-            thread1: {
-                has_attachmemnt: false,
-                size: 81956,
-                subject: "Alerte de sécurité",
-                emails: []
-            }
+            threads: JSON.parse(localStorage.getItem('threads')),
         };
     },
     computed: {
@@ -46,6 +42,7 @@ export default {
     },
     components: {
         Navbar,
+        ThreadBox,
     },
     // created() {
     //     if (this.loggedIn) {
@@ -72,15 +69,7 @@ export default {
 </script>
 
 <style scoped>
-.thread_box {
-    border-radius: 10px;
-    padding: 3%;
-    margin: 1%;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-}
-
 .logo {
-  padding: 5%;
   border-color: lightgray !important;
   border: solid;
   border-width: thin;
