@@ -1,6 +1,6 @@
 <template>
-    <div class="box m-1">
-        <h1>{{ subject }}</h1>
+    <div class="box m-1 py-1 px-3">
+        <strong>{{ subject }}</strong>
         <h3>Size: {{ readable_size }}</h3>
     </div>
 </template>
@@ -22,6 +22,7 @@ export default {
 
 <style scoped>
 .box {
+    /* border-radius: 15px; */
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 .box:hover {
