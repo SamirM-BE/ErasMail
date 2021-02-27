@@ -8,7 +8,7 @@
       </div>
       <div class="hero-body">
         <div class="container">
-          <div class="columns is-centered test">
+          <div class="columns is-centered mb15">
             <div class="column is-4 has-text-centered logo">
               <strong> ErasMail </strong>
             </div>
@@ -101,7 +101,7 @@ export default {
 </script>
 
 <style scoped>
-.test {
+.mb15 {
   margin-bottom: 15%;
 }
 .logo {

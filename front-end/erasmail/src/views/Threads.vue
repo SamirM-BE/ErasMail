@@ -1,11 +1,15 @@
 <template>
     <div>
         <Navbar></Navbar>
-        <div>
-            <columns>
-            <p> Salut </p>
-            </columns>
-            
+        <div class="section">
+            <div class="columns">
+                <div class="column has-text-centered logo">
+                    EDGAR
+                </div>
+                <div class="column has-text-centered logo">
+                    SAMIR
+                </div>
+            </div>
         </div>
     </div>
 
@@ -16,15 +20,17 @@
 import {
     getAPI
 } from "../axios-api";
-import { mapGetters } from "vuex";
+import {
+    mapGetters
+} from "vuex";
 import Navbar from "../components/Navbar";
 
 export default {
     name: "Home",
     data() {
-    return {
-        threads: null,
-    };
+        return {
+            threads: null,
+        };
     },
     computed: {
         ...mapGetters("auth", ["loggedIn"]),
@@ -43,11 +49,8 @@ export default {
                         },
                     }
                 ).then((response) => {
-                    for (var i in response.data) {
-                        response.data[i].forEach(function(elem, index) {
-                            console.log(elem.attachments, index);
-                        });
-                    }
+                    console.log(response.data)
+                    this.threads = response.data
                 })
                 .catch((err) => {
                     console.log(err);
@@ -55,5 +58,13 @@ export default {
         }
     },
 }
-
 </script>
+
+<style scoped>
+.logo {
+  padding: 5%;
+  border-color: lightgray !important;
+  border: solid;
+  border-width: thin;
+}
+</style>
