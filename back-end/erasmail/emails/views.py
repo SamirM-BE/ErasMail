@@ -151,18 +151,25 @@ class ThreadView(APIView):
             """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE)
             
         for mail in serializer.data:
-            # remove space at the beginning. This is exactly the space between RE: and the subject name
-            subj = restrip_pat.sub('', mail['subject'])
-            subj = subj.strip()
-            data = response.get(subj, {
+            
+            data = response.get(mail["thread_id"], {
+                'subject': '',
                 'has_attachmemnt': False,
                 'size': 0,
                 'emails': [],
             })
-            data['emails'].append(mail)
-            data['size'] += mail['size']
+
+            if not data['subject']:
+                subj = restrip_pat.sub('', mail['subject'])
+                # remove space at the beginning. This is exactly the space between RE: and the subject name
+                data['subject'] = subj.strip()
+
             if mail['attachments']:
                 data['has_attachmemnt'] = True
-            response[subj] = data
+
+            data['size'] += mail['size']
+            data['emails'].append(mail)
+            
+            response[mail["thread_id"]] = data
 
         return Response(data=response, status=status.HTTP_200_OK)
