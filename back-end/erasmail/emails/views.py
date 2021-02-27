@@ -135,7 +135,7 @@ class EmailView(APIView):
 
 
 class ThreadView(APIView):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
 
     def get(self, request):
         user = request.user
@@ -149,9 +149,20 @@ class ThreadView(APIView):
 
         restrip_pat = re.compile(
             """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE)
+            
         for mail in serializer.data:
-            subj = restrip_pat.sub('', mail["subject"]) 
-            subj = subj.strip()  # remove space at the beginning. This is exactly the space between RE: and the subject name
-            response[subj] = response.get(subj, []) + [mail]
+            # remove space at the beginning. This is exactly the space between RE: and the subject name
+            subj = restrip_pat.sub('', mail['subject'])
+            subj = subj.strip()
+            data = response.get(subj, {
+                'has_attachmemnt': False,
+                'size': 0,
+                'emails': [],
+            })
+            data['emails'].append(mail)
+            data['size'] += mail['size']
+            if mail['attachments']:
+                data['has_attachmemnt'] = True
+            response[subj] = data
 
         return Response(data=response, status=status.HTTP_200_OK)
