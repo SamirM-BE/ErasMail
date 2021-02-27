@@ -5,14 +5,15 @@
         <div class="hero-body">
             <div class="section p-0">
                 <div class="columns">
-                    <div class="column is-half logo p-0">
-                        <div class="thread_field">
+                    <div class="column is-half has-border p-0">
+                        <div class="is-scrollable">
                             <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
-                            
+                            <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx"
+                                :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
-                    <div class="column is-half logo p-0">
+                    <div class="column is-half has-border p-0">
                         SAMIR
                     </div>
                 </div>
@@ -73,19 +74,20 @@ export default {
 </script>
 
 <style scoped>
-
 .section {
     width: 100%;
 }
-.thread_field {
+
+.column {
+    height: 75vh;
+}
+
+.is-scrollable {
     overflow: auto;
     height: 100%;
 }
-.column {
-    height: 50em;
-}
 
-.logo {
+.has-border {
     border-color: lightgray !important;
     border: solid;
     border-width: thin;
