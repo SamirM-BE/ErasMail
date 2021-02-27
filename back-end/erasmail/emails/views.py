@@ -156,7 +156,7 @@ class ThreadView(APIView):
                 'subject': '',
                 'has_attachmemnt': False,
                 'size': 0,
-                'emails': [],
+                'children': [],
             })
 
             if not data['subject']:
@@ -168,7 +168,7 @@ class ThreadView(APIView):
                 data['has_attachmemnt'] = True
 
             data['size'] += mail['size']
-            data['emails'].append(mail)
+            data['children'].append(mail)
             
             response[mail["thread_id"]] = data
 
