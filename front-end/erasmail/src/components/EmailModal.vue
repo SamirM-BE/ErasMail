@@ -7,28 +7,22 @@
             </header>
             <section class="modal-card-body">
                 <form class="form" v-on:submit.prevent="login">
-                <!---->
-                <div class="field" v-for="(email, index) in emails" :key="index">
-                    <div class="box control px-0">
-                        <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
-                        <label :for="index" class="checkbox is-large">
-                            <div class="email-details">
-                                <p>{{email.sender_name}} {{email.sender_email}}</p>
-                                <p>{{email.subject}}</p>
-                                <p>{{readableSize(email.size)}}</p>
-                                <p>{{readableDate(email.received_at)}}</p>
-                                <p>{{email.attachments}}</p>
-                            </div>
-                        </label>
+                    <!---->
+                    <div class="field" v-for="(email, index) in emails" :key="index">
+                        <div class="box control px-0">
+                            <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
+                            <label :for="index" class="checkbox is-large">
+                                <EmailDetails class="email-details" :email="email"></EmailDetails>
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
             </section>
             <footer class="modal-card-foot">
                 <button class="button is-danger" @click="removeEmails()">Remove</button>
                 <button class="button is-light is-light" @click="hideModal()">Cancel</button>
                 <div>
-                    <p > Selected size : {{readableSize(selectedSize)}} on {{readableSize(maxSize)}}</p>
+                    <p> Selected size : {{readableSize(selectedSize)}} on {{readableSize(maxSize)}}</p>
                     <progress class="progress is-small is-primary" :value="selectedSize" :max="maxSize"></progress>
                 </div>
             </footer>
@@ -37,6 +31,7 @@
 </template>
 
 <script>
+import EmailDetails from "./EmailDetails";
 const byteSize = require('byte-size')
 
 export default {
@@ -63,15 +58,13 @@ export default {
             return size;
         },
     },
+    components: {
+        EmailDetails,
+    },
     methods: {
         readableSize(size) {
             size = byteSize(size)
             return `${size.value} ${size.unit}`;
-        },
-        readableDate(date) {
-            date = new Date(date)
-            return `${(date.getMonth()+1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear().toString().padStart(4, '0')}
-                         ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
         },
         formattedOuput() {
             let output = {}

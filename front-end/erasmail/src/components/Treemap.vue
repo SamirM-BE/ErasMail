@@ -258,8 +258,8 @@ export default {
             return byteSize(bytes)
         },
         isSquareTooSmall(children){
-          console.log("y", this.y(children.y1 - children.y0 + children.parent.y0))
-          console.log("x", this.x(children.x1 - children.x0 + children.parent.x0))
+          // console.log("y", this.y(children.y1 - children.y0 + children.parent.y0))
+          // console.log("x", this.x(children.x1 - children.x0 + children.parent.x0))
           return this.y(children.y1 - children.y0 + children.parent.y0)*this.x(children.x1 - children.x0 + children.parent.x0) < 1000
         },
     }
