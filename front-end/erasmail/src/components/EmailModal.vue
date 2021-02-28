@@ -14,9 +14,10 @@
                         <label :for="index" class="checkbox is-large">
                             <div class="email-details">
                                 <p>{{email.sender_name}} {{email.sender_email}}</p>
-                                <p>{{email.subject}} </p>
+                                <p>{{email.subject}}</p>
                                 <p>{{readableSize(email.size)}}</p>
-                                <p>{{readableDate(email.received_at)}} </p>
+                                <p>{{readableDate(email.received_at)}}</p>
+                                <p>{{email.attachments}}</p>
                             </div>
                         </label>
                     </div>
