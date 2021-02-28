@@ -112,9 +112,19 @@ export default {
     },
     // You can do whatever when the selected node changes
     watch: {
-        selectedNode(newData, oldData) {
-            console.log('The selected node changed...')
+      selectedNode(newData, oldData) {
+        console.log('The selected node changed...')
+      },
+      threads_prop(newData, oldData) {
+        var that = this
+        console.log(that.threads_prop)
+        if (that.threads_prop) {
+          that.jsonData = that.threads_prop
+          that.initialize()
+          that.accumulate(that.rootNode, that)
+          that.treemap(that.rootNode)
         }
+      }
     },
     // In the beginning...
     mounted() {
@@ -122,11 +132,13 @@ export default {
         that.color = d3.scaleOrdinal(d3.schemeCategory10)
         // var threads = JSON.parse(that.threads_prop);
         // threads = {subject: "Threads", threads}
-        console.log(that.threads_prop)
-        that.jsonData = that.threads_prop
-        that.initialize()
-        that.accumulate(that.rootNode, that)
-        that.treemap(that.rootNode)
+        // console.log(that.threads_prop)
+        // if(that.threads_prop){
+        //   that.jsonData = that.threads_prop
+        //   that.initialize()
+        //   that.accumulate(that.rootNode, that)
+        //   that.treemap(that.rootNode)
+        // }
     },
     // The reactive computed variables that fire rerenders
     computed: {

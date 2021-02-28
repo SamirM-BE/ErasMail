@@ -5,10 +5,10 @@
         <div class="hero-body">
             <div class="section p-0"> 
                 <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject" @hide-modal="showModalFlag = false" @remove-emails="removeEmails"></EmailModal>
-                <div class="columns">
+                <div class="columns"> <!-- v-show="threads" -->
                     <div class="column is-half has-border p-0">
                         <div class="is-scrollable">
-                            <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx" @click="showModal(thread.subject, thread.children)"
+                            <ThreadBox v-for="(thread, idx) in threadsList" v-bind:key="idx" @click="showModal(thread.subject, thread.children)"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
@@ -51,7 +51,12 @@ export default {
     },
     computed: {
         ...mapGetters("auth", ["loggedIn"]),
-
+        threadsList(){
+            if(this.threads){
+                return this.threads.children
+            }
+            return null
+        }
     },
     components: {
         Navbar,
@@ -70,6 +75,8 @@ export default {
                     }
                 ).then((response) => {
                     this.threads = response.data
+                    console.log(response.data)
+                    console.log(this.threads)
                 })
                 .catch((err) => {
                     console.log(err);
