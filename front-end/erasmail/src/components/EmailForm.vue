@@ -27,9 +27,7 @@ export default {
     },
     watch: {
         reset(){
-            if(this.reset){
-                this.checkedEmails = []
-            }
+            this.checkedEmails = []
         },
         checkedEmails(){
             this.$emit('checked-emails', this.checkedEmails)
