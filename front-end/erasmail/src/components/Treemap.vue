@@ -1,7 +1,7 @@
 <template>
         <div class="treemap">
           <!-- The SVG structure is explicitly defined in the template with attributes derived from component data -->
-          <svg :height="height" style="margin-left: 0px;" :width="width">
+          <svg :width="width+'%'" :height="91+'vh'" style="margin-left: 0%;" >
             <g style="shape-rendering: crispEdges;" transform="translate(0,20)" v-if="selectedNode">
               <!-- We can use Vue transitions too! -->
               <transition-group name="list" tag="g" class="depth">
@@ -10,8 +10,8 @@
 
                   <!-- Generate the children squares (only visible on hover of a square) -->
                   <rect v-for="(child, id) in children._children" class="child" :id="id" :key="id"
-                    :height="y(child.y1) - y(child.y0)" :width="x(child.x1) - x(child.x0)" :x="x(child.x0)"
-                    :y="y(child.y0)">
+                    :height="(y(child.y1) - y(child.y0))+'%'" :width="(x(child.x1) - x(child.x0))+'%'" :x="x(child.x0)+'%'"
+                    :y="y(child.y0)+'%'">
                   </rect>
 
                   <!-- 
@@ -19,21 +19,21 @@
               You can attribute directly an event, that fires a method that changes the current node,
               restructuring the data tree, that reactivly gets reflected in the template.
             -->
-                  <rect class="parent" v-on:click="selectNode" :id="children.id" :key="children.id" :x="x(children.x0)"
-                    :y="y(children.y0)" :width="x(children.x1 - children.x0 + children.parent.x0)"
-                    :height="y(children.y1 - children.y0 + children.parent.y0)" :style="{ fill: color(index) }">
+                  <rect class="parent" v-on:click="selectNode" :id="children.id" :key="children.id" :x="x(children.x0)+'%'"
+                    :y="y(children.y0)+'%'" :width="x(children.x1 - children.x0 + children.parent.x0)+'%'"
+                    :height="y(children.y1 - children.y0 + children.parent.y0)+'%'" :style="{ fill: color(index) }">
 
                     <!-- The title attribute -->
-                    <title>{{ children.data.subject }} | {{ getBytesToSize(children.value) }}</title>
+                    <title>{{ children.data.subject }} | {{ `${getBytesToSize(children.value)}` }}</title>
                   </rect>
 
                   <!-- The visible square text element with the title and value of the child node -->
-                  <text dy="1em" :key="'t_' + index" :x="x(children.x0) + 6" :y="y(children.y0) + 6"
+                  <text dy="1em" :key="'t_' + index" :x="(x(children.x0) + 1)+'%'" :y="(y(children.y0) + 1)+'%'"
                     style="fill-opacity: 1;">
                     {{ children.data.subject }}
                   </text>
 
-                  <text dy="2.25em" :key="'k_' + index" :x="x(children.x0) + 6" :y="y(children.y0) + 6"
+                  <text dy="2.25em" :key="'k_' + index" :x="(x(children.x0) + 1)+'%'" :y="(y(children.y0) + 1)+'%'"
                     style="fill-opacity: 1;">
                     {{ `${getBytesToSize(children.value)}` }}
                   </text>
@@ -44,7 +44,7 @@
               <!-- The top most element, representing the previous node -->
               <g class="grandparent">
 
-                <rect :height="margin.top" :width="width" :y="(margin.top * -1)" v-on:click="selectNode" :id="parentId">
+                <rect :height="margin.top+'%'" :width="width+'%'" :y="(margin.top * -1)+'%'" v-on:click="selectNode" :id="parentId">
                 </rect>
 
                 <!-- The visible square text element with the id (basically a breadcumb, if you will) -->
@@ -101,8 +101,8 @@ export default {
                 bottom: 0,
                 left: 0
             },
-            width: 960,
-            height: 530,
+            width: 100,
+            height: 100,
             selected: null,
             color: {},
         }

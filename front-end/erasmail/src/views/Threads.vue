@@ -13,9 +13,9 @@
                         </div>
                     </div>
                     <div class="column is-half has-border p-0">
-                        <div class="is-scrollable">
+                        <!-- <div class="is-scrollable"> -->
                             <Treemap :threads_prop="threads"> </Treemap>
-                        </div>
+                        <!-- </div> -->
                     </div>
                 </div>
             </div>

@@ -174,7 +174,7 @@ class ThreadView(APIView):
             
             threads[mail["thread_id"]] = data
 
-        response = {'subject': 'threads', 'children': sorted([x for x in  threads.values()], key=lambda x: x['size'], reverse=True)}
+        response = {'subject': 'Threads', 'children': sorted([x for x in  threads.values()], key=lambda x: x['size'], reverse=True)}
 
 
 
