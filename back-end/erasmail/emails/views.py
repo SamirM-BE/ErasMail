@@ -119,6 +119,7 @@ class EmailView(APIView):
         # "uids": {
         #     "INBOX":[3, 5]
         #     }
+        # TODO : check if work with several folder
         if folder_uids:
             move_to_trash(host, email, app_password, folder_uids)
             [
@@ -173,7 +174,7 @@ class ThreadView(APIView):
             
             threads[mail["thread_id"]] = data
 
-        response = {'name': 'threads', 'children': sorted([x for x in  threads.values()], key=lambda x: x['size'], reverse=True)}
+        response = {'subject': 'threads', 'children': sorted([x for x in  threads.values()], key=lambda x: x['size'], reverse=True)}
 
 
 

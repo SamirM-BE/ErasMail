@@ -3,11 +3,12 @@
     <Navbar></Navbar>
     <div class="hero is-fullheight-with-navbar">
         <div class="hero-body">
-            <div class="section p-0">
+            <div class="section p-0"> 
+                <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject" @hide-modal="showModalFlag = false" @remove-emails="removeEmails"></EmailModal>
                 <div class="columns">
                     <div class="column is-half has-border p-0">
                         <div class="is-scrollable">
-                            <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx"
+                            <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx" @click="showModal(thread.subject, thread.children)"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
@@ -19,7 +20,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 </template>
@@ -35,14 +35,19 @@ import {
 import Navbar from "../components/Navbar";
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
+import EmailModal from "../components/EmailModal";
+
+// TODO threads = response.data au lieu de response.data.children
 
 export default {
     name: "Home",
     data() {
         return {
-            threads: null, 
-            threads_raw: localStorage.getItem('threads_raw')
-        };
+            threads: null,
+            showModalFlag: false,
+            threadSubject: '',
+            emails: [],
+        }
     },
     computed: {
         ...mapGetters("auth", ["loggedIn"]),
@@ -51,6 +56,7 @@ export default {
     components: {
         Navbar,
         ThreadBox,
+        EmailModal,
         Treemap,
     },
     created() {
@@ -64,16 +70,23 @@ export default {
                     }
                 ).then((response) => {
                     this.threads = response.data
-                    console.log(response.data)
-                    console.log(this.threads)
-                    localStorage.setItem('threads_raw', JSON.stringify(response.data))
                 })
                 .catch((err) => {
                     console.log(err);
                 });
         }
-        
     },
+    methods: {
+        showModal(threadSubject, emails) {
+            this.showModalFlag = true
+            this.threadSubject= threadSubject
+            this.emails = emails
+        },
+        removeEmails(emails) {
+            console.log(`send remove request here ! ${JSON.stringify(emails)}`)
+        },
+    },
+
 }
 </script>
 
