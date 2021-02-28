@@ -3,11 +3,11 @@
     <div class="hero is-fullheight-with-navbar">
         <div class="hero-body">
             <div class="section p-0"> 
-                <EmailModal :showModal="showModalFlag" :emails="emails" @hideModal="showModalFlag = false" @removeEmails="removeEmails"></EmailModal>
+                <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject" @hideModal="showModalFlag = false" @removeEmails="removeEmails"></EmailModal>
                 <div class="columns">
                     <div class="column is-half has-border p-0">
                         <div class="is-scrollable">
-                            <ThreadBox v-for="(thread, idx) in threads" v-bind:key="idx" @click="showModal(thread.children)"
+                            <ThreadBox v-for="(thread, idx) in threads" v-bind:key="idx" @click="showModal(thread.subject, thread.children)"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
@@ -39,6 +39,7 @@ export default {
     data() {
         return {
             showModalFlag: false,
+            threadSubject: '',
             emails: [],
             threads: JSON.parse(localStorage.getItem('threads')),
         };
@@ -73,12 +74,13 @@ export default {
     //     }
     // },
     methods: {
-        showModal(emails) {
+        showModal(threadSubject, emails) {
             this.showModalFlag = true
+            this.threadSubject= threadSubject
             this.emails = emails
         },
         removeEmails(emails) {
-            console.log(`send remove request here ! ${emails}`)
+            console.log(`send remove request here ! ${JSON.stringify(emails)}`)
         },
     },
 

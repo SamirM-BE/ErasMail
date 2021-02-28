@@ -119,6 +119,7 @@ class EmailView(APIView):
         # "uids": {
         #     "INBOX":[3, 5]
         #     }
+        # TODO : check if work with several folder
         if folder_uids:
             move_to_trash(host, email, app_password, folder_uids)
             [

@@ -12,8 +12,8 @@ export default {
     props: ["subject", "size"],
     computed: {
     readable_size() {
-      let size_unit = byteSize(this.size)
-      return `${size_unit.value} ${size_unit.unit}`;
+      let size = byteSize(this.size)
+      return `${size.value} ${size.unit}`;
     },
   },
 }
