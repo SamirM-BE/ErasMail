@@ -32,7 +32,9 @@ class LoginView(APIView):
 
             token = get_tokens_for_user(user)
 
-            return Response(token, status=status.HTTP_201_CREATED)
+            if is_created:
+                return Response(token, status=status.HTTP_201_CREATED)
+            return Response(token, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
