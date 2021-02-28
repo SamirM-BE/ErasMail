@@ -1,7 +1,7 @@
 <template>
-
-            <Navbar></Navbar>
-        <div class="hero is-fullheight-with-navbar">
+<div>
+    <Navbar></Navbar>
+    <div class="hero is-fullheight-with-navbar">
         <div class="hero-body">
             <div class="section p-0">
                 <div class="columns">
@@ -9,19 +9,19 @@
                         <div class="is-scrollable">
                             <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
-                            <ThreadBox v-for="(thread, idx) in threads.children" v-bind:key="idx"
-                                :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
                     <div class="column is-half has-border p-0">
-                        SAMIR
+                        <div class="is-scrollable">
+                            <Treemap :threads_prop="threads"> </Treemap>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
     </div>
-
+</div>
 </template>
 
 
@@ -34,12 +34,14 @@ import {
 } from "vuex";
 import Navbar from "../components/Navbar";
 import ThreadBox from "../components/ThreadBox";
+import Treemap from "../components/Treemap";
 
 export default {
     name: "Home",
     data() {
         return {
-            threads: {}, // JSON.parse(localStorage.getItem('threads')),
+            threads: null, 
+            threads_raw: localStorage.getItem('threads_raw')
         };
     },
     computed: {
@@ -49,6 +51,7 @@ export default {
     components: {
         Navbar,
         ThreadBox,
+        Treemap,
     },
     created() {
         if (this.loggedIn) {
@@ -61,14 +64,15 @@ export default {
                     }
                 ).then((response) => {
                     this.threads = response.data
-
-                    localStorage.setItem('threads', JSON.stringify(response.data))
-                    console.log(JSON.parse(localStorage.getItem('threads')))
+                    console.log(response.data)
+                    console.log(this.threads)
+                    localStorage.setItem('threads_raw', JSON.stringify(response.data))
                 })
                 .catch((err) => {
                     console.log(err);
                 });
         }
+        
     },
 }
 </script>
