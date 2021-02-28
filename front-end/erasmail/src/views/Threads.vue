@@ -26,9 +26,9 @@
 
 
 <script>
-import {
-    getAPI
-} from "../axios-api";
+// import {
+//     getAPI
+// } from "../axios-api";
 import {
     mapGetters
 } from "vuex";
@@ -43,7 +43,7 @@ export default {
     name: "Home",
     data() {
         return {
-            threads: null,
+            threads: JSON.parse(localStorage.getItem('threads')), //null,
             showModalFlag: false,
             threadSubject: '',
             emails: [],
@@ -64,25 +64,24 @@ export default {
         EmailModal,
         Treemap,
     },
-    created() {
-        if (this.loggedIn) {
-            getAPI
-                .get(
-                    "/api/emails/threads", {
-                        headers: {
-                            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                        },
-                    }
-                ).then((response) => {
-                    this.threads = response.data
-                    console.log(response.data)
-                    console.log(this.threads)
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        }
-    },
+    // created() {
+    //     if (this.loggedIn) {
+    //         getAPI
+    //             .get(
+    //                 "/api/emails/threads", {
+    //                     headers: {
+    //                         Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+    //                     },
+    //                 }
+    //             ).then((response) => {
+    //                 this.threads = response.data
+    //                 localStorage.setItem('threads', JSON.stringify(response.data))
+    //             })
+    //             .catch((err) => {
+    //                 console.log(err);
+    //             });
+    //     }
+    // },
     methods: {
         showModal(threadSubject, emails) {
             this.showModalFlag = true
