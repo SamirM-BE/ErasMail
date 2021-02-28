@@ -3,7 +3,7 @@
     <div class="hero is-fullheight-with-navbar">
         <div class="hero-body">
             <div class="section p-0"> 
-                <EmailModal :showModal="showModalFlag" :emails="emails" @hideModal="showModalFlag = false"></EmailModal>
+                <EmailModal :showModal="showModalFlag" :emails="emails" @hideModal="showModalFlag = false" @removeEmails="removeEmails"></EmailModal>
                 <div class="columns">
                     <div class="column is-half has-border p-0">
                         <div class="is-scrollable">
@@ -31,6 +31,8 @@ import {
 import Navbar from "../components/Navbar";
 import ThreadBox from "../components/ThreadBox";
 import EmailModal from "../components/EmailModal";
+
+// TODO threads = response.data au lieu de response.data.children
 
 export default {
     name: "Home",
@@ -74,6 +76,9 @@ export default {
         showModal(emails) {
             this.showModalFlag = true
             this.emails = emails
+        },
+        removeEmails(emails) {
+            console.log(`send remove request here ! ${emails}`)
         },
     },
 

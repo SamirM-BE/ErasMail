@@ -8,7 +8,7 @@
                 <!---->
                 <div class="field is-grouped">
                     <div class="control">
-                        <button class="button is-danger">Remove</button>
+                        <button class="button is-danger" @click="$emit('removeEmails', {'Inbox':[1,2,3]} )">Remove</button>
                     </div>
                     <div class="control">
                         <button class="button is-light is-light" @click="$emit('hideModal')">Cancel</button>
@@ -24,9 +24,9 @@
 import EmailCheckbox from "../components/EmailCheckbox";
 
 export default {
-      props: ['showModal', 'hideModal', 'emails'],
-      emits: ['hideModal'],
-      components: {
+    props: ['showModal', 'emails'],
+    emits: ['hideModal', 'removeEmails'],
+    components: {
         EmailCheckbox,
     },
 }
