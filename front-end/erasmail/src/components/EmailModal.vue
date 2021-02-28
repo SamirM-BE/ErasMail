@@ -28,8 +28,8 @@
                 <button class="button is-danger" @click="removeEmails()">Remove</button>
                 <button class="button is-light is-light" @click="hideModal()">Cancel</button>
                 <div>
+                    <p > Selected size : {{readableSize(selectedSize)}} on {{readableSize(maxSize)}}</p>
                     <progress class="progress is-small is-primary" :value="selectedSize" :max="maxSize"></progress>
-                    <p>Selected size : {{readableSize(selectedSize)}} on {{readableSize(maxSize)}}</p>
                 </div>
             </footer>
         </div>

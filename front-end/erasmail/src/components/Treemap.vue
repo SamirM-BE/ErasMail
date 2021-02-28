@@ -24,17 +24,17 @@
                     :height="y(children.y1 - children.y0 + children.parent.y0)" :style="{ fill: color(index) }">
 
                     <!-- The title attribute -->
-                    <title>{{ children.data.subject }} | {{ getBytesToSize(children.value) }}</title>
+                    <title>{{ children.data.subject }} | {{`${getBytesToSize(children.value)}`}}</title>
                   </rect>
 
                   <!-- The visible square text element with the title and value of the child node -->
                   <text dy="1em" :key="'t_' + index" :x="x(children.x0) + 6" :y="y(children.y0) + 6"
-                    style="fill-opacity: 1;">
+                    style="fill-opacity: 1;" v-if="!isSquareTooSmall(children)">
                     {{ children.data.subject }}
                   </text>
 
                   <text dy="2.25em" :key="'k_' + index" :x="x(children.x0) + 6" :y="y(children.y0) + 6"
-                    style="fill-opacity: 1;">
+                    style="fill-opacity: 1;" v-if="!isSquareTooSmall(children)">
                     {{ `${getBytesToSize(children.value)}` }}
                   </text>
 
@@ -256,7 +256,12 @@ export default {
         },
         getBytesToSize(bytes) {
             return byteSize(bytes)
-        }
+        },
+        isSquareTooSmall(children){
+          console.log("y", this.y(children.y1 - children.y0 + children.parent.y0))
+          console.log("x", this.x(children.x1 - children.x0 + children.parent.x0))
+          return this.y(children.y1 - children.y0 + children.parent.y0)*this.x(children.x1 - children.x0 + children.parent.x0) < 1000
+        },
     }
 }
 </script>
