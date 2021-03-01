@@ -1,5 +1,5 @@
 <template>
-    <form class="form" v-on:submit.prevent="login">
+    <form v-on:submit.prevent="login">
         <div class="field" v-for="(email, index) in emails" :key="index">
             <div class="box control px-0">
                 <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
@@ -39,7 +39,7 @@ export default {
 
 <style scoped>
 
-.form {
+form {
     height: 100%;
     overflow: auto;
 }
@@ -48,6 +48,7 @@ export default {
 input {
     margin: 4%;
 }
+
 
 .email-details {
     border-left-width: thin !important;
@@ -61,5 +62,6 @@ input {
     display: flex;
     align-items: center;
     justify-content: left;
+    /* add a border */
 }
 </style>

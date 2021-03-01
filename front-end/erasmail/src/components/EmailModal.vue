@@ -12,7 +12,7 @@
                 <button class="button is-danger" @click="removeEmails()">Remove</button>
                 <button class="button is-light is-light" @click="hideModal()">Cancel</button>
                 <div>
-                    <p> Selected size : {{readableSize(selectedSize)}} on {{readableSize(maxSize)}}</p>
+                    <p> Selected size : {{readableSize(selectedSize)}} / {{readableSize(maxSize)}}</p> <!-- / ==> out of -->
                     <progress class="progress is-small is-primary" :value="selectedSize" :max="maxSize"></progress>
                 </div>
             </footer>
