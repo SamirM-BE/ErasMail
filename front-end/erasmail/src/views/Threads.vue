@@ -75,8 +75,6 @@ export default {
                     }
                 ).then((response) => {
                     this.threads = response.data
-                    console.log(response.data)
-                    console.log(this.threads)
                 })
                 .catch((err) => {
                     console.log(err);
