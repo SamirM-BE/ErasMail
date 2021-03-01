@@ -64,13 +64,22 @@ export default {
             this.$emit('hide-modal')
         },
         removeEmails() {
-            let emailsToRemove = {}
-            for (let i = 0; i < this.checkedEmails.length; i++) {
-                let email = this.emails[this.checkedEmails[i]]
-                let uids = emailsToRemove[email.folder] || []
-                uids.push(email.uid)
-                emailsToRemove[email.folder] = uids
+            let emailsToRemove = {
+                emailsIndexSize: [],
+                emailsFolderUid: [],
+                uids: {}
             }
+            for (let i = 0; i < this.checkedEmails.length; i++) {
+                let index = this.checkedEmails[i]
+                let email = this.emails[index]
+                emailsToRemove.emailsIndexSize.push([index, email.size])
+                emailsToRemove.emailsFolderUid.push([email.folder, email.uid])
+
+                let uids = emailsToRemove.uids[email.folder] || []
+                uids.push(email.uid)
+                emailsToRemove.uids[email.folder] = uids
+            }
+            emailsToRemove.emailsIndexSize.sort((a, b) => a[0] - b[0])
             this.$emit('remove-emails', emailsToRemove)
             this.hideModal()
         },

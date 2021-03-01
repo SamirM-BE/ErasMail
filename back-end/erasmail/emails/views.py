@@ -35,7 +35,11 @@ class EmailView(APIView):
         ).delete()  # This remove all old history if the logout was not done successfully
 
         try:
+            print('start imap fetching')
             mail_messages = get_all_emails(host, email, app_password)
+            print('finish imap fetching')
+
+            print('save in the DB')
             for mail in mail_messages:
 
                 if mail.list_unsubscribe:
@@ -88,8 +92,9 @@ class EmailView(APIView):
                     )
                     for name, size in mail.attachments
                 ]
-
+            print('start threading')
             threads = conversation_threading(mail_messages)
+            print('finish threading')
             
             for idx, thread in enumerate(threads):
                 folder_uids = thread.get_folder_uid()
@@ -171,7 +176,7 @@ class ThreadView(APIView):
             
             threads[mail["thread_id"]] = data
 
-        response = {'subject': 'Threads', 'children': sorted([x for x in  threads.values()], key=lambda x: x['size'], reverse=True)}
+        response = {'subject': 'Threads', 'children': threads.values()}
 
 
 

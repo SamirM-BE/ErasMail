@@ -2,9 +2,10 @@
     <div>
         <p>{{email.sender_name}} {{email.sender_email}}</p>
         <p>{{email.subject}}</p>
-        <!-- <p>{{readableSize(email.size)}}</p> -->
+        <p>{{readableSize(email.size)}}</p>
         <p>{{readableDate(email.received_at)}}</p>
-        <!-- <p>{{email.attachments}}</p> -->
+        <p>{{email.attachments}}</p>
+        <p>{{email.uid}}</p>
     </div>
 </template>
 

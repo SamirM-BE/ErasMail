@@ -1,14 +1,14 @@
 <template>
 <div>
     <Navbar></Navbar>
-    <div class="hero is-fullheight-with-navbar">
+    <div class="hero is-fullheight-with-navbar is-clipped">
         <div class="hero-body">
             <div class="section p-0"> 
                 <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject" @hide-modal="showModalFlag = false" @remove-emails="removeEmails"></EmailModal>
                 <div class="columns"> <!-- v-show="threads" -->
                     <div class="column is-half has-border p-0">
                         <div class="is-scrollable">
-                            <ThreadBox v-for="(thread, idx) in threadsList" v-bind:key="idx" @click="showModal(thread.subject, thread.children)"
+                            <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" @click="showModal(thread.subject, thread.children, idx)"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
@@ -45,15 +45,18 @@ export default {
         return {
             threads: JSON.parse(localStorage.getItem('threads')), //null,
             showModalFlag: false,
+            threadIndex: -1,
             threadSubject: '',
             emails: [],
         }
     },
     computed: {
         ...mapGetters("auth", ["loggedIn"]),
-        threadsList(){
+        threadsSorted(){
             if(this.threads){
-                return this.threads.children
+                var threadsList = this.threads.children
+                threadsList.sort((a, b) => b.size - a.size)
+                return threadsList
             }
             return null
         }
@@ -83,12 +86,24 @@ export default {
         }
     },
     methods: {
-        showModal(threadSubject, emails) {
+        showModal(threadSubject, emails, idx) {
             this.showModalFlag = true
             this.threadSubject= threadSubject
             this.emails = emails
+            this.threadIndex = idx
         },
         removeEmails(emails) {
+            for (let j = emails.emailsIndexSize.length - 1; j >= 0; j--) {
+                this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[j][1]
+                this.threads.children[this.threadIndex].children.splice(emails.emailsIndexSize[j][0], 1);
+            }
+            if (this.threads.children[this.threadIndex].children.length === 0) {
+                this.threads.children.splice(this.threadIndex, 1);
+            }
+
+
+
+            // send a delete request with emails.uids in the body
             console.log(`send remove request here ! ${JSON.stringify(emails)}`)
         },
     },
