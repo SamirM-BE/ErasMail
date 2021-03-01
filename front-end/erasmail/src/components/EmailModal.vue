@@ -1,40 +1,28 @@
 <template>
     <div class="modal" :class="{ 'is-active': showModal }">
         <div class="modal-background" @click="hideModal()"></div>
-        <div class="modal-content">
-            <form class="form box" v-on:submit.prevent="login">
-                <!---->
+        <div class="modal-card">
+            <header class="modal-card-head">
                 <h1>{{threadSubject}}</h1>
-                <div class="box field" v-for="(email, index) in emails" :key="index">
-                    <div class="control">
-                        <label class="checkbox">
-                            <input type="checkbox" :value="index" v-model="checkedEmails">
-                            <p> {{email.subject}} {{email.sender_email}} </p>
-                            <p> {{email.attachments}} </p>
-                        </label>
-                    </div>
+            </header>
+            <section class="modal-card-body">
+                <EmailForm :emails="emails" :reset="!showModal" @checked-emails="updateCheckedEmails"></EmailForm>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-danger" @click="removeEmails()">Remove</button>
+                <button class="button is-light is-light" @click="hideModal()">Cancel</button>
+                <div>
+                    <p> Selected size : {{readableSize(selectedSize)}} on {{readableSize(maxSize)}}</p>
+                    <progress class="progress is-small is-primary" :value="selectedSize" :max="maxSize"></progress>
                 </div>
-                <!---->
-                <div class="field is-grouped">
-                    <div class="control">
-                        <button class="button is-danger"
-                            @click="removeEmails()">Remove</button>
-                    </div>
-                    <div class="control">
-                        <button class="button is-light is-light" @click="hideModal()">Cancel</button>
-                    </div>
-                    <div>
-                        Selected size : {{ selectedSize }}
-                    </div>
-                </div>
-            </form>
+            </footer>
         </div>
     </div>
 </template>
 
 <script>
+import EmailForm from "./EmailForm";
 const byteSize = require('byte-size')
-
 
 export default {
     data() {
@@ -42,55 +30,58 @@ export default {
             checkedEmails: []
         }
     },
+    props: ['showModal', 'emails', 'threadSubject'],
+    emits: ['hide-modal', 'remove-emails'],
     computed: {
-        selectedSize(){
+        selectedSize() {
             let size = 0
             for (let i = 0; i < this.checkedEmails.length; i++) {
                 size += this.emails[this.checkedEmails[i]].size
             }
-            size = byteSize(size)
-            return `${size.value} ${size.unit}`;
-        }
+            return size;
+        },
+        maxSize() {
+            let size = 0
+            for (let i = 0; i < this.emails.length; i++) {
+                size += this.emails[i].size
+            }
+            return size;
+        },
+    },
+    components: {
+        EmailForm,
     },
     methods: {
-        formattedOuput() {
-            let output = {}
-            for (let i = 0; i < this.checkedEmails.length; i++) {
-                //console.log(output)
-                let email = this.emails[this.checkedEmails[i]]
-                let uids = output[email.folder] || []
-                uids.push(email.uid)
-                output[email.folder] = uids
-            }
-            return output
+        updateCheckedEmails(newCheckedEmails){
+            this.checkedEmails = newCheckedEmails
         },
-        hideModal(){
+        readableSize(size) {
+            size = byteSize(size)
+            return `${size.value} ${size.unit}`;
+        },
+        hideModal() {
             this.checkedEmails = []
             this.$emit('hide-modal')
         },
         removeEmails() {
-            this.$emit('remove-emails', this.formattedOuput())
+            let emailsToRemove = {}
+            for (let i = 0; i < this.checkedEmails.length; i++) {
+                let email = this.emails[this.checkedEmails[i]]
+                let uids = emailsToRemove[email.folder] || []
+                uids.push(email.uid)
+                emailsToRemove[email.folder] = uids
+            }
+            this.$emit('remove-emails', emailsToRemove)
             this.hideModal()
         },
     },
-    props: ['showModal', 'emails', 'threadSubject'],
-    emits: ['hide-modal', 'remove-emails'],
 }
 </script>
 
 <style scoped>
-.modal-content {
-    max-height: 75%;
-    width: 50%;
+.modal-card {
+    max-height: 90%;
+    width: 55%;
 }
-.form {
-     height: 100%;
-     overflow: auto;
-}
-
-.box.field {
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-}
-
 
 </style>

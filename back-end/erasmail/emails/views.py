@@ -1,7 +1,7 @@
 from rest_framework import response
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.contrib.auth import get_user_model
@@ -36,7 +36,6 @@ class EmailView(APIView):
 
         try:
             mail_messages = get_all_emails(host, email, app_password)
-
             for mail in mail_messages:
 
                 if mail.list_unsubscribe:
@@ -50,9 +49,7 @@ class EmailView(APIView):
                             unsubscribe.list_unsubscribe = mail.list_unsubscribe
 
                             unsubscribe.save()
-                        elif (not unsubscribe.one_click) and mail.list_unsubscribe[
-                            :6
-                        ] == "mailto":
+                        elif (not unsubscribe.one_click) and mail.list_unsubscribe[:6] == "mailto":
                             unsubscribe.one_click = False
                             unsubscribe.list_unsubscribe = mail.list_unsubscribe
 
@@ -70,7 +67,7 @@ class EmailView(APIView):
                         )
                 else:
                     unsubscribe = None
-
+                
                 email_headers_model = EmailHeaders.objects.create(
                     uid=mail.uid,
                     seen=mail.seen,
@@ -93,7 +90,7 @@ class EmailView(APIView):
                 ]
 
             threads = conversation_threading(mail_messages)
-
+            
             for idx, thread in enumerate(threads):
                 folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:

@@ -43,7 +43,7 @@ export default {
     name: "Home",
     data() {
         return {
-            threads: null,
+            threads: JSON.parse(localStorage.getItem('threads')), //null,
             showModalFlag: false,
             threadSubject: '',
             emails: [],
@@ -75,6 +75,7 @@ export default {
                     }
                 ).then((response) => {
                     this.threads = response.data
+                    // localStorage.setItem('threads', JSON.stringify(response.data))
                 })
                 .catch((err) => {
                     console.log(err);
