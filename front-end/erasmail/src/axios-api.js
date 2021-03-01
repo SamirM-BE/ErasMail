@@ -1,7 +1,7 @@
 import axios from 'axios'
 import store from './store'
 
-const TIME_OUT = 30000000
+const TIME_OUT = 3000000000
 
 const APIUrl = 'http://127.0.0.1:8000'
 const axiosBase = axios.create({
