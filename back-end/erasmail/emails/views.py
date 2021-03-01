@@ -112,16 +112,16 @@ class EmailView(APIView):
     def delete(self, request):
         email = request.user.email
         user = request.user
-
+        print(request.data)
         # request body
         app_password = request.data.get("app_password", None)
         host = request.data.get("host", None)
         folder_uids = request.data.get("uids", False)
         # uids template
         # "uids": {
-        #     "INBOX":[3, 5]
+        #     "INBOX":[3, 5],
+        #     "SENT" :[14, 53],
         #     }
-        # TODO : check if work with several folder
         if folder_uids:
             move_to_trash(host, email, app_password, folder_uids)
             [

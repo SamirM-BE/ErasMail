@@ -52,8 +52,8 @@ export default {
     },
     computed: {
         ...mapGetters("auth", ["loggedIn"]),
-        threadsSorted(){
-            if(this.threads){
+        threadsSorted() {
+            if (this.threads) {
                 var threadsList = this.threads.children
                 threadsList.sort((a, b) => b.size - a.size)
                 return threadsList
@@ -88,23 +88,35 @@ export default {
     methods: {
         showModal(threadSubject, emails, idx) {
             this.showModalFlag = true
-            this.threadSubject= threadSubject
+            this.threadSubject = threadSubject
             this.emails = emails
             this.threadIndex = idx
         },
         removeEmails(emails) {
-            for (let j = emails.emailsIndexSize.length - 1; j >= 0; j--) {
-                this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[j][1]
-                this.threads.children[this.threadIndex].children.splice(emails.emailsIndexSize[j][0], 1);
+            for (let i = emails.emailsIndexSize.length - 1; i >= 0; i--) {
+                this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[i][1]
+                this.threads.children[this.threadIndex].children.splice(emails.emailsIndexSize[i][0], 1);
             }
             if (this.threads.children[this.threadIndex].children.length === 0) {
                 this.threads.children.splice(this.threadIndex, 1);
             }
 
-
-
-            // send a delete request with emails.uids in the body
-            console.log(`send remove request here ! ${JSON.stringify(emails)}`)
+            getAPI
+                .delete(
+                    "/api/emails/", {
+                        headers: {
+                            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                        },
+                        data: {
+                            app_password: this.$store.state.auth.app_password,
+                            host: this.$store.state.auth.host,
+                            uids:emails.uids
+                        }
+                    }
+                )
+                .catch((err) => {
+                    console.log(err);
+                });
         },
     },
 
