@@ -96,8 +96,9 @@ export default {
         colors() {
             return randomColor({
                 seed: 0,
-                count: this.numberOfDuplicate,
+                hue: 'random',
                 luminosity: 'dark',
+                count: this.numberOfDuplicate,
             })
         }
     },
