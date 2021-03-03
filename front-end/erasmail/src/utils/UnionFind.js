@@ -33,14 +33,7 @@ class UnionFind {
     numberOfMembre(p) { // name
         if (this.name[p] !== undefined) {
             this.validate(this.name[p])
-            let count = 0
-            let n = this.parent.length
-            for (let i = 0; i < n; i++) {
-                if (this.parent[this.name[p]] == this.parent[i]) {
-                    count++
-                }
-            }
-            return count
+            return this.size[this.parent[this.name[p]]]
         }
         return undefined
     }

@@ -14,6 +14,7 @@
     "core-js": "^3.6.5",
     "d3": "^6.5.0",
     "d3-request": "^1.0.6",
+    "randomcolor": "^0.6.2",
     "string-similarity": "^4.0.4",
     "vue": "^3.0.0",
     "vue-responsive-text": "^0.1.4",

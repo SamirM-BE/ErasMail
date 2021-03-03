@@ -1,20 +1,10 @@
 <template>
+    <p> There are {{numberOfDuplicate}} duplicates </p>
     <form v-on:submit.prevent="login">
         <div class="field" v-for="(email, index) in emails" :key="index">
             <div class="box control px-0">
                 <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
                 <label :for="index" class="checkbox is-large">
-                    <!-- faire passer une list de attachments-styles  
-                        for eamil in email
-                            si pas attachment alors push -1 
-                            si attachment alors push [ x, x, x ] une valeur par attachment et -1 si pas ducplicate
-                    -->
-                    <!-- faire passer une list de couleur
-                            index = numberOfGroup
-                    -->
-                    <!--
-                        idéé mettre directement les couleur dans  attachments-styles
-                    -->
                     <EmailDetails class="email-details" :email="email" :attachmentStyles="attachmentStyles[index]"></EmailDetails>
                 </label>
             </div>
@@ -24,14 +14,16 @@
 
 <script>
 import EmailDetails from "./EmailDetails";
-import {UnionFind} from "../utils/UnionFind";
+import {
+    UnionFind
+} from "../utils/UnionFind";
 const stringSimilarity = require("string-similarity");
-const colors = ['red', 'green', 'blue', 'orange', 'yellow']; // add more colors
+const randomColor = require('randomcolor');
 
 export default {
     data() {
         return {
-            checkedEmails: []
+            checkedEmails: [],
         }
     },
     props: ['emails', 'reset'],
@@ -40,17 +32,17 @@ export default {
         EmailDetails,
     },
     watch: {
-        reset(){
+        reset() {
             this.checkedEmails = []
         },
-        checkedEmails(){
+        checkedEmails() {
             this.$emit('checked-emails', this.checkedEmails)
-        }
+        },
     },
     computed: {
-        attachments(){
+        attachments() {
             let attachments = []
-            for(let i = 0; i < this.emails.length; i++){
+            for (let i = 0; i < this.emails.length; i++) {
                 attachments.push(...this.emails[i].attachments)
             }
             return attachments
@@ -62,25 +54,27 @@ export default {
 
                     if (this.attachments[i].name.includes(this.attachments[j].name) ||
                         stringSimilarity.compareTwoStrings(this.attachments[i].name, this.attachments[j].name) >= 0.8) {
-                        uf.union({idx:i, name:this.attachments[i].name}, {idx:j, name:this.attachments[j].name}) // inserer les string name commme ca get en O(1)
+                        uf.union({
+                            idx: i,
+                            name: this.attachments[i].name
+                        }, {
+                            idx: j,
+                            name: this.attachments[j].name
+                        })
 
                     }
                 }
             }
-            for (let i = 0; i < this.attachments.length; i++) {
-                let name = this.attachments[i].name
-                console.log(name, uf.groupNumber(name), uf.numberOfMembre(name))
-            }
             return uf
         },
-        attachmentStyles(){ 
+        attachmentStyles() {
             let attachmentStyles = []
-            for(let i = 0; i < this.emails.length; i++){
+            for (let i = 0; i < this.emails.length; i++) {
                 let styles = []
-                for (let j = 0; j < this.emails[i].attachments.length; j++) { // essayer de groupNumber et numberOfMembre directement avec le name
-                let name = this.emails[i].attachments[j].name
-                    if(this.clusterOfAttachments.numberOfMembre(name) > 1){
-                        styles.push(colors[this.clusterOfAttachments.groupNumber(name) % colors.length])
+                for (let j = 0; j < this.emails[i].attachments.length; j++) {
+                    let name = this.emails[i].attachments[j].name
+                    if (this.clusterOfAttachments.numberOfMembre(name) > 1) {
+                        styles.push(this.colors[this.clusterOfAttachments.groupNumber(name) % this.colors.length])
                     } else {
                         styles.push(null)
                     }
@@ -88,6 +82,23 @@ export default {
                 attachmentStyles.push(styles)
             }
             return attachmentStyles
+        },
+        numberOfDuplicate() {
+            let clusters = new Set()
+            for (let i = 0; i < this.attachments.length; i++) {
+                let name = this.attachments[i].name
+                if (this.clusterOfAttachments.numberOfMembre(name) > 1) {
+                    clusters.add(this.clusterOfAttachments.groupNumber(name))
+                }
+            }
+            return clusters.size
+        },
+        colors() {
+            return randomColor({
+                seed: 0,
+                count: this.numberOfDuplicate,
+                luminosity: 'dark',
+            })
         }
     },
 
