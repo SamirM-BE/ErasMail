@@ -4,15 +4,18 @@
         <p>{{email.subject}}</p>
         <p>{{readableSize(email.size)}}</p>
         <p>{{readableDate(email.received_at)}}</p>
-        <p>{{email.attachments}}</p>
-        <p>{{email.uid}}</p>
+        <ul>
+            <li v-for="(attachment, index) in email.attachments" :key="index" :style="{ color: attachmentStyles[index]}">
+                {{attachment}}
+            </li>
+        </ul>
     </div>
 </template>
 
 <script>
 const byteSize = require('byte-size')
 export default {
-    props: ['email'],
+    props: ['email', 'attachmentStyles'],
     methods: {
         readableSize(size) {
             size = byteSize(size)
@@ -28,5 +31,7 @@ export default {
 </script>
 
 <style>
+
+
 
 </style>
