@@ -5,7 +5,7 @@
             <header class="modal-card-head">
                 <h1>{{threadSubject}}</h1>
             </header>
-            <section class="modal-card-body">
+            <section class="modal-card-body p-0 is-clipped">
                 <EmailForm :emails="emails" :reset="!showModal" @checked-emails="updateCheckedEmails"></EmailForm>
             </section>
             <footer class="modal-card-foot">

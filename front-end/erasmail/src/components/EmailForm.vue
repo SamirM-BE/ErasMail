@@ -1,15 +1,21 @@
 <template>
-    <p> There are {{numberOfDuplicate}} duplicates </p>
-    <form v-on:submit.prevent="login">
-        <div class="field" v-for="(email, index) in emails" :key="index">
-            <div class="box control px-0">
-                <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
-                <label :for="index" class="checkbox is-large">
-                    <EmailDetails class="email-details" :email="email" :attachmentStyles="attachmentStyles[index]"></EmailDetails>
-                </label>
-            </div>
+        <div class="my-2 has-background-danger-light has-text-danger-dark has-text-centered" v-if="numberOfDuplicate != 0">
+            <p v-if="numberOfDuplicate==1"> There is {{numberOfDuplicate}} potential duplicate attachment</p>
+            <p v-else> There are {{numberOfDuplicate}} potential duplicate attachments</p>
         </div>
-    </form>
+        
+        <form v-on:submit.prevent="login">
+            <div class="field" v-for="(email, index) in emails" :key="index">
+                <div class="box control px-0">
+                    <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
+                    <label :for="index" class="checkbox is-large">
+                        <EmailDetails class="email-details" :email="email" :attachmentStyles="attachmentStyles[index]">
+                        </EmailDetails>
+                    </label>
+                </div>
+            </div>
+        </form>
+
 </template>
 
 <script>
@@ -18,7 +24,7 @@ import {
     UnionFind
 } from "../utils/UnionFind";
 const stringSimilarity = require("string-similarity");
-const randomColor = require('randomcolor');
+const randomColor = require('random-color');
 
 export default {
     data() {
@@ -54,6 +60,7 @@ export default {
 
                     if (this.attachments[i].name.includes(this.attachments[j].name) ||
                         stringSimilarity.compareTwoStrings(this.attachments[i].name, this.attachments[j].name) >= 0.8) {
+                            console.log(this.attachments[i].name, this.attachments[j].name);
                         uf.union({
                             idx: i,
                             name: this.attachments[i].name
@@ -94,12 +101,11 @@ export default {
             return clusters.size
         },
         colors() {
-            return randomColor({
-                seed: 0,
-                hue: 'random',
-                luminosity: 'dark',
-                count: this.numberOfDuplicate,
-            })
+            let colors = []
+            for(let i = 0; i < this.attachments.length; i++){
+                colors.push(randomColor(0.99,0.95).hexString())
+            }
+            return colors
         }
     },
 
@@ -118,6 +124,9 @@ input {
     margin: 4%;
 }
 
+.test {
+    background-color: red !important;
+}
 
 .email-details {
     border-left-width: thin !important;
