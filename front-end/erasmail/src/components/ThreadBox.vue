@@ -9,8 +9,17 @@
 const byteSize = require('byte-size')
 
 export default {
-    props: ["subject", "size"],
-    computed: {
+  props: {
+    subject: {
+      type: String,
+      required: true
+    },
+    size: {
+      type: Number,
+      required: true
+    },
+  },
+  computed: {
     readableSize() {
       let size = byteSize(this.size)
       return `${size.value} ${size.unit}`;

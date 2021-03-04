@@ -43,11 +43,16 @@ export default {
     name: "Home",
     data() {
         return {
-            threads: JSON.parse(localStorage.getItem('threads')), //null,
+            threads: null,
             showModalFlag: false,
             threadIndex: -1,
             threadSubject: '',
             emails: [],
+        }
+    },
+    watch:{
+        threads(newV, oldV){
+            console.log('threads changed', newV, oldV)
         }
     },
     computed: {
@@ -93,6 +98,7 @@ export default {
             this.threadIndex = idx
         },
         removeEmails(emails) {
+            // https://vuejs.org/v2/guide/reactivity.html
             for (let i = emails.emailsIndexSize.length - 1; i >= 0; i--) {
                 this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[i][1]
                 this.threads.children[this.threadIndex].children.splice(emails.emailsIndexSize[i][0], 1);
@@ -100,7 +106,6 @@ export default {
             if (this.threads.children[this.threadIndex].children.length === 0) {
                 this.threads.children.splice(this.threadIndex, 1);
             }
-
             getAPI
                 .delete(
                     "/api/emails/", {
