@@ -3,7 +3,7 @@
         <div class="modal-background" @click="hideModal()"></div>
         <div class="modal-card">
             <header class="modal-card-head">
-                <h1>{{threadSubject}}</h1>
+                <h1 class="is-size-5"><strong>{{threadSubject}}</strong></h1>
             </header>
             <section class="modal-card-body p-0">
                 <div class="duplicate-message has-background-danger-light has-text-danger-dark has-text-centered"
@@ -15,7 +15,7 @@
             </section>
             <footer class="modal-card-foot">
                 <button class="button is-danger" @click="removeEmails()">Remove</button>
-                <button class="button is-light is-light" @click="hideModal()">Cancel</button>
+                <button class="button is-info" @click="hideModal()">Cancel</button>
                 <div>
                     <p> Selected size : {{readableSize(selectedSize)}} / {{readableSize(maxSize)}}</p>
                     <!-- / ==> out of -->
@@ -128,7 +128,7 @@ export default {
         colors() {
             let colors = []
             for(let i = 0; i < this.attachments.length; i++){
-                colors.push(randomColor(0.99,0.95).hexString())
+                colors.push(randomColor().hexString())
             }
             return colors
         },

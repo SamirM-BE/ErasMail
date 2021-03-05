@@ -1,7 +1,13 @@
 <template>
     <div class="box m-1 py-1 px-3 is-clickable">
         <strong>{{ subject }}</strong>
-        <h3>Size: {{ readableSize }}</h3>
+
+        <div class="icon-text">
+            <span class="icon is-small has-text-grey">
+                <i class="fas fa-weight-hanging"></i>
+            </span>
+            <span class="ml-1">{{ readableSize }}</span>
+        </div>
     </div>
 </template>
 

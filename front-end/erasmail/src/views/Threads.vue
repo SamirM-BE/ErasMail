@@ -1,5 +1,4 @@
 <template>
-<div>
     <Navbar></Navbar>
     <div class="hero is-fullheight-with-navbar is-clipped">
         <div class="hero-body">
@@ -21,7 +20,6 @@
             </div>
         </div>
     </div>
-</div>
 </template>
 
 
@@ -59,7 +57,7 @@ export default {
         ...mapGetters("auth", ["loggedIn"]),
         threadsSorted() {
             if (this.threads) {
-                var threadsList = this.threads.children
+                let threadsList = this.threads.children
                 threadsList.sort((a, b) => b.size - a.size)
                 return threadsList
             }

@@ -1,8 +1,8 @@
 <template>
   <div class="hero is-fullheight">
     <div class="hero-head">
-      <LoginSuccessfullyNotification :notification_message="'You have successfully logged in'">
-      </LoginSuccessfullyNotification>
+      <SuccessNotification :notification_message="'You have successfully logged in'">
+      </SuccessNotification>
     </div>
     <div class="hero-body">
       <div class="container">
@@ -37,7 +37,7 @@
 import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
 import ProgressbarEmail from "../components/ProgressbarEmail";
-import LoginSuccessfullyNotification from "../components/LoginSuccessfullyNotification";
+import SuccessNotification from "../components/SuccessNotification";
 
 const display_time = 7; // display time of awareness messages in seconds
 
@@ -69,7 +69,7 @@ export default {
   },
   components: {
     ProgressbarEmail,
-    LoginSuccessfullyNotification,
+    SuccessNotification,
   },
   created() {
     if (this.loggedIn) {
