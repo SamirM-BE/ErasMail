@@ -19,7 +19,7 @@
                         </span>
                         <span>{{attachment.name}} ({{readableSize(attachment.size)}}) </span>
                     </span>
-                    <span class="tag is-rounded has-text-centered has-text-black" v-if="attachmentStyle(index)"
+                    <span class="tag is-rounded has-text-black" v-if="attachmentStyle(index)"
                         :style="{'background-color': attachmentStyle(index)}"> Potential duplicate </span>
                 </div>
             </li>
