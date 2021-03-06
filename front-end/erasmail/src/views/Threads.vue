@@ -1,9 +1,5 @@
 <template>
-<div>
-    <Navbar></Navbar>
-    <div class="hero is-fullheight-with-navbar">
-        <div class="hero-body">
-            <div class="section p-0"> 
+            <div> 
                 <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject" @hide-modal="showModalFlag = false" @remove-emails="removeEmails"></EmailModal>
                 <div class="columns"> <!-- v-show="threads" -->
                     <div class="column is-half has-border p-0">
@@ -19,9 +15,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 </template>
 
 
@@ -32,7 +25,6 @@ import {
 import {
     mapGetters
 } from "vuex";
-import Navbar from "../components/Navbar";
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
 import EmailModal from "../components/EmailModal";
@@ -59,7 +51,6 @@ export default {
         }
     },
     components: {
-        Navbar,
         ThreadBox,
         EmailModal,
         Treemap,

@@ -1,11 +1,18 @@
 <template>
   <div id="app">
-    <router-view />
+    <Navbar v-if="currentRouteName != 'loading'"></Navbar>
+    <section class="section mt-6">
+      <router-view />
+    </section>
+    <Footer></Footer>
   </div>
 </template>
 
 <script>
 // import axios from 'axios'
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
 
 export default {
   data() {
@@ -24,19 +31,42 @@ export default {
     );
     window.removeEventListener("unload", (e) => this.unloadHandler(e));
   },
+  computed: {
+    currentRouteName() {
+        return this.$route.name;
+    }
+},
   methods: {
-    beforeunloadHandler() {
-      this.beforeUnload_time = new Date().getTime();
+      beforeunloadHandler() {
+        this.beforeUnload_time = new Date().getTime();
+      },
+      unloadHandler() {
+        this.gap_time = new Date().getTime() - this.beforeUnload_time;
+        if (this.gap_time <= 10) {
+          return this.$store.dispatch("auth/userLogout");
+        }
+      },
     },
-    unloadHandler() {
-      this.gap_time = new Date().getTime() - this.beforeUnload_time;
-      if (this.gap_time <= 10) {
-        return this.$store.dispatch("auth/userLogout");
-      }
+  components: {
+      Navbar,
+      Footer,
     },
-  },
-};
+}
 </script>
 
 <style>
+/* .hero {
+  background-color: purple;
+}
+.hero-head {
+  background-color: green;
+}
+
+.hero-foot {
+  background-color: brown;
+} */
+
+.hero-head {
+  background-color: red;
+}
 </style>

@@ -1,6 +1,5 @@
 <template>
   <div>
-    <Navbar></Navbar>
     <h1 v-if="!loggedIn">Public content</h1>
     <h1 v-else>Private content : {{ email }}</h1>
   </div>
@@ -9,7 +8,6 @@
 <script>
 import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
-import Navbar from "../components/Navbar";
 
 export default {
   name: "Home",
@@ -20,7 +18,6 @@ export default {
   },
   computed: mapGetters("auth", ["loggedIn"]),
   components: {
-    Navbar,
   },
   created() {
     if (this.loggedIn) {

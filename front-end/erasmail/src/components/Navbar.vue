@@ -1,8 +1,8 @@
 <template>
-  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+  <nav class="navbar is-light is-fixed-top" role="navigation" aria-label="main navigation">
     <!-- LOGO ErasMail -->
     <div class="navbar-brand">
-      <router-link class="navbar-item" :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
+      <router-link class="navbar-item has-text-primary" :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
 
       <a role="button" class="navbar-burger" @click="showNav = !showNav" :class="{ 'is-active': showNav }"
         aria-label="menu" aria-expanded="false" data-target="navbar">
@@ -18,7 +18,7 @@
       <div class="navbar-start">
         <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'threads' }">Threads</router-link> 
          
-        <a class="navbar-item is-hidden"> Documentation </a>
+        <a class="navbar-item is-hidden">Documentation</a>
 
         <div class="navbar-item has-dropdown is-hoverable is-hidden">
           <a class="navbar-link"> More </a>

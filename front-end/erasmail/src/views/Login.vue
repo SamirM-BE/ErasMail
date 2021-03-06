@@ -1,10 +1,9 @@
 <template>
-  <div>
-      <Navbar></Navbar>
-      <div class="hero is-fullheight">
-        <div class="hero-body">
-          <div class="container">
-            <div class="columns is-centered">
+  
+      <!-- <div class="hero is-fullheight"> -->
+        <!-- <div class="hero-body"> -->
+          <!-- <div class="container"> -->
+            <div class="columns is-centered ">
               <div class="column is-one-third">
                 <form class="box" v-on:submit.prevent="login">
                   <div class="logo has-text-centered">
@@ -56,14 +55,13 @@
                 </form>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-  </div>
+          <!-- </div> -->
+        <!-- </div> -->
+      <!-- </div> -->
+  
 </template>
 
 <script>
-import Navbar from '../components/Navbar.vue';
 
 export default {
   name: "Login",
@@ -81,7 +79,6 @@ export default {
     },
   },
   components: {
-    Navbar,
   },
   methods: {
     login() {
@@ -112,4 +109,11 @@ export default {
     border: solid;
     border-width: thin;
   }
+/* 
+  .container {
+    background-color : red;
+  }
+  .columns {
+    background-color : black;
+  } */
 </style>
