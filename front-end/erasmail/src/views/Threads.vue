@@ -1,10 +1,10 @@
 <template>
-            <div> 
+            <div class="section p-0"> 
                 <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject" @hide-modal="showModalFlag = false" @remove-emails="removeEmails"></EmailModal>
                 <div class="columns"> <!-- v-show="threads" -->
                     <div class="column is-half has-border p-0">
                         <div class="is-scrollable">
-                            <ThreadBox v-for="(thread, idx) in threadsList" v-bind:key="idx" @click="showModal(thread.subject, thread.children)"
+                            <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" @click="showModal(thread.subject, thread.children, idx)"
                                 :subject="thread.subject" :size="thread.size"></ThreadBox>
                         </div>
                     </div>
@@ -35,17 +35,25 @@ export default {
     name: "Home",
     data() {
         return {
-            threads: JSON.parse(localStorage.getItem('threads')), //null,
+            threads: null,
             showModalFlag: false,
+            threadIndex: -1,
             threadSubject: '',
             emails: [],
         }
     },
+    watch:{
+        threads(newV, oldV){
+            console.log('threads changed', newV, oldV)
+        }
+    },
     computed: {
         ...mapGetters("auth", ["loggedIn"]),
-        threadsList(){
-            if(this.threads){
-                return this.threads.children
+        threadsSorted() {
+            if (this.threads) {
+                let threadsList = this.threads.children
+                threadsList.sort((a, b) => b.size - a.size)
+                return threadsList
             }
             return null
         }
@@ -74,13 +82,37 @@ export default {
         }
     },
     methods: {
-        showModal(threadSubject, emails) {
+        showModal(threadSubject, emails, idx) {
             this.showModalFlag = true
-            this.threadSubject= threadSubject
+            this.threadSubject = threadSubject
             this.emails = emails
+            this.threadIndex = idx
         },
         removeEmails(emails) {
-            console.log(`send remove request here ! ${JSON.stringify(emails)}`)
+            // https://vuejs.org/v2/guide/reactivity.html
+            for (let i = emails.emailsIndexSize.length - 1; i >= 0; i--) {
+                this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[i][1]
+                this.threads.children[this.threadIndex].children.splice(emails.emailsIndexSize[i][0], 1);
+            }
+            if (this.threads.children[this.threadIndex].children.length === 0) {
+                this.threads.children.splice(this.threadIndex, 1);
+            }
+            getAPI
+                .delete(
+                    "/api/emails/", {
+                        headers: {
+                            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                        },
+                        data: {
+                            app_password: this.$store.state.auth.app_password,
+                            host: this.$store.state.auth.host,
+                            uids:emails.uids
+                        }
+                    }
+                )
+                .catch((err) => {
+                    console.log(err);
+                });
         },
     },
 

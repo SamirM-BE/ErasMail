@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Navbar v-if="currentRouteName != 'loading'"></Navbar>
-    <section class="section mt-6">
+    <section class="section mt-6" >
       <router-view />
     </section>
     <Footer></Footer>
@@ -55,18 +55,9 @@ export default {
 </script>
 
 <style>
-/* .hero {
-  background-color: purple;
-}
-.hero-head {
-  background-color: green;
-}
-
-.hero-foot {
-  background-color: brown;
-} */
-
-.hero-head {
+.section {
   background-color: red;
+  height: 100%;
 }
+
 </style>

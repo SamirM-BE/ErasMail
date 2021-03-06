@@ -3,7 +3,8 @@
       <!-- <div class="hero is-fullheight"> -->
         <!-- <div class="hero-body"> -->
           <!-- <div class="container"> -->
-            <div class="columns is-centered ">
+            
+            <div class="columns is-centered">
               <div class="column is-one-third">
                 <form class="box" v-on:submit.prevent="login">
                   <div class="logo has-text-centered">
@@ -55,6 +56,7 @@
                 </form>
               </div>
             </div>
+            
           <!-- </div> -->
         <!-- </div> -->
       <!-- </div> -->
@@ -112,8 +114,6 @@ export default {
 /* 
   .container {
     background-color : red;
-  }
-  .columns {
-    background-color : black;
-  } */
+  }*/
+
 </style>

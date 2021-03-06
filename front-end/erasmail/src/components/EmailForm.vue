@@ -1,14 +1,16 @@
 <template>
-    <form class="form" v-on:submit.prevent="login">
-        <div class="field" v-for="(email, index) in emails" :key="index">
-            <div class="box control px-0">
-                <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
-                <label :for="index" class="checkbox is-large">
-                    <EmailDetails class="email-details" :email="email"></EmailDetails>
-                </label>
+        <form>
+            <div class="field" v-for="(email, index) in emails" :key="index">
+                <div class="box control px-0">
+                    <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
+                    <label :for="index" class="checkbox is-large">
+                        <EmailDetails class="email-details" :email="email" :attachmentStyles="attachmentStyles(index)">
+                        </EmailDetails>
+                    </label>
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
+
 </template>
 
 <script>
@@ -17,36 +19,48 @@ import EmailDetails from "./EmailDetails";
 export default {
     data() {
         return {
-            checkedEmails: []
+            checkedEmails: [],
         }
     },
-    props: ['emails', 'reset'],
+    props: {
+        emails: {
+            type: Array,
+            required: true
+        },
+        attachmentStylesList: Array,
+        reset: Boolean,
+    },
     emits: ['checked-emails'],
     components: {
         EmailDetails,
     },
     watch: {
-        reset(){
+        reset() {
             this.checkedEmails = []
         },
-        checkedEmails(){
+        checkedEmails() {
             this.$emit('checked-emails', this.checkedEmails)
-        }
+        },
     },
-
+    methods: {
+        attachmentStyles(index){
+            if(this.attachmentStylesList){
+                return this.attachmentStylesList[index]
+            }
+            return null
+        }
+    }
 }
 </script>
 
 <style scoped>
 
-.form {
-    height: 100%;
-    overflow: auto;
-}
-
-
 input {
     margin: 4%;
+}
+
+label {
+    width: 100%;
 }
 
 .email-details {
@@ -61,5 +75,8 @@ input {
     display: flex;
     align-items: center;
     justify-content: left;
+    border-color: lightgray !important;
+    border: solid;
+    border-width: thin;
 }
 </style>

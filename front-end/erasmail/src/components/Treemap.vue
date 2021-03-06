@@ -251,7 +251,7 @@ rect.parent,
 
 .children rect.parent {
   fill: #bbb;
-  fill-opacity: 1;
+  fill-opacity: 0.94;
 }
 
 .children:hover rect.child {

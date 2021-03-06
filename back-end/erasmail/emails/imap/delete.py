@@ -3,7 +3,6 @@ from imapclient import IMAPClient, imapclient
 
 def move_to_trash(host, username, password, folder_uids):
     server = IMAPClient(host)
-    server.normalise_times = False
     server.login(username, password)
 
     trash_folder = server.find_special_folder(imapclient.TRASH)
