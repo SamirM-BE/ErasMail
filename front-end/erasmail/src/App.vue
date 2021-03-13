@@ -1,11 +1,12 @@
 <template>
-  <div id="app">
+  <div id="app " >
     <Navbar v-if="currentRouteName != 'loading'"></Navbar>
-    <section class="section mt-6" >
+    <section class="section  mt-6 is-small " >
       <router-view />
     </section>
     <Footer></Footer>
   </div>
+
 </template>
 
 <script>
@@ -56,8 +57,9 @@ export default {
 
 <style>
 .section {
-  background-color: red;
-  height: 100%;
 }
 
+/* .app {
+  min-height: 100vh;
+} */
 </style>

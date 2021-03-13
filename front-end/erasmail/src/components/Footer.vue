@@ -1,9 +1,9 @@
 <template>
 
-    <footer class="footer px-3">
-        <div class="columns is-vcentered">
+    <footer class="footer px-3 has-background-success-light">
+        <div class="columns m-0 is-vcentered ">
             <div class="column main">
-                <strong class="title is-5 has-text-primary">ErasMail</strong>
+                <strong class="title is-5 has-text-black">ErasMail</strong>
                 <p>The source code is licensed Apache 2.0</p>
             </div>
             <div class="column is-flex is-justify-content-space-evenly">
@@ -46,7 +46,8 @@ export default {
     position: fixed;
     left: 0;
     bottom: 0;
-    width: 100%
+    width: 100%;
+    /* background-color: hsl(142, 52%, 96%); */
 }
 
 
