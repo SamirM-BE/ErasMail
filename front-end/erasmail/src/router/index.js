@@ -4,6 +4,8 @@ import Login from '../views/Login.vue'
 import Logout from '../views/Logout.vue'
 import Loading from '../views/Loading.vue'
 import Threads from '../views/Threads.vue'
+import Stats from '../views/Stats.vue'
+
 
 const routes = [
   {
@@ -30,6 +32,11 @@ const routes = [
     path: '/threads',
     name: 'threads',
     component: Threads,
+  },
+  {
+    path: '/stats',
+    name: 'stats',
+    component: Stats,
   },
 ]
 
