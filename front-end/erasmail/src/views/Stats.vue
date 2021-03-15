@@ -10,15 +10,30 @@
               km in an average car.
             </div>
             <div class="plan-items">
-              <div class="plan-item has-background-primary-light">
+              <div class="plan-item has-background-success-light">
                 900 g CO<sub>2</sub> saved
               </div>
-              <div class="plan-item has-background-primary-light">
+              <div class="plan-item has-background-success-light">
                 365 deleted emails
               </div>
             </div>
+
+
             <div class="plan-footer">
-              <button class="button is-fullwidth">Share</button>
+              <button class="button is-small m-3 is-facebook has-background-facebook"
+                      @click="shareLink(facebookLink, 'facebook')">
+                <span class="icon">
+                  <i class="fab fa-facebook"></i>
+                </span>
+                <span>Share on Facebook</span>
+              </button>
+              <button class="button is-small m-3 is-twitter has-background-twitter"
+                      @click="shareLink(twitterLink, 'twitter')" >
+                <span class="icon">
+                  <i class="fab fa-twitter"></i>
+                </span>
+                <span>Share on Twitter</span>
+              </button>
             </div>
           </div>
         </div>
@@ -26,6 +41,7 @@
           <apexchart
               :options="radialBar"
               :series="radialBar.series"
+              height="100%"
               type="radialBar"
               width="100%"
           ></apexchart>
@@ -78,7 +94,7 @@
               <apexchart
                   :options="chartOptions"
                   :series="series"
-                  type="line"
+                  type="area"
                   width="100%"
               ></apexchart>
               <!-- </figure> -->
@@ -142,13 +158,15 @@
 </template>
 
 <script>
-// import MonthlyChart  from "../components/LineChart.vue";
 import VueApexCharts from "vue3-apexcharts";
+
 
 export default {
   name: "Stats",
   data() {
     return {
+      facebookLink: 'https://www.facebook.com/sharer/sharer.php?u=@u&title=@t&description=@d&quote=@q&hashtag=@h',
+      twitterLink: 'https://twitter.com/intent/tweet?text=@t&url=@u&hashtags=@h@tu',
       radialBar: {
         chart: {
           height: 280,
@@ -162,17 +180,16 @@ export default {
               background: "hsl(48, 100%, 67%)",
               opacity: 0.4,
             },
-
-            // hollow: {
-            // 	margin: 15,
-            // 	size: "70%"
-            // },
             dataLabels: {
               name: {
                 fontSize: "22px",
+                color: ["hsl(217, 71%, 53%)"]
               },
               value: {
                 fontSize: "16px",
+                formatter: function (val) {
+                  return val + '% saved'
+                }
               },
               total: {
                 show: true,
@@ -190,9 +207,6 @@ export default {
             },
           },
         },
-        // stroke: {
-        // 	lineCap: "round",
-        // },
         labels: ["Newsletters", "E-mails", "CO2"],
       },
       chartOptions: {
@@ -211,11 +225,32 @@ export default {
       ],
     };
   },
+  computed: {},
   components: {
     // MonthlyChart,
     apexchart: VueApexCharts,
   },
-  methods: {},
+  methods: {
+    shareLink(mediaLink, media) {
+      /**
+       * Twitter sharing shouldn't include empty parameter
+       */
+      if (media === 'twitter') {
+        mediaLink = mediaLink.replace('&hashtags=@h', '')
+        mediaLink = mediaLink.replace('@tu', '')
+      }
+      // console.log(mediaLink)
+      mediaLink = mediaLink.replace(/@tu/g, '&via=' + encodeURIComponent(''))
+          .replace(/@u/g, encodeURIComponent('https://www.erasmail.com'))
+          .replace(/@t/g, encodeURIComponent('Save also the planet !\n Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
+          .replace(/@d/g, encodeURIComponent('Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
+          .replace(/@q/g, encodeURIComponent('Save also the planet !\n Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
+          .replace(/@h/g, '')
+          .replace(/@m/g, encodeURIComponent(media))
+      window.open(mediaLink, "_blank", `width=${window.screen.width/2},height=${window.screen.height/2}`)
+    },
+
+  },
   created() {
   },
 };
@@ -223,21 +258,15 @@ export default {
 
 <style scoped>
 @import "./../../node_modules/bulma-pricingtable/dist/css/bulma-pricingtable.min.css";
+@import "./../../node_modules/bulma-social/css/single/facebook/facebook.min.css";
+@import "./../../node_modules/bulma-social/css/single/twitter/twitter.min.css";
+@import "./../../node_modules/bulma-social/css/single/linkedin/linkedin.min.css";
+
 
 .potential,
 .current {
   height: 95%;
 }
-
-/* .cmp {
-    padding: 10px;
-    border: 1px solid hsl(141, 71%, 48%);
-    box-shadow:  -1px 1px hsl(141, 71%, 48%),
-         -2px 2px hsl(141, 71%, 48%),
-         -3px 3px hsl(141, 71%, 48%),
-         -4px 4px hsl(141, 71%, 48%),
-         -5px 5px hsl(141, 71%, 48%);  
-} */
 
 .cmp {
   -webkit-box-shadow: 3px 3px 5px 6px #ccc; /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
@@ -245,11 +274,4 @@ export default {
   box-shadow: 3px 3px 5px 6px #ccc; /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
 }
 
-/* .p1  {
-  width: 30%;
-}
-
-.p2  {
-  width: 60%;
-} */
 </style>
