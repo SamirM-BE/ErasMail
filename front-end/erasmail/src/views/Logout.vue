@@ -4,14 +4,14 @@
 </template>
 
 <script>
-  export default {
-    created () {
-      this.$store.dispatch('auth/userLogout')
+export default {
+  created() {
+    this.$store.dispatch('auth/userLogout')
         .then(() => {
-          this.$router.push({ name: 'login' })
+          this.$router.push({name: 'login'})
         })
-    }
   }
+}
 </script>
 
 <style>
