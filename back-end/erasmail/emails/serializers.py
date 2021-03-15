@@ -1,6 +1,5 @@
-from django.db.models import fields
 from rest_framework import serializers
-from .models import EmailHeaders, Newsletter, Attachment
+from .models import EmailHeaders, Newsletter, Attachment, EmailStats
 
 class AttachmentSerializer(serializers.ModelSerializer):
 
@@ -15,7 +14,6 @@ class EmailHeadersSerializer(serializers.ModelSerializer):
         model = EmailHeaders
         exclude = ('id', 'receiver', 'message_id')
 
-
 class NewsletterSerializer(serializers.ModelSerializer):
     receiver = serializers.StringRelatedField(read_only=True)
 
@@ -23,3 +21,8 @@ class NewsletterSerializer(serializers.ModelSerializer):
         model = Newsletter
         exclude = ('id',)
 
+class EmailStatsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EmailStats
+        exclude = ('id','user')

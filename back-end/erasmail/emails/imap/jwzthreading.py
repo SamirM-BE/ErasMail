@@ -309,30 +309,9 @@ def conversation_threading(emails: MailMessage):
     # Output
     return (x for x in subject_table.values() if len(x) > 1)
 
-    # print(L)
-
-    # for subj, container in L:
-    #     print('-----------------------------')
-    #     print('length', len(container), 'subject:', subj)
-    #     print_container(container)
-    #     print('**********')
-    #     print(container.get_folder_uid())
-
-
-# SOLUTION :
-# le mettre dans le loading
-# mettre un field threadID dans EmailHeaders
-# les meme convsersation auront le meme thread ID
-# au front end on ordonne via le datetime
-
-
-# mettre un threadID + ordre via datetime
 
 
 # from emails.models import EmailHeaders
 # EmailHeaders.objects.filter(receiver__pk = 1).count()
 # from django.db.models import Q
 # EmailHeaders.objects.filter(receiver__pk = 1).filter(Q(reference__isnull = False) | Q(inreplyto__isnull = False)).count()
-
-# from emails.imap.jwzthreading import conversation_threading
-# conversation_threading()

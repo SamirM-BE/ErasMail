@@ -47,9 +47,13 @@ def get_all_emails(host, username, password):
     fetched_emails = []
 
     for folder in folders:
+        received = True
         if is_undesirable_folder(folder):
             # print(folder)
             continue
+        elif imapclient.SENT in folder[0]:
+            received = False
+
 
         selected_folder = folder[2]  # (b'\\HasNoChildren',), b'/', 'INBOX')
 
@@ -65,6 +69,7 @@ def get_all_emails(host, username, password):
 
             email_headers = MailMessage(
                 selected_folder,
+                received,
                 uid,
                 data[b"FLAGS"],
                 data[b"RFC822.SIZE"],

@@ -4,19 +4,20 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models.functions import TruncDay, Cast
+from django.db.models import Count, Case, When, Value, Min, Avg, F, ExpressionWrapper, FloatField
+
+from datetime import timedelta
+from django.utils import timezone
 
 from .imap.fetch import get_all_emails
 from .imap.delete import move_to_trash
 from .imap.attachments import remove_attachments
 from .imap.jwzthreading import conversation_threading
-
 from .utils.pollution import emailPollution
 
-from .models import Newsletter, EmailHeaders, Attachment
-
-from .models import Newsletter, EmailHeaders, Attachment
-from .serializers import EmailHeadersSerializer
+from .models import EmailStats, Newsletter, EmailHeaders, Attachment
+from .serializers import EmailHeadersSerializer, EmailStatsSerializer
 
 import re
 
@@ -41,6 +42,12 @@ class EmailView(APIView):
             print('start imap fetching')
             mail_messages = get_all_emails(host, email, app_password)
             print('finish imap fetching')
+
+            mailbox_size = 0
+            emitted_co2 = 0
+            emails_seen_count = 0
+            emails_received_count = 0
+            received_at_min = timezone.now()
 
             print('save in the DB')
             for mail in mail_messages:
@@ -68,6 +75,16 @@ class EmailView(APIView):
                 else:
                     unsubscribe = None
 
+                co2 = emailPollution(mail.size, mail.received_at)
+
+                if mail.received_at < received_at_min:
+                    received_at_min = mail.received_at
+
+                mailbox_size += mail.size
+                emitted_co2 += co2
+                emails_seen_count += mail.seen
+                emails_received_count += mail.received
+
                 email_headers_model = EmailHeaders.objects.create(
                     uid=mail.uid,
                     seen=mail.seen,
@@ -80,7 +97,7 @@ class EmailView(APIView):
                     message_id=mail.message_id,
                     folder=mail.folder,
                     unsubscribe=unsubscribe,
-                    co2=emailPollution(mail.size, mail.received_at)
+                    co2=co2
                 )
 
                 [
@@ -89,6 +106,21 @@ class EmailView(APIView):
                     )
                     for name, size in mail.attachments
                 ]
+
+            print('start stats')
+            EmailStats.objects.update_or_create(
+                user=user,
+                defaults={
+                    'mailbox_size': mailbox_size,
+                    'emitted_co2': emitted_co2,
+                    'emails_count': len(mail_messages),
+                    'emails_seen_count': emails_seen_count,
+                    'emails_received_count': emails_received_count,
+                    'months_since_creation': (timezone.now() - received_at_min).days / (365.25/12)
+                }
+            )
+            print('finish stats')
+
             print('start threading')
             threads = conversation_threading(mail_messages)
             print('finish threading')
@@ -104,6 +136,7 @@ class EmailView(APIView):
 
             return Response(status=status.HTTP_201_CREATED)
         except Exception as e:
+            print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request):
@@ -159,7 +192,7 @@ class Attachments(APIView):
 
 
 class ThreadView(APIView):
-    permission_classes = (IsAuthenticated,)  # changed
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         user = request.user
@@ -195,5 +228,62 @@ class ThreadView(APIView):
             threads[mail["thread_id"]] = data
 
         response = {'subject': 'Threads', 'children': threads.values()}
+
+        return Response(data=response, status=status.HTTP_200_OK)
+
+
+class Statistics(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, kind):
+    
+        if kind == 'user':
+            user = request.user
+
+            before_than = request.data.get("before_than", 0)
+            ligher_than = request.data.get("ligher_than", 1e6)
+
+            # generate statistics based on EmailHeaders: these stats aren't persistents
+            all_emails = EmailHeaders.objects.filter(receiver=user)
+            email_header_stats = all_emails.aggregate(
+                threads_count=Count('thread_id', distinct=True),
+                emails_before_count=Count(Case(When(received_at__lte=timezone.now() - timedelta(days=before_than*365), then=Value(1)))),
+                emails_lighter_count=Count(Case(When(size__lte=ligher_than, then=Value(1))))
+            )
+
+            # generate statistics based on Newsletter
+            all_newsletters = Newsletter.objects.filter(receiver=user)
+            newsletter_stats = all_newsletters.aggregate(
+                newsletters_count=Count('pk'),
+                unsubscribed_newsletters_count=Count(
+                    Case(When(unsubscribed=True, then=Value(1)))),
+            )
+
+            # generate statistics based on EmailStats
+            email_stats = EmailStatsSerializer(EmailStats.objects.get(user=user)).data
+
+            # merge all statistics
+            response = {
+                **email_stats,
+                **email_header_stats,
+                **newsletter_stats
+                }
+        elif kind == 'erasmail':
+            # generate average users statistics based on EmailStats
+            average_users_stats = EmailStats.objects.annotate(
+                emails_received_rate=ExpressionWrapper(F('emails_received_count') / F('months_since_creation'), output_field=FloatField()),
+                emails_send_rate=ExpressionWrapper((F('emails_count') - F('emails_received_count'))/ F('months_since_creation'), output_field=FloatField()),
+                open_rate=ExpressionWrapper(F('emails_seen_count') / Cast(F('emails_count'), output_field=FloatField()), output_field=FloatField()),
+            ).aggregate(
+                average_mailbox_size=Avg('mailbox_size'),
+                average_emitted_co2=Avg('emitted_co2'),
+                average_saved_co2=Avg('saved_co2'),
+                average_emails_received_rate=Avg('emails_received_rate'),
+                average_emails_send_ratet=Avg('emails_send_rate'),
+                average_open_rate = Avg('open_rate'),
+            )
+            response = average_users_stats
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data=response, status=status.HTTP_200_OK)

@@ -155,6 +155,7 @@ class MailMessage:
     def __init__(
         self,
         folder,
+        received,
         uid,
         flags,
         size,
@@ -165,6 +166,7 @@ class MailMessage:
         bodystructure,
     ):
         self.folder = folder
+        self.received = received
         self.uid = uid
         self.seen = get_seen_flag(flags)
         self.size = size
@@ -186,6 +188,7 @@ class MailMessage:
         return str(
             {
                 "folder": self.folder,
+                "received": self.received,
                 "uid": self.uid,
                 "subject": self.subject,
                 "sender_name": self.sender_name,

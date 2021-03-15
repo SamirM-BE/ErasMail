@@ -9,6 +9,7 @@
 import { getAPI } from "../axios-api";
 import { mapGetters } from "vuex";
 
+
 export default {
   name: "Home",
   data() {
@@ -32,7 +33,7 @@ export default {
         })
         .catch((err) => {
           console.log(err);
-        });
+        })
     }
   },
 };

@@ -5,6 +5,18 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 # Create your models here.
+class EmailStats(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    mailbox_size = models.PositiveIntegerField(null=False)
+    emitted_co2 = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
+    emails_count  =  models.PositiveIntegerField(null=False)
+    emails_seen_count = models.PositiveIntegerField(null=False)
+    emails_received_count = models.PositiveIntegerField(null=False)
+    months_since_creation = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
+
+    saved_co2 = models.PositiveIntegerField(default=0)
+    emails_deleted_count = models.PositiveIntegerField(default=0)
+
 class Newsletter(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
     list_unsubscribe = models.CharField(max_length=5000)
@@ -16,14 +28,13 @@ class Newsletter(models.Model):
         return f'pk: {self.pk}  sender: {self.sender_email}'
 
 class EmailHeaders(models.Model):
-
     uid = models.IntegerField()
     seen = models.BooleanField(default=False)
     subject = models.CharField(max_length=5000, blank=True)
     sender_name = models.CharField(max_length=5000, blank=True)
     sender_email = models.EmailField()
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
-    size = models.IntegerField(default=0)
+    size = models.PositiveIntegerField(default=0)
     received_at = models.DateTimeField(null=True)
     message_id = models.CharField(max_length=5000)
     folder = models.CharField(max_length=5000)
