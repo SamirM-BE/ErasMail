@@ -2,12 +2,15 @@
   <section class="section cmp p-0">
     <div class="columns">
       <div class="pricing-table">
+
         <div class="column c1">
           <div class="pricing-plan current is-success">
             <div class="plan-header">Current situation</div>
             <div class="title is-4 has-text-centered has-text-success">
-              You saved 900g CO<sub>2</sub>. This is the same as if your drove 5
-              km in an average car.
+              You saved 900g CO<sub>2</sub>.
+            </div>
+            <div class="subtitle is-4 has-text-centered has-text-success">
+              This is the same as 90 plastic bags.
             </div>
             <div class="plan-items">
               <div class="plan-item has-background-success-light">
@@ -17,18 +20,16 @@
                 365 deleted emails
               </div>
             </div>
-
-
             <div class="plan-footer">
               <button class="button is-small m-3 is-facebook has-background-facebook"
-                      @click="shareLink(facebookLink, 'facebook')">
+                      @click="openWindowSharing(facebookLink, 'facebook')">
                 <span class="icon">
                   <i class="fab fa-facebook"></i>
                 </span>
                 <span>Share on Facebook</span>
               </button>
               <button class="button is-small m-3 is-twitter has-background-twitter"
-                      @click="shareLink(twitterLink, 'twitter')" >
+                      @click="openWindowSharing(twitterLink, 'twitter')">
                 <span class="icon">
                   <i class="fab fa-twitter"></i>
                 </span>
@@ -37,21 +38,25 @@
             </div>
           </div>
         </div>
+
         <div class="column c2">
           <apexchart
-              :options="radialBar"
-              :series="radialBar.series"
+              :options="radialBarPotentialImpact"
+              :series="radialBarPotentialImpact.series"
               height="100%"
               type="radialBar"
               width="100%"
           ></apexchart>
         </div>
+
         <div class="column c3">
           <div class="pricing-plan potential is-warning">
             <div class="plan-header">Potential impact</div>
             <div class="title is-4 has-text-centered has-text-warning-dark">
-              You are wasting 5 kg CO<sub>2</sub> on potentially unnecessary
-              emails. This is the same as if your drove 75 km in an average car.
+              You're wasting 5kg of CO<sub>2</sub> on emails you probably won't open.
+            </div>
+            <div class="subtitle is-4 has-text-centered has-text-warning-dark">
+              This is the same as if your drove 75 km in an average car.
             </div>
             <div class="plan-items">
               <div class="plan-item has-background-warning-light">
@@ -66,8 +71,10 @@
             </div>
           </div>
         </div>
+
       </div>
     </div>
+
   </section>
 
   <section class="section stats">
@@ -90,14 +97,12 @@
             <article class="tile is-child notification is-light">
               <p class="title">E-mail box size evolution</p>
               <p class="subtitle">With an image</p>
-              <!-- <figure class="image is-4by3"> -->
               <apexchart
-                  :options="chartOptions"
-                  :series="series"
+                  :options="lineSizeMailbox.chartOptions"
+                  :series="lineSizeMailbox.series"
                   type="area"
                   width="100%"
               ></apexchart>
-              <!-- </figure> -->
             </article>
           </div>
         </div>
@@ -159,87 +164,30 @@
 
 <script>
 import VueApexCharts from "vue3-apexcharts";
-
+import {lineSizeMailbox, radialBarPotentialImpact} from "@/apex-data";
 
 export default {
   name: "Stats",
   data() {
     return {
+      radialBarPotentialImpact: radialBarPotentialImpact,
+      lineSizeMailbox: lineSizeMailbox,
       facebookLink: 'https://www.facebook.com/sharer/sharer.php?u=@u&title=@t&description=@d&quote=@q&hashtag=@h',
       twitterLink: 'https://twitter.com/intent/tweet?text=@t&url=@u&hashtags=@h@tu',
-      radialBar: {
-        chart: {
-          height: 280,
-          type: "radialBar",
-        },
-        series: [44, 55, 67],
-        colors: ["hsl(141, 71%, 48%)"],
-        plotOptions: {
-          radialBar: {
-            track: {
-              background: "hsl(48, 100%, 67%)",
-              opacity: 0.4,
-            },
-            dataLabels: {
-              name: {
-                fontSize: "22px",
-                color: ["hsl(217, 71%, 53%)"]
-              },
-              value: {
-                fontSize: "16px",
-                formatter: function (val) {
-                  return val + '% saved'
-                }
-              },
-              total: {
-                show: true,
-                label: "Currently saved",
-                formatter: function (w) {
-                  return (
-                      (
-                          w.globals.seriesTotals.reduce((a, b) => {
-                            return a + b;
-                          }, 0) / w.globals.series.length
-                      ).toPrecision(2) + "% / Total potential"
-                  );
-                },
-              },
-            },
-          },
-        },
-        labels: ["Newsletters", "E-mails", "CO2"],
-      },
-      chartOptions: {
-        chart: {
-          id: "vuechart-example",
-        },
-        xaxis: {
-          categories: ["Before ErasMail", "13/03/2021"],
-        },
-      },
-      series: [
-        {
-          name: "series-1",
-          data: [6, 4],
-        },
-      ],
     };
   },
   computed: {},
   components: {
-    // MonthlyChart,
     apexchart: VueApexCharts,
   },
   methods: {
-    shareLink(mediaLink, media) {
-      /**
-       * Twitter sharing shouldn't include empty parameter
-       */
+    openWindowSharing(mediaLink, media) {
+
+      //Twitter sharing shouldn't include empty parameter
       if (media === 'twitter') {
         mediaLink = mediaLink.replace('&hashtags=@h', '')
         mediaLink = mediaLink.replace('@tu', '')
       }
-      // console.log(mediaLink)
       mediaLink = mediaLink.replace(/@tu/g, '&via=' + encodeURIComponent(''))
           .replace(/@u/g, encodeURIComponent('https://www.erasmail.com'))
           .replace(/@t/g, encodeURIComponent('Save also the planet !\n Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
@@ -247,7 +195,7 @@ export default {
           .replace(/@q/g, encodeURIComponent('Save also the planet !\n Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
           .replace(/@h/g, '')
           .replace(/@m/g, encodeURIComponent(media))
-      window.open(mediaLink, "_blank", `width=${window.screen.width/2},height=${window.screen.height/2}`)
+      window.open(mediaLink, "_blank", `width=${window.screen.width / 2},height=${window.screen.height / 2}`)
     },
 
   },

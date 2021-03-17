@@ -19,7 +19,9 @@ services:
     env_file:
       - ./.env.prod.db
   nginx:
-    build: nginx
+    build:
+      context: ./
+      dockerfile: ./nginx/Dockerfile
     ports:
       - 1337:80
     depends_on:
