@@ -11,6 +11,18 @@ services:
       - ./.env.dev
     depends_on:
       - db
+  frontend:
+    container_name: frontend_dev_vet
+    build:
+      context: ./front-end/erasmail
+    volumes:
+      - ./front-end/erasmail:/app/:ro
+    ports:
+      - 8080:8080
+    depends_on:
+      - web
+      - db
+
   db:
     image: postgres:alpine
     volumes:
@@ -19,11 +31,5 @@ services:
       - POSTGRES_USER=samir
       - POSTGRES_PASSWORD=erasmail@2021
       - POSTGRES_DB=erasmail
-  nginx:
-    build: nginx
-    ports:
-      - 1337:80
-    depends_on:
-      - web
 volumes:
   postgres_data:
