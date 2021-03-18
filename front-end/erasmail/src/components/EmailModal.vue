@@ -61,9 +61,6 @@ import {
 } from "../utils/UnionFind";
 const byteSize = require('byte-size')
 const stringSimilarity = require("string-similarity")
-const {
-    distance
-} = require('fastest-levenshtein')
 const randomColor = require('random-color')
 
 const excludeType = ['mp3', 'wma', 'm4a', 'png', 'jpeg', 'jpg'] // audio and images files never considered as duplicate
@@ -72,8 +69,6 @@ function isDuplicate(attachmentName1, attachmentName2) {
     attachmentName1 = attachmentName1.split('.')
     attachmentName2 = attachmentName2.split('.')
 
-    let fileName1 = attachmentName1.slice(0, -1).join('.')
-    let fileName2 =  attachmentName2.slice(0, -1).join('.')
     let fileType1 = attachmentName1.pop().toLowerCase()
     let fileType2 = attachmentName2.pop().toLowerCase()
 
@@ -81,14 +76,20 @@ function isDuplicate(attachmentName1, attachmentName2) {
         return false
     }
 
-    let levenshteinDistance = distance(fileName1, fileName2)
-    let maxLength = Math.max(fileName1.length, fileName2.length)
-    let levenshteinSimilarity = (maxLength - levenshteinDistance) / maxLength
+    // this regex is used to remove all characters useless at the end of the filename
+    // like _V-1, v_1, 3, ...
+    // it done in order to maximizer the similarity because `report v_1` and `report v_2` may be duplicate
+    const regex_delete = /( |-|_)v(|-|_)[0-9^)]+|( |-|_)\([0-9^)]+\)/ig
+    // this regex is used to replace all _ or - by a space
+    // it done in order to maximizer the similarity because `internship report` and `internship_report` may be duplicate
+    const regex_space = /-|_/ig
+
+    let fileName1 = attachmentName1.join('.').replace(regex_delete, '').replace(regex_space,' ').trim()
+    let fileName2 =  attachmentName2.join('.').replace(regex_delete, '').replace(regex_space,' ').trim()
 
     return fileName1.includes(fileName2) ||
         fileName2.includes(fileName1) ||
-        stringSimilarity.compareTwoStrings(fileName1, fileName2) >= 0.8 ||
-        levenshteinSimilarity >= 0.8
+        stringSimilarity.compareTwoStrings(fileName1, fileName2) >= 0.8
 }
 
 export default {
