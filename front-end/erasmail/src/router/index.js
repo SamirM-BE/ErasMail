@@ -4,10 +4,16 @@ import Login from '../views/Login.vue'
 import Logout from '../views/Logout.vue'
 import Loading from '../views/Loading.vue'
 import Threads from '../views/Threads.vue'
+import LandingPage from '../views/LandingPage.vue'
 
 const routes = [
   {
     path: '/',
+    name: 'landingpage',
+    component: LandingPage,
+  },
+  {
+    path: '/home',
     name: 'home',
     component: Home,
   },

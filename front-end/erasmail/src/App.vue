@@ -55,16 +55,5 @@ export default {
 </script>
 
 <style>
-/* .section {
-  background-color: red;
-  height: 100%;
-} */
 
-.hero-foot {
-  background-color: brown;
-} */
-
-.hero-head {
-  background-color: red;
-}
 </style>

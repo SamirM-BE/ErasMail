@@ -2,7 +2,7 @@
   <nav class="navbar is-primary has-background-primary-dark is-fixed-top" role="navigation" aria-label="main navigation">
     <!-- LOGO ErasMail -->
     <div class="navbar-brand">
-      <router-link class="navbar-item" :to="{ name: 'home' }" exact><strong>ErasMail</strong></router-link>
+      <router-link class="navbar-item" :to="{ name: 'landingpage' }" exact><strong>ErasMail</strong></router-link>
 
       <a role="button" class="navbar-burger" @click="showNav = !showNav" :class="{ 'is-active': showNav }"
         aria-label="menu" aria-expanded="false" data-target="navbar">
@@ -16,7 +16,7 @@
     <div id="navbar" class="navbar-menu" :class="{ 'is-active': showNav }">
       <!-- Left side -->
       <div class="navbar-start">
-        <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'threads' }">Threads</router-link> 
+        <router-link v-if="loggedIn && $route.name=='landingpage'" class="navbar-item" :to="{ name: 'home' }">Start</router-link>
          
         <a class="navbar-item is-hidden">Documentation</a>
 
