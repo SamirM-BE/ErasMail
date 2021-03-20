@@ -1,3 +1,4 @@
+from rest_framework import response
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -23,6 +24,7 @@ import re
 
 User = get_user_model()
 
+
 class EmailView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -35,8 +37,8 @@ class EmailView(APIView):
 
         user = request.user
 
-        EmailHeaders.objects.filter(receiver=user).delete() # This remove all old history if the logout was not done successfully
-
+        # This remove all old history if the logout was not done successfully
+        EmailHeaders.objects.filter(receiver=user).delete()
 
         try:
             print('start imap fetching')
@@ -52,26 +54,27 @@ class EmailView(APIView):
             print('save in the DB')
             for mail in mail_messages:
 
-                if mail.list_unsubscribe :
+                if mail.list_unsubscribe:
                     try:
-                        unsubscribe = Newsletter.objects.get(receiver=user, sender_email=mail.sender_email)
+                        unsubscribe = Newsletter.objects.get(
+                            receiver=user, sender_email=mail.sender_email)
                         # if the one_click is set we don't change anything because it is the best way to unsubscribe
-                        if (not unsubscribe.one_click) and mail.list_unsubscribe_post: 
+                        if (not unsubscribe.one_click) and mail.list_unsubscribe_post:
                             unsubscribe.one_click = True
                             unsubscribe.list_unsubscribe = mail.list_unsubscribe
-                            
+
                             unsubscribe.save()
                         elif (not unsubscribe.one_click) and mail.list_unsubscribe[:6] == "mailto":
                             unsubscribe.one_click = False
                             unsubscribe.list_unsubscribe = mail.list_unsubscribe
-                            
+
                             unsubscribe.save()
                     except Newsletter.DoesNotExist as e:
-                        unsubscribe = Newsletter.objects.create(receiver=user, list_unsubscribe=mail.list_unsubscribe
-                        ,
+                        unsubscribe = Newsletter.objects.create(receiver=user, list_unsubscribe=mail.list_unsubscribe,
                                                                 one_click=mail.list_unsubscribe_post, sender_email=mail.sender_email)
                     except Newsletter.MultipleObjectsReturned as e:
-                        print(f'Multiple objects Newsletter returned\nError from Django = {e}')
+                        print(
+                            f'Multiple objects Newsletter returned\nError from Django = {e}')
                 else:
                     unsubscribe = None
 
@@ -129,7 +132,8 @@ class EmailView(APIView):
             for idx, thread in enumerate(threads):  # imporove with a generator
                 folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:
-                    email_header = EmailHeaders.objects.get(receiver=user, uid=uid, folder=folder)
+                    email_header = EmailHeaders.objects.get(
+                        receiver=user, uid=uid, folder=folder)
                     email_header.thread_id = idx
                     email_header.save()
             print('finish')
@@ -138,7 +142,7 @@ class EmailView(APIView):
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request):
         email = request.user.email
         user = request.user
@@ -154,7 +158,15 @@ class EmailView(APIView):
         #     }
         if folder_uids:
             move_to_trash(host, email, app_password, folder_uids)
-            [[EmailHeaders.objects.get(receiver=user, folder=folder_name, uid=uid).delete() for uid in uids] for folder_name, uids in folder_uids.items()]
+            stats = EmailStats.objects.get(user=user)
+            for folder_name, uids in folder_uids.items():
+                for uid in uids:
+                    email = EmailHeaders.objects.get(
+                        receiver=user, folder=folder_name, uid=uid)
+                    stats.deleted_emails_count += 1
+                    stats.saved_co2 += email.co2
+                    email.delete()
+            stats.save()
         else:
             EmailHeaders.objects.filter(receiver=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -178,20 +190,27 @@ class Attachments(APIView):
         #     }
         if folder_uids:
             remove_attachments(host, email, app_password, folder_uids)
-            [
-                [
-                    Attachment.objects.filter(
-                        email_header__receiver=user, email_header__folder=folder_name, email_header__uid=uid
-                    ).delete()
-                    for uid in uids
-                ]
-                for folder_name, uids in folder_uids.items()
-            ]
+            stats = EmailStats.objects.get(user=user)
+            for folder_name, uids in folder_uids.items():
+                for uid in uids:
+                    email = EmailHeaders.objects.get(
+                        receiver=user, folder=folder_name, uid=uid)
+                    attachments = email.attachments.all()
+                    for attachment in attachments:
+                        attachment_co2 = emailPollution(
+                            attachment.size, attachment.email_header.received_at)
+                        stats.saved_co2 += attachment_co2
+                        # the size of the email is not correctly estimated by some IMAP server
+                        email.size = max(email.size - attachment.size, 0)
+                        email.co2 = max(email.co2 - attachment_co2, 0)
+                    attachments.delete()
+                    email.save()
+            stats.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ThreadView(APIView):
+class ThreadListView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -209,7 +228,8 @@ class ThreadView(APIView):
 
         for mail in serializer.data:
 
-            data = threads.get(mail["thread_id"], {
+            data = threads.get(mail['thread_id'], {
+                'thread_id': mail['thread_id'],
                 'subject': '',
                 'co2': 0,
                 'size': 0,
@@ -232,11 +252,42 @@ class ThreadView(APIView):
         return Response(data=response, status=status.HTTP_200_OK)
 
 
+class ThreadDetailView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, thread_id):
+        user = request.user
+
+        emails_threads = EmailHeaders.objects.filter(
+            receiver=user, thread_id=thread_id
+        ).order_by('received_at')
+
+        serializer = EmailHeadersSerializer(emails_threads, many=True)
+
+        restrip_pat = re.compile(
+            """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE)
+        subject = restrip_pat.sub('', serializer.data[0]['subject']).strip()
+
+        stats = emails_threads.aggregate(
+            co2=Sum('co2'),
+            size=Sum('size'),
+        )
+
+        response = {
+            'thread_id': thread_id,
+            'subject': subject,
+            **stats,
+            'children': serializer.data,
+        }
+        
+        return Response(data=response, status=status.HTTP_200_OK)
+
+
 class Statistics(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, kind):
-    
+
         if kind == 'user':
             user = request.user
 
@@ -247,22 +298,31 @@ class Statistics(APIView):
             all_emails = EmailHeaders.objects.filter(receiver=user)
             email_header_stats = all_emails.aggregate(
                 threads_count=Count('thread_id', distinct=True),
-                # Q create a query to filter 
+                # Q create a query to filter
                 # Coalesce return 0 if the query set generated by the filter is empty
-                thread_co2=Coalesce(Sum('co2', filter=Q(thread_id__isnull=False)),0),
+                thread_co2=Coalesce(
+                    Sum('co2', filter=Q(thread_id__isnull=False)), 0),
 
-                emails_unseen_co2=Coalesce(Sum('co2', filter=Q(seen=False)),0),
+                emails_unseen_co2=Coalesce(
+                    Sum('co2', filter=Q(seen=False)), 0),
 
-                emails_before_count=Count('pk', filter=Q(received_at__lte=timezone.now() - timedelta(days=before_than*365))),
-                emails_before_co2=Coalesce(Sum('co2', filter=Q(received_at__lte=timezone.now() - timedelta(days=before_than*365))), 0),
-                emails_unseen_before_co2=Coalesce(Sum('co2', filter=Q(seen=False ,received_at__lte=timezone.now() - timedelta(days=before_than*365))), 0),
+                emails_before_count=Count('pk', filter=Q(
+                    received_at__lte=timezone.now() - timedelta(days=before_than*365))),
+                emails_before_co2=Coalesce(Sum('co2', filter=Q(
+                    received_at__lte=timezone.now() - timedelta(days=before_than*365))), 0),
+                emails_unseen_before_co2=Coalesce(Sum('co2', filter=Q(
+                    seen=False, received_at__lte=timezone.now() - timedelta(days=before_than*365))), 0),
 
-                emails_larger_count=Count('pk', filter=Q(size__gte=larger_than)),
-                emails_larger_co2=Coalesce(Sum('co2', filter=Q(size__gte=larger_than)), 0),
+                emails_larger_count=Count(
+                    'pk', filter=Q(size__gte=larger_than)),
+                emails_larger_co2=Coalesce(
+                    Sum('co2', filter=Q(size__gte=larger_than)), 0),
             )
             email_header_stats.update(
                 all_emails.aggregate(
-                    thread_attachment_count=Count('attachments', filter=Q(thread_id__isnull=False)), # Total number of attachment belonging to theads
+                    # Total number of attachment belonging to theads
+                    thread_attachment_count=Count(
+                        'attachments', filter=Q(thread_id__isnull=False)),
                 )
             )
 
@@ -270,23 +330,26 @@ class Statistics(APIView):
             all_newsletters = Newsletter.objects.filter(receiver=user)
             newsletter_stats = all_newsletters.aggregate(
                 newsletters_count=Count('pk'),
-                unsubscribed_newsletters_count=Count('pk', filter=Q(unsubscribed=True)),
+                unsubscribed_newsletters_count=Count(
+                    'pk', filter=Q(unsubscribed=True)),
             )
             newsletter_stats.update(
                 all_newsletters.aggregate(
                     emails_newsletters_count=Count('newsletters'),
-                    emails_newsletters_co2=Coalesce(Sum('newsletters__co2'),0),
+                    emails_newsletters_co2=Coalesce(
+                        Sum('newsletters__co2'), 0),
                 )
             )
 
             # generate statistics based on EmailStats
-            email_stats = EmailStatsSerializer(EmailStats.objects.get(user=user)).data
+            email_stats = EmailStatsSerializer(
+                EmailStats.objects.get(user=user)).data
             # merge all statistics
             response = {
                 **email_stats,
                 **email_header_stats,
                 **newsletter_stats
-                }
+            }
         elif kind == 'erasmail':
             # generate average users statistics based on EmailStats
             average_users_stats = EmailStats.objects.annotate(

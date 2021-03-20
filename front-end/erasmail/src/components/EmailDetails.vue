@@ -17,7 +17,7 @@
                         <span class="icon" :style="{ color: attachmentIconColor(attachment.name)}">
                             <i :class="[attachmentIcon(attachment.name)]"></i>
                         </span>
-                        <span>{{attachment.name}} ({{readableSize(attachment.size)}} {{attachment.size}}) </span>
+                        <span>{{attachment.name}} {{readableSize(attachment.size)}}</span>
                     </span>
                     <span class="tag is-rounded has-text-black" v-if="attachmentStyle(index)"
                         :style="{'background-color': attachmentStyle(index)}"> Potential duplicate </span>
@@ -144,9 +144,4 @@ export default {
 .tag{
     float: right;
 }
-
-.test{
-    color: lightgreen;
-}
-
 </style>

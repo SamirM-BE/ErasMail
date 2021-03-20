@@ -3,7 +3,7 @@
             <div class="field" v-for="(email, index) in emails" :key="index">
                 <div class="box control px-0">
                     <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
-                    <label :for="index" class="checkbox is-large">
+                    <label :for="index" class="checkbox">
                         <EmailDetails class="email-details" :email="email" :attachmentStyles="attachmentStyles(index)">
                         </EmailDetails>
                     </label>

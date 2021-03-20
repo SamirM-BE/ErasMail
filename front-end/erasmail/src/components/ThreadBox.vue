@@ -3,7 +3,7 @@
     <strong>{{ subject }}</strong>
 
     <div class="icon-text is-pulled-right is-flex is-align-items-center">
-      <span class="mx-1">{{readableCo2}}g of CO<sub>2</sub></span>
+      <span class="mx-1">{{readableCo2}} of CO<sub>2</sub></span>
       <span class="icon is-medium">
         <img :src="require(`../assets/speedometer${pollutions.level}.svg`)"
           alt="an image showing the intensity of the pollution generated">
@@ -35,6 +35,8 @@
 import {
     getAllComparisons
 } from "../utils/pollution";
+const convert = require('convert-units')
+
 
 export default {
   data(){
@@ -54,7 +56,8 @@ export default {
   },
   computed: {
     readableCo2() {
-      return this.co2.toFixed(2)
+      let co2 = convert(this.co2).from('g').toBest({ exclude: ['mcg', 'mg', 'oz', 'lb', 'mt'] })
+      return `${co2.val.toFixed(2)}${co2.unit}`
     },
     pollutions(){
       let allComparisons = getAllComparisons(this.co2)

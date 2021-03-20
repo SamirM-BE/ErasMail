@@ -51,7 +51,7 @@ export default {
 .flip-card {
   background-color: transparent;
   width: 100%;
-  height: 26vh;
+  height: 25vh;
   /* border: 1px solid #f1f1f1; */
   perspective: 1000px; /* Remove this if you don't want the 3D effect */
 }
@@ -77,7 +77,7 @@ export default {
   width: 100%;
   height: 100%;
   text-align: center;
-  transition: transform 0.8s;
+  transition: transform 0.3s;
   transform-style: preserve-3d;
   cursor: pointer;
 }

@@ -1,13 +1,13 @@
 <template>
-  <article class="message is-link mx-1" v-if="pollutionComparison.comparison">
+  <article class="message is-link mx-1">
     <div class="message-body">
       <h3 class="is-size-3 has-text-left">
         You have <strong>{{threadsSorted.length}}</strong> conversation<span
           v-if="threadsSorted.length > 1">s</span>,
         which in turn have already created about
-        <strong>{{totalPollution}}g</strong> of CO<sub>2</sub> so far...
+        <strong>{{readableCo2}}</strong> of CO<sub>2</sub> so far...
       </h3>
-      <h4 class="is-size-4 has-text-right is-italic">
+      <h4 class="is-size-4 has-text-right is-italic" v-if="pollutionComparison.comparison">
         The impact of your conversation<span v-if="threadsSorted.length > 1">s</span> load on the planet is
         about the same as if
         <strong>{{pollutionComparison.comparison.msg}}</strong>
@@ -15,7 +15,7 @@
     </div>
   </article>
   <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject"
-              @hide-modal="showModalFlag = false" @remove-emails="removeEmails" @remove-attachments="removeAttachments">
+              @hide-modal="showModalFlag = false" @delete="deleteEmailsOrAttachments">
   </EmailModal>
   <div class="columns mx-1" :class="{'is-clipped': showModalFlag}">
     <div class="column is-half has-border p-0">
@@ -44,8 +44,8 @@ import {
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
 import EmailModal from "../components/EmailModal";
+const convert = require('convert-units');
 
-// TODO threads = response.data au lieu de response.data.children
 
 export default {
   name: "Home",
@@ -68,16 +68,20 @@ export default {
       }
       return []
     },
-    totalPollution(){
-      // https://www.npmjs.com/package/convert-units
-      // do a query to G
-      let pollution = 0
+    totalPollution() {
+      let pollution = 0.0
       if (this.threads) {
-        pollution = this.threads.children.map(thread => thread.co2).reduce((prev, curr) => prev + curr, 0).toFixed(2)
+        pollution = this.threads.children.map(thread => thread.co2).reduce((prev, curr) => prev + curr, 0)
       }
       return pollution
     },
-    pollutionComparison(){
+    readableCo2() {
+      let co2 = convert(this.totalPollution).from('g').toBest({
+        exclude: ['mcg', 'mg', 'oz', 'lb', 'mt']
+      })
+      return `${co2.val.toFixed(2)}${co2.unit}`
+    },
+    pollutionComparison() {
       return getOptimalComparison(this.totalPollution)
     }
   },
@@ -89,19 +93,18 @@ export default {
   created() {
     if (this.loggedIn) {
       getAPI
-          .get(
-              "/api/emails/threads", {
-                headers: {
-                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                },
-              }
-          ).then((response) => {
-        this.threads = response.data
-        //this.threads.children = this.threads.children.filter((thread) => thread.co2 >= 1.4) // 1.4g is the smallest size that can be compared to 1 paper cup
-      })
-          .catch((err) => {
-            console.log(err);
-          });
+        .get(
+          "/api/emails/threads", {
+            headers: {
+              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+            },
+          }
+        ).then((response) => {
+          this.threads = response.data
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
   },
   methods: {
@@ -111,64 +114,52 @@ export default {
       this.emails = emails
       this.threadIndex = idx
     },
-    removeAttachments(emails){
-      for (let i = 0; i < emails.emailsIndexSize.length ; i++) {
-        this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[i].size
-        let email = this.threads.children[this.threadIndex].children[emails.emailsIndexSize[i].index]
-        email.size -= emails.emailsIndexSize[i].size
-        email.attachments = []
-      }
-      if(emails.uids){
-        getAPI
-            .delete(
-                "/api/emails/attachments", {
-                  headers: {
-                    Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                  },
-                  data: {
-                    app_password: this.$store.state.auth.app_password,
-                    host: this.$store.state.auth.host,
-                    uids:emails.uids
-                  }
-                }
-            )
-            .catch((err) => {
-              console.log(err);
-            });
-      }
-    },
-    removeEmails(emails) {
+    deleteEmailsOrAttachments(emails) {
       // https://vuejs.org/v2/guide/reactivity.html
-
-      if (this.threads.children[this.threadIndex].children.length === emails.emailsIndexSize.length) {
-        // if all emails must me removed then remove the whole thread
-        this.threads.children.splice(this.threadIndex, 1)
-      } else {
-        for (let i = emails.emailsIndexSize.length - 1; i >= 0; i--) {
-          this.threads.children[this.threadIndex].size -= emails.emailsIndexSize[i].size
-          this.threads.children[this.threadIndex].children.splice(emails.emailsIndexSize[i].index, 1)
+      if (emails.count) {
+        let url = '/api/emails/'
+        if (emails.onlyAttachments) {
+          url += 'attachments'
         }
-      }
-
-      getAPI
-          .delete(
-              "/api/emails/", {
-                headers: {
-                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                },
-                data: {
-                  app_password: this.$store.state.auth.app_password,
-                  host: this.$store.state.auth.host,
-                  uids:emails.uids
-                }
+        let deleted = false
+        if (!emails.onlyAttachments && this.threads.children[this.threadIndex].children.length === emails.count) {
+          // if all emails must me deleted then remove the whole thread
+          this.threads.children.splice(this.threadIndex, 1)
+          deleted = true
+        }
+        getAPI.delete(
+            url, {
+              headers: {
+                Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+              },
+              data: {
+                app_password: this.$store.state.auth.app_password,
+                host: this.$store.state.auth.host,
+                uids: emails.uids
               }
+            }
           )
-          .catch((err) => {
-            console.log(err);
-          });
+          .then(() => {
+            if (!deleted) {
+              return getAPI
+                .get(
+                  `/api/emails/threads/${this.threads.children[this.threadIndex].thread_id}`, {
+                    headers: {
+                      Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                    },
+                  }
+                )
+            }
+          })
+          .then((response) => {
+            if (response) {
+              let threadUpdated = response.data
+              this.threads.children[this.threadIndex] = threadUpdated
+            }
+          })
+      }
     },
   },
-
 }
 </script>
 

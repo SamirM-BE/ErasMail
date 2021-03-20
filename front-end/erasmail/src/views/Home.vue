@@ -29,7 +29,6 @@
 
     <div class="columns is-centered pt-6">
       <div class="column c4 is-3">
-        <!--TODO: passer 2mb en param-->
         <FlippingCard :backData="'Delete your e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${userStats.emails_larger_count} e-mails larger than 2MB.`"

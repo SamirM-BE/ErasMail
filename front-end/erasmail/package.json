@@ -14,6 +14,7 @@
     "bulma-pricingtable": "^0.2.0",
     "bulma-social": "^2.0.0",
     "byte-size": "^7.0.0",
+    "convert-units": "^2.3.4",
     "core-js": "^3.6.5",
     "d3": "^6.5.0",
     "d3-request": "^1.0.6",

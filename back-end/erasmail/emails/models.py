@@ -14,7 +14,7 @@ class EmailStats(models.Model):
     emails_received_count = models.PositiveIntegerField(null=False)
     months_since_creation = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
 
-    saved_co2 = models.PositiveIntegerField(default=0)
+    saved_co2 = models.FloatField(default=0, validators=[MinValueValidator(0.0)])
     deleted_emails_count = models.PositiveIntegerField(default=0)
 
 class Newsletter(models.Model):

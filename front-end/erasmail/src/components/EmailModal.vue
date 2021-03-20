@@ -35,7 +35,7 @@
                             </a>
                             <!-- <hr class="dropdown-divider"> -->
                             <a class="dropdown-item" :class="{'is-active': selectedAction === removeAttachment}"
-                                v-if="selectedEmailsHasAllAttachment" @click="selectAction(removeAttachment)">
+                                v-if="selectedEmailsHasAttachment != false" @click="selectAction(removeAttachment)">
                                 <p>{{removeAttachment}}</p>
                             </a>
                         </div>
@@ -117,25 +117,26 @@ export default {
         },
 
     },
-    emits: ['hide-modal', 'remove-emails', 'remove-attachments'],
+    emits: ['hide-modal', 'delete'],
     watch: {
-        selectedEmailsHasAllAttachment(newValue)  {
-            if (!newValue && this.selectedAction === this.removeAttachment) {
+        selectedEmailsHasAttachment(newValue)  {
+            if(newValue){
                 this.selectedAction = 'Select an action'
+            }
+            else {
+                this.selectedAction = this.removeEmail
+            } 
+        },
+        attachments(newValue){
+            if(!newValue.length){
+                this.selectedAction = this.removeEmail
             }
         }
     },
     computed: {
         selectedSize() {
             let size = 0
-
-            for (let i = 0; i < this.checkedEmails.length; i++) {
-                if (this.selectedAction === this.removeAttachment) {
-                    this.emails[this.checkedEmails[i]].attachments.forEach((item) => size += item.size)
-                } else {
-                    size += this.emails[this.checkedEmails[i]].size
-                }
-            }
+            this.checkedEmails.forEach((emailIdx) => size += this.emails[emailIdx].size)
             return size;
         },
         maxSize() {
@@ -145,15 +146,18 @@ export default {
             }
             return size;
         },
-        selectedEmailsHasAllAttachment(){
+        selectedEmailsHasAttachment(){
+            if(!this.checkedEmails.length){
+                return undefined
+            }
             for (let i = 0; i < this.checkedEmails.length; i++) {
                 let index = this.checkedEmails[i]
                 let email = this.emails[index]
-                if(!email.attachments.length){
-                    return false
+                if(email.attachments.length){
+                    return true
                 }
             }
-            return true
+            return false
         },
         attachments() {
             let attachments = []
@@ -248,35 +252,25 @@ export default {
 
         remove(){
             let toRemove = {
-                emailsIndexSize: [],
-                uids: {}
+                count: 0,
+                uids: {},
+                onlyAttachments: false,
             }
+            toRemove.count = this.checkedEmails.length
             for (let i = 0; i < this.checkedEmails.length; i++) {
                 let index = this.checkedEmails[i]
                 
                 let email = this.emails[index]
-                let size = 0
-
-                if(this.selectedAction == this.removeEmail){
-                    size = email.size
-                } else if (this.selectedAction == this.removeAttachment){
-                    if(!email.attachments.length){
-                        continue // skip the emails without any attachment
-                    }
-                    email.attachments.forEach((item) =>  size +=item.size)
-                }
-                
-                toRemove.emailsIndexSize.push({index, size})
 
                 let uids = toRemove.uids[email.folder] || []
                 uids.push(email.uid)
                 toRemove.uids[email.folder] = uids
             }
             if(this.selectedAction == this.removeEmail){
-                toRemove.emailsIndexSize.sort((a, b) => a.index - b.index)
-                this.$emit('remove-emails', toRemove)
+                this.$emit('delete', toRemove)
             } else { // this.selectedAction == this.removeAttachment
-                this.$emit('remove-attachments', toRemove)
+                toRemove.onlyAttachments = true
+                this.$emit('delete', toRemove)
             }
             this.hideModal()
         },

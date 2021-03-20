@@ -1,8 +1,8 @@
 <template>
-  <div class="notification is-success is-light" v-show="login_notification">
+  <div class="notification is-success is-light" v-show="notification_show">
     <button
       class="delete"
-      @click="login_notification = !login_notification"
+      @click="notification_show = !notification_show"
     ></button>
     <p>{{ notification_message }}</p>
   </div>
@@ -12,24 +12,18 @@
 export default {
   data() {
     return {
-      login_notification: true,
+      notification_show: true,
     };
   },
   props: ["notification_message"],
 
   mounted() {
     setTimeout(() => {
-      this.login_notification = false;
+      this.notification_show = false;
     }, 2000);
   },
 };
 </script>
 
-<style>
-.notification {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%
-}
+<style scoped>
 </style>
