@@ -2,21 +2,22 @@
 
   <div class="container main-menu">
     <div class="columns is-centered">
-      <div class="column c1 is-2">
-        <FlippingCard backData="'Delete some e-mails, save the nature !'"
+      <div class="column c1 is-3">
+        <FlippingCard :backData="'Delete some e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
-                      :frontData="`You have ${userStats.emails_before_count} unread emails older than 3 years.`"
+                      :frontData="`You have ${userStats.emails_before_count} emails older than 3 years.`"
                       :frontTitle="'Old unread e-mails'"
                       @click="routePage('threads')"/>
+        <!--TODO: passer 3 ans en param-->
       </div>
-      <div class="column c2 is-2 is-offset-1">
+      <div class="column c2 is-3 is-offset-1">
         <FlippingCard :backData="'Delete some e-mails or some attachments, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${userStats.threads_count} threads with a total of ${attachmentCount} attachments with potential duplicates.`"
                       :frontTitle="'Threads'"
                       @click="routePage('threads')"/>
       </div>
-      <div class="column c3 is-2 is-offset-1">
+      <div class="column c3 is-3 is-offset-1">
         <FlippingCard :backData="'Unsubscribe from the newsletters and delete their old e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${userStats.newsletters_count} different newsletters.`"
@@ -27,21 +28,22 @@
 
 
     <div class="columns is-centered pt-6">
-      <div class="column c4 is-2">
+      <div class="column c4 is-3">
+        <!--TODO: passer 2mb en param-->
         <FlippingCard :backData="'Delete your e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
-                      :frontData="`You have ${userStats.emails_lighter_count} e-mails larger than 2MB.`"
+                      :frontData="`You have ${userStats.emails_larger_count} e-mails larger than 2MB.`"
                       :frontTitle="'Large e-mails'"
                       @click="routePage('threads')"/>
       </div>
-      <div class="column c5 is-2 is-offset-1"> <!--TODO ! -->
+      <div class="column c5 is-3 is-offset-1"> <!--TODO ! -->
         <FlippingCard :backData="'Delete your e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${uselessCount} useless e-mails. (Calendar e-mails, reminder e-mails, empty e-mails)`"
                       :frontTitle="'Useless e-mails'"
                       @click="routePage('threads')"/>
       </div>
-      <div class="column c6 is-2 is-offset-1">
+      <div class="column c6 is-3 is-offset-1">
         <FlippingCard :backData="'Delete your e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="'Find useless emails based on more than a dozen of smart filters.'"
@@ -69,7 +71,7 @@ export default {
       uselessCount: 1546,
     };
   },
-  computed: mapGetters("auth", ["loggedIn"]),
+  computed: mapGetters(["auth"]),
   components: {
     FlippingCard,
   },
@@ -81,7 +83,6 @@ export default {
     }
   },
   created() {
-    if (this.loggedIn) {
       getAPI
           .get(
               "/api/emails/stats/user", {
@@ -92,12 +93,10 @@ export default {
           )
           .then((response) => {
             this.userStats = response.data
-            console.log(this.userStats)
           })
           .catch((err) => {
             console.log(err);
           });
-    }
   },
 };
 </script>

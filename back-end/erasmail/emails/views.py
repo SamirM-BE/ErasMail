@@ -77,7 +77,7 @@ class EmailView(APIView):
 
                 co2 = emailPollution(mail.size, mail.received_at)
 
-                if mail.received_at < received_at_min:
+                if mail.received_at and  mail.received_at < received_at_min:
                     received_at_min = mail.received_at
 
                 mailbox_size += mail.size
@@ -290,16 +290,17 @@ class Statistics(APIView):
         elif kind == 'erasmail':
             # generate average users statistics based on EmailStats
             average_users_stats = EmailStats.objects.annotate(
-                emails_received_rate=ExpressionWrapper(F('emails_received_count') / F('months_since_creation'), output_field=FloatField()),
+                emails_received_rate=ExpressionWrapper(F('emails_received_count') / F('months_since_creation'), output_field=FloatField()), 
                 emails_send_rate=ExpressionWrapper((F('emails_count') - F('emails_received_count'))/ F('months_since_creation'), output_field=FloatField()),
                 open_rate=ExpressionWrapper(F('emails_seen_count') / Cast(F('emails_count'), output_field=FloatField()), output_field=FloatField()),
             ).aggregate(
-                average_mailbox_size=Avg('mailbox_size'),
-                average_emitted_co2=Avg('emitted_co2'),
-                average_saved_co2=Avg('saved_co2'),
-                average_emails_received_rate=Avg('emails_received_rate'),
-                average_emails_send_ratet=Avg('emails_send_rate'),
-                average_open_rate = Avg('open_rate'),
+                avg_mailbox_size=Avg('mailbox_size'),
+                avg_emitted_co2=Avg('emitted_co2'),
+                avg_saved_co2=Avg('saved_co2'),
+                avg_monthly_emails_received=Avg('emails_received_rate'),
+                avg_monthly_emails_sent=Avg('emails_send_rate'),
+                avg_open_rate = Avg('open_rate'),
+                # avg email size
             )
             response = average_users_stats
         else:

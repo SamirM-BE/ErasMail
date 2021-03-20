@@ -51,18 +51,18 @@ export default {
 .flip-card {
   background-color: transparent;
   width: 100%;
-  height: 22vh;
+  height: 26vh;
   /* border: 1px solid #f1f1f1; */
   perspective: 1000px; /* Remove this if you don't want the 3D effect */
 }
 
 /* comment mettre une limite virtuelle pour hero-head à 30% de la height ? */
 /* comment virer le height 200 px ? */
-.hero-foot {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-}
+/*.hero-foot {*/
+/*  position: fixed;*/
+/*  bottom: 0;*/
+/*  left: 0;*/
+/*}*/
 
 /* .subtitle {
   font-size: 1.9vh;

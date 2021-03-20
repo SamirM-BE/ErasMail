@@ -17,7 +17,7 @@
                         <span class="icon" :style="{ color: attachmentIconColor(attachment.name)}">
                             <i :class="[attachmentIcon(attachment.name)]"></i>
                         </span>
-                        <span>{{attachment.name}} ({{readableSize(attachment.size)}}) </span>
+                        <span>{{attachment.name}} ({{readableSize(attachment.size)}} {{attachment.size}}) </span>
                     </span>
                     <span class="tag is-rounded has-text-black" v-if="attachmentStyle(index)"
                         :style="{'background-color': attachmentStyle(index)}"> Potential duplicate </span>
@@ -29,7 +29,7 @@
             <span class="icon">
                 <i class="fas fa-weight-hanging fa-xs"></i>
             </span>
-            <span class="is-size-7">{{readableSize(email.size)}}</span>
+            <span class="is-size-7">{{readableSize(email.size)}} {{email.size}}</span>
         </div>
     </div>
 </template>

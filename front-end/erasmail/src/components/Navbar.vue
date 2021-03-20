@@ -17,7 +17,7 @@
       <!-- Left side -->
       <div class="navbar-start">
         <router-link v-if="loggedIn && $route.name=='landingpage'" class="navbar-item" :to="{ name: 'home' }">Start</router-link>
-         
+        <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'stats' }">Statistics</router-link>
         <a class="navbar-item is-hidden">Documentation</a>
 
         <div class="navbar-item has-dropdown is-hoverable is-hidden">
