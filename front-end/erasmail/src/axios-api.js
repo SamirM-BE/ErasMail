@@ -1,9 +1,10 @@
 import axios from 'axios'
 import store from './store'
+require('dotenv').config();
 
 const TIME_OUT = 3000000000
 
-const APIUrl = 'http://127.0.0.1:1337'
+const APIUrl = `http://127.0.0.1:${process.env.VUE_APP_API_PORT}`
 const axiosBase = axios.create({
   baseURL: APIUrl,
   timeout: TIME_OUT,
