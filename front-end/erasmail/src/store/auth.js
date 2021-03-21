@@ -1,7 +1,4 @@
-import {
-    axiosBase,
-    getAPI
-} from '../axios-api'
+import {axiosBase, getAPI} from '../axios-api'
 
 export const auth = {
     namespaced: true,
@@ -49,8 +46,8 @@ export const auth = {
         // run the below action to get a new access token on expiration
         refreshToken(context) {
             return axiosBase.post('api/token-refresh/', {
-                    refresh: context.state.refreshToken
-                }) // send the stored refresh token to the backend API
+                refresh: context.state.refreshToken
+            }) // send the stored refresh token to the backend API
                 .then(response => { // if API sends back new access and refresh token update the store
                     console.log('New access successfully generated')
                     context.commit('updateAccess', response.data.access)
@@ -63,36 +60,61 @@ export const auth = {
         },
         userLogout(context) {
             if (context.getters.loggedIn) {
-                let promise_delete_emails = getAPI.delete('/api/emails/', {
+                getAPI.delete('/api/emails/', {
                     headers: {
                         Authorization: `Bearer ${context.state.accessToken}`
                     }
                 })
-                let promise_user_logout = getAPI.post('/api/users/logout', {
-                    refresh: context.state.refreshToken
-                }, {
-                    headers: {
-                        Authorization: `Bearer ${context.state.accessToken}`
-                    }
-                })
-                let promise_destroy_auth = new Promise((resolve) => {
-                    context.commit('destroyAuth')
-                    resolve()
-                })
-                return Promise.all([promise_delete_emails, promise_user_logout, promise_destroy_auth])
+                    .then(() => {
+                        return getAPI.post('/api/users/logout', {
+                            refresh: context.state.refreshToken
+                        }, {
+                            headers: {
+                                Authorization: `Bearer ${context.state.accessToken}`
+                            }
+                        })
+                    })
+                    .then(() => {
+                        context.commit('destroyAuth')
+                    })
                     .catch(err => {
                         console.log(`Error return while trying to execute userLogout : ${err}`)
                         context.commit('destroyAuth')
                         return err
                     })
             }
+
+            // if (context.getters.loggedIn) {
+            //     let promise_delete_emails = getAPI.delete('/api/emails/', {
+            //         headers: {
+            //             Authorization: `Bearer ${context.state.accessToken}`
+            //         }
+            //     })
+            //     let promise_user_logout = getAPI.post('/api/users/logout', {
+            //         refresh: context.state.refreshToken
+            //     }, {
+            //         headers: {
+            //             Authorization: `Bearer ${context.state.accessToken}`
+            //         }
+            //     })
+            //     let promise_destroy_auth = new Promise((resolve) => {
+            //         context.commit('destroyAuth')
+            //         resolve()
+            //     })
+            //     return Promise.all([promise_delete_emails, promise_user_logout, promise_destroy_auth])
+            //         .catch(err => {
+            //             console.log(`Error return while trying to execute userLogout : ${err}`)
+            //             context.commit('destroyAuth')
+            //             return err
+            //         })
+            // }
         },
         userLogin(context, usercredentials) {
             return axiosBase.post('/api/users/login', {
-                    email: usercredentials.email,
-                    app_password: usercredentials.app_password,
-                    host: usercredentials.host
-                })
+                email: usercredentials.email,
+                app_password: usercredentials.app_password,
+                host: usercredentials.host
+            })
                 .then(response => {
                     context.commit('updateStorage', {
                         access: response.data.access,
