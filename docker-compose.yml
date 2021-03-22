@@ -4,7 +4,7 @@ services:
     build: ./back-end/erasmail # = app
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./back-end/erasmail/:/usr/src/app/
+      - ./back-end/erasmail:/usr/src/app
     ports:
       - 8000:8000
     env_file:
