@@ -1,16 +1,15 @@
 <template>
-        <form>
-            <div class="field" v-for="(email, index) in emails" :key="index">
-                <div class="box control px-0">
-                    <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
-                    <label :for="index" class="checkbox">
-                        <EmailDetails class="email-details" :email="email" :attachmentStyles="attachmentStyles(index)">
-                        </EmailDetails>
-                    </label>
-                </div>
+    <form>
+        <div class="field" v-for="(email, index) in emails" :key="index">
+            <div class="box control px-0">
+                <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
+                <label :for="index" class="checkbox">
+                    <EmailDetails class="has-border-left" :email="email" :attachmentStyles="attachmentStyles(index)">
+                    </EmailDetails>
+                </label>
             </div>
-        </form>
-
+        </div>
+    </form>
 </template>
 
 <script>
@@ -27,6 +26,10 @@ export default {
             type: Array,
             required: true
         },
+        selectAll: {
+            type: Boolean,
+            required: true
+        },
         attachmentStylesList: Array,
         reset: Boolean,
     },
@@ -41,20 +44,28 @@ export default {
         checkedEmails() {
             this.$emit('checked-emails', this.checkedEmails)
         },
+        selectAll(newValue) {
+            if (newValue) {
+                this.checkedEmails = Array.from({
+                    length: this.emails.length
+                }, (_, index) => index);
+            } else {
+                this.checkedEmails = []
+            }
+        }
     },
     methods: {
-        attachmentStyles(index){
-            if(this.attachmentStylesList){
+        attachmentStyles(index) {
+            if (this.attachmentStylesList) {
                 return this.attachmentStylesList[index]
             }
             return null
-        }
+        },
     }
 }
 </script>
 
 <style scoped>
-
 input {
     margin: 4%;
 }
@@ -63,7 +74,7 @@ label {
     width: 100%;
 }
 
-.email-details {
+.has-border-left {
     border-left-width: thin !important;
     border-left: solid;
     padding-left: 1.5vw;

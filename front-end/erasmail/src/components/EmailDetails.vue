@@ -7,7 +7,12 @@
             <span class="icon">
                 <i class="far fa-address-card fa-sm"></i>
             </span>
-            <span class="is-size-6" >{{email.sender_name}}<span v-if="email.sender_name">,</span> {{email.sender_email}}</span>
+
+
+            <span class="is-size-6">{{email.sender_name}}<span v-if="email.sender_name" class="is-size-6-2">
+                    ({{email.sender_email}})</span>
+                <span v-else>{{email.sender_email}}</span>
+            </span>
         </div>
 
         <ul class="ml-5">
@@ -143,5 +148,8 @@ export default {
 <style>
 .tag{
     float: right;
+}
+.is-size-6-2{
+    font-size: 0.85rem;
 }
 </style>
