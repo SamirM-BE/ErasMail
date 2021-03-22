@@ -45,15 +45,22 @@ const lineSizeMailbox = {
     chartOptions: {
         chart: {
             id: "vuechart-example",
+            toolbar: {
+                show: false,
+            },
+        },
+        title: {
+            text: 'Total saved co2',
+            align: 'left'
         },
         xaxis: {
-            categories: ["Before ErasMail", "13/03/2021"],
+            categories: ["Before ErasMail", "13/03/2021", "Today"],
         },
     },
     series: [
         {
-            name: "series-1",
-            data: [6, 4],
+            name: "CO2 grams",
+            data: [0, 632, 951],
         },
     ]
 }

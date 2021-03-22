@@ -5,16 +5,16 @@
 
         <div class="column c1">
           <div class="pricing-plan current is-success">
-            <div class="plan-header">Current situation</div>
+            <div class="plan-header">Current impact</div>
             <div class="title is-4 has-text-centered has-text-success">
-              You saved {{ userStats.saved_co2 }} CO<sub>2</sub>.
+              You saved {{ Math.round(userStats.saved_co2) }} CO<sub>2</sub>.
             </div>
-            <div class="subtitle is-4 has-text-centered has-text-success">
-              This is the same as {{ userStats.saved_co2 / 10 }} plastic bags.
+            <div class="subtitle is-5 is-italic has-text-centered has-text-success">
+              {{ getCO2equivalent(userStats.saved_co2) }}
             </div>
             <div class="plan-items">
               <div class="plan-item has-background-success-light">
-                {{ userStats.saved_co2 }}g CO<sub>2</sub> saved
+                {{ Math.round(userStats.saved_co2) }}g CO<sub>2</sub> saved
               </div>
               <div class="plan-item has-background-success-light">
                 {{ userStats.deleted_emails_count }} deleted emails
@@ -55,7 +55,7 @@
             <div class="title is-4 has-text-centered has-text-warning-dark">
               You're wasting XXXX kg of CO<sub>2</sub> on emails you probably won't open.
             </div>
-            <div class="subtitle is-4 has-text-centered has-text-warning-dark">
+            <div class="subtitle is-5 is-italic has-text-centered has-text-warning-dark">
               This is the same as if your drove XXXX km in an average car.
             </div>
             <div class="plan-items">
@@ -67,7 +67,7 @@
               </div>
             </div>
             <div class="plan-footer">
-              <button class="button is-fullwidth">Take action</button>
+              <router-link class="button is-fullwidth" :to="{ name: 'home' }">Take action</router-link>
             </div>
           </div>
         </div>
@@ -85,15 +85,15 @@
             <article class="tile is-child notification is-warning">
               <p class="title">On average you open
                 {{ getUserOpenRate() }}% of your
-                e-mails.</p>
+                emails.</p>
               <div class="content">
                 This is {{ getStrEcoComparison(getUserOpenRate(), erasmailStats.avg_open_rate*100) }} than the average user.
               </div>
             </article>
             <article class="tile is-child notification is-danger">
-              <p class="title">Your e-mail box uses {{ getStrMailboxSize() }}</p>
+              <p class="title">Your email box uses {{ getStrMailboxSize() }}</p>
               <p class="subtitle">
-                It's equivalent to {{ getCO2equivalent(userStats.emitted_co2) }}.
+                {{ getCO2equivalent(userStats.emitted_co2) }}
               </p>
               <div class="content">
                 This is {{ getStrEcoComparison(userStats.mailbox_size, erasmailStats.avg_mailbox_size) }} than the average user.
@@ -102,8 +102,7 @@
           </div>
           <div class="tile is-parent is-vertical">
             <article class="tile is-child notification is-light">
-              <p class="title">E-mail box size evolution</p>
-              <p class="subtitle">With an image</p>
+              <p class="title">Saved CO<sub>2</sub> grams evolution</p>
               <apexchart
                   :options="lineSizeMailbox.chartOptions"
                   :series="lineSizeMailbox.series"
@@ -118,7 +117,7 @@
             <article class="tile is-child notification is-link is-light">
               <p class="title">You receive on average
                 {{ getAvgMonthlyEmails() }}
-                e-mails a month</p>
+                emails a month</p>
               <div class="content">
                 This is {{ getStrEcoComparison(getAvgMonthlyEmails(), erasmailStats.avg_monthly_emails_received) }} than the average user.
               </div>
@@ -126,7 +125,7 @@
           </div>
           <div class="tile is-parent">
             <article class="tile is-child notification is-danger is-light ">
-              <p class="title">You have {{ userStats.emails_count - userStats.emails_seen_count }} unread e-mails.</p>
+              <p class="title">You have {{ userStats.emails_count - userStats.emails_seen_count }} unread emails.</p>
               <p class="subtitle">
                 {{ getCO2equivalent(userStats.emails_unseen_co2) }}
               </p>
@@ -138,7 +137,7 @@
         <article class="tile is-child notification is-warning is-light">
           <div class="content">
             <p class="title">You are subscribed to {{ userStats.newsletters_count }} newsletters</p>
-            <p class="subtitle">You might receive XXXX e-mail this year.</p>
+            <p class="subtitle">You might receive XXXX emails this year.</p>
             <div class="content">
               <!-- Content -->
             </div>
@@ -147,7 +146,7 @@
         <article class="tile is-child notification is-primary is-light">
           <div class="content">
             <p class="title">You unsubscribed from {{ userStats.unsubscribed_newsletters_count }} newsletters</p>
-            <p class="subtitle">You avoided XXXX e-mails.</p>
+            <p class="subtitle">You avoided XXXX emails.</p>
             <div class="content">
               <!-- Content -->
             </div>
@@ -203,9 +202,9 @@ export default {
       }
       mediaLink = mediaLink.replace(/@tu/g, '&via=' + encodeURIComponent(''))
           .replace(/@u/g, encodeURIComponent('https://www.erasmail.com'))
-          .replace(/@t/g, encodeURIComponent('Save also the planet !\n Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
-          .replace(/@d/g, encodeURIComponent('Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
-          .replace(/@q/g, encodeURIComponent('Save also the planet !\n Storing e-mails has a cost, behind those e-mails there are servers working with electricity, I savec 954g of CO2 by deleting 955 e-mails, what about you  ?'))
+          .replace(/@t/g, encodeURIComponent('Storing emails has an environmental cost, behind these emails there are servers using electricity.\nI deleted 3510 emails and saved 900g of CO2 thanks to ErasMail. You too can contribute to make the planet a little greener!'))
+          .replace(/@d/g, encodeURIComponent(''))
+          .replace(/@q/g, encodeURIComponent('Storing emails has an environmental cost, behind these emails there are servers using electricity.\nI deleted 3510 emails and saved 900g of CO2 thanks to ErasMail. You too can contribute to make the planet a little greener!'))
           .replace(/@h/g, '')
           .replace(/@m/g, encodeURIComponent(media))
       window.open(mediaLink, "_blank", `width=${window.screen.width / 2},height=${window.screen.height / 2}`)

@@ -4,13 +4,13 @@
       <h3 class="is-size-3 has-text-left">
         You have <strong>{{threadsSorted.length}}</strong> conversation<span
           v-if="threadsSorted.length > 1">s</span>,
-        which in turn have already created about
-        <strong>{{readableCo2}}</strong> of CO<sub>2</sub> so far...
+        which have generated about
+        <strong>{{Math.round(totalPollution)}}g</strong> of CO<sub>2</sub> so far...
       </h3>
       <h4 class="is-size-4 has-text-right is-italic" v-if="pollutionComparison.comparison">
-        The impact of your conversation<span v-if="threadsSorted.length > 1">s</span> load on the planet is
+        The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is
         about the same as if
-        <strong>{{pollutionComparison.comparison.msg}}</strong>
+        <strong>{{Math.round(pollutionComparison.comparison.msg)}}</strong>
       </h4>
     </div>
   </article>
@@ -93,18 +93,18 @@ export default {
   created() {
     if (this.loggedIn) {
       getAPI
-        .get(
-          "/api/emails/threads", {
-            headers: {
-              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-            },
-          }
-        ).then((response) => {
-          this.threads = response.data
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+          .get(
+              "/api/emails/threads", {
+                headers: {
+                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                },
+              }
+          ).then((response) => {
+        this.threads = response.data
+      })
+          .catch((err) => {
+            console.log(err);
+          });
     }
   },
   methods: {
@@ -138,25 +138,25 @@ export default {
                 uids: emails.uids
               }
             }
-          )
-          .then(() => {
-            if (!deleted) {
-              return getAPI
-                .get(
-                  `/api/emails/threads/${this.threads.children[this.threadIndex].thread_id}`, {
-                    headers: {
-                      Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                    },
-                  }
-                )
-            }
-          })
-          .then((response) => {
-            if (response) {
-              let threadUpdated = response.data
-              this.threads.children[this.threadIndex] = threadUpdated
-            }
-          })
+        )
+            .then(() => {
+              if (!deleted) {
+                return getAPI
+                    .get(
+                        `/api/emails/threads/${this.threads.children[this.threadIndex].thread_id}`, {
+                          headers: {
+                            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                          },
+                        }
+                    )
+              }
+            })
+            .then((response) => {
+              if (response) {
+                let threadUpdated = response.data
+                this.threads.children[this.threadIndex] = threadUpdated
+              }
+            })
       }
     },
   },
