@@ -26,4 +26,9 @@ export default {
 </script>
 
 <style scoped>
+.notification{
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
 </style>

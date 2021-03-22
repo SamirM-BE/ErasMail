@@ -1,5 +1,5 @@
 <template>
-  <div class="columns is-centered">
+  <div class="columns is-centered is-flex is-align-items-center is-screen-height">
     <div class="column is-one-third">
       <form class="box" v-on:submit.prevent="login">
         <div class="logo has-text-centered">
@@ -7,7 +7,7 @@
           <strong> ErasMail </strong>
         </div>
 
-        <hr />
+        <hr/>
 
         <div v-show="incorrectAuth" class="icon-text has-text-danger has-text-centered">
           <span class="icon">
@@ -107,5 +107,8 @@ export default {
 }
 .button:hover{
   background-color: hsl(171, 100%, 33%) !important;
+}
+.is-screen-height {
+  min-height: 90vh;
 }
 </style>

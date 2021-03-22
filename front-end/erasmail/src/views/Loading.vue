@@ -1,7 +1,7 @@
 <template>
   <SuccessNotification :notification_message="'You have successfully logged in'">
   </SuccessNotification>
-  <section class="section is-flex is-justify-content-center">
+  <section class="section">
     <div class="container">
       <div class="columns is-centered is-vcentered mb15">
         <div class="column is-4 has-text-centered logo">

@@ -1,29 +1,28 @@
 <template>
-  <div :class="loaderIsActive" class="pageloader"><span
-      class="title">Preparing the page, this will take a few seconds</span></div>
-  <article class="message is-link mx-1">
+  <div :class="loaderIsActive" class="pageloader"><span class="title">Preparing the page, this will take a few
+      seconds</span></div>
+  <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject"
+    @hide-modal="showModalFlag = false" @delete="deleteEmailsOrAttachments">
+  </EmailModal>
+  <article class="message is-link m-4">
     <div class="message-body">
       <h3 class="is-size-3 has-text-left">
-        You have <strong>{{ threadsSorted.length }}</strong> conversation<span
-          v-if="threadsSorted.length > 1">s</span>,
+        You have <strong>{{ threadsSorted.length }}</strong> conversation<span v-if="threadsSorted.length > 1">s</span>,
         which have generated about
         <strong>{{ Math.round(totalPollution) }}g</strong> of CO<sub>2</sub> so far...
       </h3>
-<!--      <h4 v-if="pollutionComparison.comparison" class="is-size-4 has-text-right is-italic">-->
-<!--        The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is-->
-<!--        about the same as if-->
-<!--        <strong>{{ Math.round(pollutionComparison.comparison.msg) }}</strong>-->
-<!--      </h4>-->
+      <h4 v-if="pollutionComparison.comparison" class="is-size-4 has-text-right is-italic">
+        The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is
+        about the same as if
+        <strong>{{pollutionComparison.comparison.msg}}</strong>
+      </h4>
     </div>
   </article>
-  <EmailModal :emails="emails" :showModal="showModalFlag" :threadSubject="threadSubject"
-              @delete="deleteEmailsOrAttachments" @hide-modal="showModalFlag = false">
-  </EmailModal>
-  <div :class="{'is-clipped': showModalFlag}" class="columns mx-1">
+  <div class="columns mx-4 mt-4" :class="{'is-clipped': showModalFlag}">
     <div class="column is-half has-border p-0">
       <div class="is-scrollable">
-        <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :co2="thread.co2"
-                   :subject="thread.subject" @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
+        <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :subject="thread.subject" :co2="thread.co2"
+          @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
     </div>
     <div class="column is-half has-border p-0">
@@ -31,7 +30,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import {getAPI} from "../axios-api";
