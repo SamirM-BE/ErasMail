@@ -1,6 +1,9 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
+from django.db.models import Min
+
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -8,7 +11,8 @@ User = get_user_model()
 class EmailStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     mailbox_size = models.PositiveIntegerField(null=False)
-    emitted_co2 = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
+    carbon_eq_at_creation = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
+    carbon_eq = models.FloatField(null=False, default=0, validators=[MinValueValidator(0.0)])
     emails_count  =  models.PositiveIntegerField(null=False)
     emails_seen_count = models.PositiveIntegerField(null=False)
     emails_received_count = models.PositiveIntegerField(null=False)
@@ -16,6 +20,13 @@ class EmailStats(models.Model):
 
     saved_co2 = models.FloatField(default=0, validators=[MinValueValidator(0.0)])
     deleted_emails_count = models.PositiveIntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        if not self.carbon_eq_at_creation:
+            self.carbon_eq_at_creation = self.carbon_eq
+        super(EmailStats, self).save(*args, **kwargs)
+
+
 
 class Newsletter(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -41,6 +52,7 @@ class EmailHeaders(models.Model):
     thread_id = models.IntegerField(null=True)
     co2 = models.FloatField(validators=[MinValueValidator(0.0)])
     carbon_yforecast = models.FloatField(validators=[MinValueValidator(0.0)])
+    is_received = models.BooleanField(default=False)
 
     unsubscribe = models.ForeignKey(Newsletter, related_name='newsletters', on_delete=models.CASCADE, blank=True, null=True)
 

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@creativebulma/bulma-tooltip": "^1.2.0",
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "apexcharts": "^3.26.0",
     "axios": "^0.21.1",
     "bulma": "^0.9.2",

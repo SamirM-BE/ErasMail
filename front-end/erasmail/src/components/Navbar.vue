@@ -16,7 +16,7 @@
     <div id="navbar" class="navbar-menu" :class="{ 'is-active': showNav }">
       <!-- Left side -->
       <div class="navbar-start">
-        <router-link v-if="loggedIn && $route.name=='landingpage'" class="navbar-item" :to="{ name: 'home' }">Start</router-link>
+        <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'home' }">Menu</router-link>
         <router-link v-if="loggedIn" class="navbar-item" :to="{ name: 'stats' }">Statistics</router-link>
         <a class="navbar-item is-hidden">Documentation</a>
 
@@ -38,7 +38,7 @@
         <div class="navbar-item">
           <div class="buttons">
             <router-link v-if="!loggedIn && currentRouteName !== 'login'" class="button is-primary" :to="{ name: 'login' }" exact>Login</router-link>
-            <router-link v-if="loggedIn" class="button is-danger" :to="{ name: 'logout' }" exact>Logout</router-link>
+            <button v-if="loggedIn" class="button is-danger"  @click="logout()">Logout</button>
           </div>
         </div>
       </div>
@@ -47,7 +47,9 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
+import {
+  mapGetters
+} from "vuex";
 
 export default {
   name: "Navbar",
@@ -59,15 +61,22 @@ export default {
   computed: {
     ...mapGetters("auth", ["loggedIn"]),
     currentRouteName() {
-        return this.$route.name;
+      return this.$route.name;
     }
-  } 
-};
+  },
+  methods: {
+    logout() {
+      this.$store.dispatch('auth/userLogout')
+        .then(() => {
+          this.$router.push({
+            name: 'login'
+          })
+        })
+    }
+  }
+}
 </script>
 
 <style scoped>
-.navbar-item:hover{
-  background-color: hsl(171, 100%, 33%) !important;
-}
 </style>
 

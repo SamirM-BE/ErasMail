@@ -94,7 +94,7 @@
             <article class="tile is-child notification is-danger">
               <p class="title">Your email box uses {{ getStrMailboxSize() }}</p>
               <p class="subtitle">
-                {{ getCO2equivalent(userStats.emitted_co2) }}
+                {{ getCO2equivalent(userStats.carbon_eq) }}
               </p>
               <div class="content">
                 This is {{ getStrEcoComparison(userStats.mailbox_size, erasmailStats.avg_mailbox_size) }} than the
@@ -142,7 +142,7 @@
         <article class="tile is-child notification is-warning is-light">
           <div class="content">
             <p class="title">You are subscribed to {{ userStats.newsletters_count }} newsletters</p>
-            <p class="subtitle">You might receive XXXX emails this year.</p>
+            <p class="subtitle">You might receive {{ Math.round(userStats.newsletters_subscribed_email_yearly_sum) }} emails this year.</p>
             <div class="content">
               <!-- Content -->
             </div>
@@ -151,7 +151,7 @@
         <article class="tile is-child notification is-primary is-light">
           <div class="content">
             <p class="title">You unsubscribed from {{ userStats.unsubscribed_newsletters_count }} newsletters</p>
-            <p class="subtitle">You avoided XXXX emails.</p>
+            <p class="subtitle">You avoided {{ Math.round(userStats.newsletters_unsubscribed_email_yearly_sum) }} emails.</p>
             <div class="content">
               <!-- Content -->
             </div>
@@ -160,7 +160,7 @@
         <article class="tile is-child notification is-success">
           <div class="content">
             <p class="title">You pollute
-              {{ getStrEcoComparison(userStats.emitted_co2, erasmailStats.avg_emitted_co2) }}
+              {{ getStrEcoComparison(userStats.carbon_eq, erasmailStats.avg_carbon_eq) }}
               than the average user.</p>
             <div class="content">
               <!-- Content -->
