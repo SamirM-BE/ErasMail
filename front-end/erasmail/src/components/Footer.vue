@@ -14,16 +14,18 @@
                 <a href="mailto:info.erasmail@gmail.com">Contact</a>
             </div>
             <div class="column social">
-
-                <span class="icon is-large is-pulled-right">
+                <a class="icon is-large is-pulled-right has-text-grey-dark" 
+                   href="https://github.com/SamirM-BE/ErasMail" target="_blank">
                     <i class="fab fa-lg fa-github"></i>
-                </span>
-                <span class="icon is-large is-pulled-right">
+                </a>
+                <a class="icon is-large is-pulled-right has-text-grey-dark" 
+                   href="https://twitter.com/eras_mail" target="_blank">
                     <i class="fab fa-lg fa-twitter"></i>
-                </span>
-                <span class="icon is-large is-pulled-right">
+                </a>
+                <a class="icon is-large is-pulled-right has-text-grey-dark" 
+                   href="https://www.linkedin.com/company/erasmail" target="_blank">
                     <i class="fab fa-lg fa-linkedin-in"></i>
-                </span>
+                </a>
             </div>
         </div>
     </footer>
