@@ -81,7 +81,17 @@ function getOptimalComparison(emailCO2){
     return {level}
 }
 
+//SAMIR: pas bon, j'ai besoin de la date du thread
+function getYearlyCarbonForecast(received_at_date, size) {
+    const yearAsMs = 31556952000
+    let today = new Date()
+    let difference = today - received_at_date //get the diff in ms
+    difference = difference/yearAsMs //31556952000ms = 1 year, get the diff in years
+    return 0.0000017712 * size * (difference + 1)
+  }
+
 export {
     getAllComparisons,
-    getOptimalComparison
+    getOptimalComparison,
+    getYearlyCarbonForecast
 }

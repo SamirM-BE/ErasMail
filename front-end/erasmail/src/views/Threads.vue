@@ -9,7 +9,7 @@
       <h3 class="is-size-3 has-text-left">
         You have <strong>{{ threadsSorted.length }}</strong> conversation<span v-if="threadsSorted.length > 1">s</span>,
         which have generated about
-        <strong>{{ Math.round(totalPollution) }}g</strong> of CO<sub>2</sub> so far...
+        <strong>{{ readableCo2 }}</strong> of CO<sub>2</sub> so far...
       </h3>
       <h4 v-if="pollutionComparison.comparison" class="is-size-4 has-text-right is-italic">
         The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is
@@ -22,6 +22,7 @@
     <div class="column is-half has-border p-0">
       <div class="is-scrollable">
         <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :subject="thread.subject" :co2="thread.co2"
+          :size="thread.size" :created_at="new Date(thread.children[0].received_at)"
           @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
     </div>
@@ -158,15 +159,6 @@ export default {
             })
       }
     },
-    //SAMIR: pas bon, j'ai besoin de la date du thread
-    getYearlyCarbonForecast(email) {
-      const yearAsMs = 31556952000
-      let received_at_date = new Date(email.received_at)
-      let today = new Date()
-      let difference = today - received_at_date //get the diff in ms
-      difference = difference/yearAsMs //31556952000ms = 1 year, get the diff in years
-      return 0.0000017712 * email.size * (difference + 1)
-    }
   },
 }
 </script>
@@ -180,8 +172,8 @@ export default {
 
 .is-scrollable {
   overflow-y: scroll;
-  margin-right: -30%;
-  padding-right: 30%;
+  margin-right: -50%;
+  padding-right: 50%;
   height: 100%;
   /* Hide scrollbar for IE, Edge and Firefox */
   -ms-overflow-style: none;  /* IE and Edge */
