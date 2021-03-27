@@ -40,6 +40,7 @@ class EmailHeaders(models.Model):
     folder = models.CharField(max_length=5000)
     thread_id = models.IntegerField(null=True)
     co2 = models.FloatField(validators=[MinValueValidator(0.0)])
+    carbon_yforecast = models.FloatField(validators=[MinValueValidator(0.0)])
 
     unsubscribe = models.ForeignKey(Newsletter, related_name='newsletters', on_delete=models.CASCADE, blank=True, null=True)
 

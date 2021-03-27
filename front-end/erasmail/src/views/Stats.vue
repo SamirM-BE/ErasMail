@@ -67,7 +67,7 @@
               </div>
             </div>
             <div class="plan-footer">
-              <router-link class="button is-fullwidth" :to="{ name: 'home' }">Take action</router-link>
+              <router-link :to="{ name: 'home' }" class="button is-fullwidth">Take action</router-link>
             </div>
           </div>
         </div>
@@ -87,7 +87,8 @@
                 {{ getUserOpenRate() }}% of your
                 emails.</p>
               <div class="content">
-                This is {{ getStrEcoComparison(getUserOpenRate(), erasmailStats.avg_open_rate*100) }} than the average user.
+                This is {{ getStrEcoComparison(getUserOpenRate(), erasmailStats.avg_open_rate * 100) }} than the average
+                user.
               </div>
             </article>
             <article class="tile is-child notification is-danger">
@@ -96,7 +97,8 @@
                 {{ getCO2equivalent(userStats.emitted_co2) }}
               </p>
               <div class="content">
-                This is {{ getStrEcoComparison(userStats.mailbox_size, erasmailStats.avg_mailbox_size) }} than the average user.
+                This is {{ getStrEcoComparison(userStats.mailbox_size, erasmailStats.avg_mailbox_size) }} than the
+                average user.
               </div>
             </article>
           </div>
@@ -118,8 +120,11 @@
               <p class="title">You receive on average
                 {{ getAvgMonthlyEmails() }}
                 emails a month</p>
+              <p class="subtitle is-7">This statistic is based on the undeleted emails that are currently in your
+                mailbox.</p>
               <div class="content">
-                This is {{ getStrEcoComparison(getAvgMonthlyEmails(), erasmailStats.avg_monthly_emails_received) }} than the average user.
+                This is {{ getStrEcoComparison(getAvgMonthlyEmails(), erasmailStats.avg_monthly_emails_received) }} than
+                the average user.
               </div>
             </article>
           </div>
@@ -188,11 +193,56 @@ export default {
       twitterLink: 'https://twitter.com/intent/tweet?text=@t&url=@u&hashtags=@h@tu',
     };
   },
+  created() {
+    this.fetchStats()
+  },
   computed: mapGetters(["auth"]),
   components: {
     apexchart: VueApexCharts,
   },
   methods: {
+    fetchStats() {
+      const resquestUserStats = getAPI.get(
+          "/api/emails/stats/user", {
+            headers: {
+              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+            },
+          }
+      )
+      const requestErasmailStats = getAPI.get(
+          "/api/emails/stats/erasmail", {
+            headers: {
+              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+            },
+          }
+      )
+      axios.all([resquestUserStats, requestErasmailStats])
+          .then((responses) => {
+            this.userStats = responses[0].data
+            this.erasmailStats = responses[1].data
+            this.updateDataRadialbar()
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+    },
+    updateDataRadialbar() {
+      //Newsletters
+      let newslettersUnsubPercent = 0
+      if (this.userStats.newsletters_count !== 0 && newslettersUnsubPercent !== 0) {
+        newslettersUnsubPercent = (this.userStats.unsubscribed_newsletters_count / this.userStats.newsletters_count).toPrecision(2) * 100
+        radialBarPotentialImpact.labels.push("Newsletters")
+        radialBarPotentialImpact.series.push(newslettersUnsubPercent)
+      }
+
+      //Emails
+      radialBarPotentialImpact.labels.push("E-mails")
+      radialBarPotentialImpact.series.push(44)
+
+      //CO2
+      radialBarPotentialImpact.labels.push("CO2")
+      radialBarPotentialImpact.series.push(55)
+    },
     openWindowSharing(mediaLink, media) {
 
       //Twitter sharing shouldn't include empty parameter
@@ -202,9 +252,9 @@ export default {
       }
       mediaLink = mediaLink.replace(/@tu/g, '&via=' + encodeURIComponent(''))
           .replace(/@u/g, encodeURIComponent('https://www.erasmail.com'))
-          .replace(/@t/g, encodeURIComponent('Storing emails has an environmental cost, behind these emails there are servers using electricity.\nI deleted 3510 emails and saved 900g of CO2 thanks to ErasMail. You too can contribute to make the planet a little greener!'))
+          .replace(/@t/g, encodeURIComponent(`Storing emails has an environmental cost, behind these emails there are servers using electricity.\nI deleted ${this.userStats.deleted_emails_count} emails and saved ${Math.round(this.userStats.saved_co2)}g of CO2 thanks to ErasMail. You too can contribute to make the planet a little greener!`))
           .replace(/@d/g, encodeURIComponent(''))
-          .replace(/@q/g, encodeURIComponent('Storing emails has an environmental cost, behind these emails there are servers using electricity.\nI deleted 3510 emails and saved 900g of CO2 thanks to ErasMail. You too can contribute to make the planet a little greener!'))
+          .replace(/@q/g, encodeURIComponent(`Storing emails has an environmental cost, behind these emails there are servers using electricity.\nI deleted ${this.userStats.deleted_emails_count} emails and saved ${Math.round(this.userStats.saved_co2)}g of CO2 thanks to ErasMail. You too can contribute to make the planet a little greener!`))
           .replace(/@h/g, '')
           .replace(/@m/g, encodeURIComponent(media))
       window.open(mediaLink, "_blank", `width=${window.screen.width / 2},height=${window.screen.height / 2}`)
@@ -234,37 +284,13 @@ export default {
     },
     getCO2equivalent(carbon) {
       let equivalent = getOptimalComparison(carbon)
-      if(equivalent.comparison)
+      if (equivalent.comparison)
         return `It's equivalent to ${equivalent.comparison.msg}.`
       return ""
     }
 
 
-  },
-  created() {
-    const resquestUserStats = getAPI.get(
-        "/api/emails/stats/user", {
-          headers: {
-            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-          },
-        }
-    )
-    const requestErasmailStats = getAPI.get(
-        "/api/emails/stats/erasmail", {
-          headers: {
-            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-          },
-        }
-    )
-    axios.all([resquestUserStats, requestErasmailStats])
-        .then((responses) => {
-          this.userStats = responses[0].data
-          this.erasmailStats = responses[1].data
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-  },
+  }
 };
 </script>
 

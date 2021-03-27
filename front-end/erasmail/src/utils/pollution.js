@@ -7,7 +7,7 @@ const comparison = {
         let cmp = pollutionCompare(2.8, emailCO2)
         return {
             value: cmp, // https://www.huhtamaki.com/en/highlights/sustainability/taking-a-closer-look-at-the-carbon-footprint-of-paper-cups-for-coffee/
-            msg: `using ${cmp} paper cup(s)`,
+            msg: `${cmp} paper cup(s)`,
             level: 1,
         }
     } , 
@@ -15,7 +15,7 @@ const comparison = {
         let cmp = pollutionCompare(10, emailCO2)
         return {
             value: cmp, // banana
-            msg: `using ${cmp} plastic bag(s)`,
+            msg: `manufacturing ${cmp} plastic bag(s)`,
             level: 2,
         }
     }, 

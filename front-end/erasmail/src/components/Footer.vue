@@ -11,7 +11,7 @@
                 <a>Help</a>
                 <a>Privacy</a>
                 <a>Terms</a>
-                <a>Contact</a>
+                <a href="mailto:info.erasmail@gmail.com">Contact</a>
             </div>
             <div class="column social">
 

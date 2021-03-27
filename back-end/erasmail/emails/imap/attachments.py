@@ -48,7 +48,7 @@ def remove_attachments(host, username, password, folder_uids):
         for uid, msg in fetched.items():
             email_message = email.message_from_bytes(msg[b"RFC822"])
             final_msg = set_email_payload(email_message)
-            
+
             # server.move(uid, trash_folder)
             # server.expunge(uid)
             server.delete_messages(uid)

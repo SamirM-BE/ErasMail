@@ -1,5 +1,5 @@
 <template>
-  <div class="flip-card">
+  <div class="flip-card" >
     <div class="flip-card-inner">
       <div class="box flip-card-front has-background-success-light">
         <div class="hero is-small">

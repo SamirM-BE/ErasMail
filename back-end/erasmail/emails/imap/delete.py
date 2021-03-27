@@ -13,3 +13,4 @@ def move_to_trash(host, username, password, folder_uids):
         server.unselect_folder()
 
     server.logout()
+

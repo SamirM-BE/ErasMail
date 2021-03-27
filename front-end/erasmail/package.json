@@ -11,6 +11,7 @@
     "apexcharts": "^3.26.0",
     "axios": "^0.21.1",
     "bulma": "^0.9.2",
+    "bulma-pageloader": "^0.3.0",
     "bulma-pricingtable": "^0.2.0",
     "bulma-social": "^2.0.0",
     "byte-size": "^7.0.0",

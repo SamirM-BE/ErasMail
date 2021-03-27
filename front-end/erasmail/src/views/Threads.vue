@@ -1,49 +1,46 @@
 <template>
+  <div :class="loaderIsActive" class="pageloader"><span
+      class="title">Preparing the page, this will take a few seconds</span></div>
   <article class="message is-link mx-1">
     <div class="message-body">
       <h3 class="is-size-3 has-text-left">
-        You have <strong>{{threadsSorted.length}}</strong> conversation<span
+        You have <strong>{{ threadsSorted.length }}</strong> conversation<span
           v-if="threadsSorted.length > 1">s</span>,
         which have generated about
-        <strong>{{Math.round(totalPollution)}}g</strong> of CO<sub>2</sub> so far...
+        <strong>{{ Math.round(totalPollution) }}g</strong> of CO<sub>2</sub> so far...
       </h3>
-      <h4 class="is-size-4 has-text-right is-italic" v-if="pollutionComparison.comparison">
-        The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is
-        about the same as if
-        <strong>{{Math.round(pollutionComparison.comparison.msg)}}</strong>
-      </h4>
+<!--      <h4 v-if="pollutionComparison.comparison" class="is-size-4 has-text-right is-italic">-->
+<!--        The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is-->
+<!--        about the same as if-->
+<!--        <strong>{{ Math.round(pollutionComparison.comparison.msg) }}</strong>-->
+<!--      </h4>-->
     </div>
   </article>
-  <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject"
-              @hide-modal="showModalFlag = false" @delete="deleteEmailsOrAttachments">
+  <EmailModal :emails="emails" :showModal="showModalFlag" :threadSubject="threadSubject"
+              @delete="deleteEmailsOrAttachments" @hide-modal="showModalFlag = false">
   </EmailModal>
-  <div class="columns mx-1" :class="{'is-clipped': showModalFlag}">
+  <div :class="{'is-clipped': showModalFlag}" class="columns mx-1">
     <div class="column is-half has-border p-0">
       <div class="is-scrollable">
-        <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :subject="thread.subject"
-                   :co2="thread.co2" @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
+        <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :co2="thread.co2"
+                   :subject="thread.subject" @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
     </div>
     <div class="column is-half has-border p-0">
-      <Treemap :threads_prop="threads"> </Treemap>
+      <Treemap :threads_prop="threads"></Treemap>
     </div>
   </div>
 </template>
 
 
 <script>
-import {
-  getAPI
-} from "../axios-api";
-import {
-  getOptimalComparison
-} from "../utils/pollution";
-import {
-  mapGetters
-} from "vuex";
+import {getAPI} from "../axios-api";
+import {getOptimalComparison} from "../utils/pollution";
+import {mapGetters} from "vuex";
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
 import EmailModal from "../components/EmailModal";
+
 const convert = require('convert-units');
 
 
@@ -51,17 +48,18 @@ export default {
   name: "Home",
   data() {
     return {
-      threads: null,
+      threads: {},
       showModalFlag: false,
       threadIndex: -1,
       threadSubject: '',
       emails: [],
+      loaderIsActive: 'is-active',
     }
   },
   computed: {
     ...mapGetters("auth", ["loggedIn"]),
     threadsSorted() {
-      if (this.threads) {
+      if (this.threads.children) {
         let threadsList = this.threads.children
         threadsList.sort((a, b) => b.co2 - a.co2)
         return threadsList
@@ -70,7 +68,7 @@ export default {
     },
     totalPollution() {
       let pollution = 0.0
-      if (this.threads) {
+      if (this.threads.children) {
         pollution = this.threads.children.map(thread => thread.co2).reduce((prev, curr) => prev + curr, 0)
       }
       return pollution
@@ -99,13 +97,17 @@ export default {
                   Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
                 },
               }
-          ).then((response) => {
-        this.threads = response.data
-      })
+          )
+          .then((response) => {
+            this.threads = response.data
+          })
           .catch((err) => {
             console.log(err);
           });
     }
+  },
+  updated() {
+    this.loaderIsActive = ''
   },
   methods: {
     showModal(threadSubject, emails, idx) {
@@ -127,8 +129,8 @@ export default {
           this.threads.children.splice(this.threadIndex, 1)
           deleted = true
         }
-        getAPI.delete(
-            url, {
+        getAPI
+            .delete(url, {
               headers: {
                 Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
               },
@@ -137,8 +139,7 @@ export default {
                 host: this.$store.state.auth.host,
                 uids: emails.uids
               }
-            }
-        )
+            })
             .then(() => {
               if (!deleted) {
                 return getAPI
@@ -159,11 +160,22 @@ export default {
             })
       }
     },
+    //SAMIR: pas bon, j'ai besoin de la date du thread
+    getYearlyCarbonForecast(email) {
+      const yearAsMs = 31556952000
+      let received_at_date = new Date(email.received_at)
+      let today = new Date()
+      let difference = today - received_at_date //get the diff in ms
+      difference = difference/yearAsMs //31556952000ms = 1 year, get the diff in years
+      return 0.0000017712 * email.size * (difference + 1)
+    }
   },
 }
 </script>
 
 <style scoped>
+@import "./../../node_modules/bulma-pageloader/dist/css/bulma-pageloader.min.css";
+
 .column {
   height: 70vh;
 }

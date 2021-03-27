@@ -96,7 +96,8 @@ export default {
       console.log('The selected node changed...')
     },
     threads_prop() {
-      var that = this
+
+      let that = this
       if (that.threads_prop) {
         that.jsonData = that.threads_prop
         that.initialize()

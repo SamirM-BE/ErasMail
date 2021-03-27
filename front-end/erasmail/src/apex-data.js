@@ -1,9 +1,8 @@
 const radialBarPotentialImpact = {
     chart: {
-        height: 280,
         type: "radialBar",
     },
-    series: [44, 55, 67],
+    series: [],
     colors: ["hsl(141, 71%, 48%)"],
     plotOptions: {
         radialBar: {
@@ -38,7 +37,7 @@ const radialBarPotentialImpact = {
             },
         },
     },
-    labels: ["Newsletters", "E-mails", "CO2"],
+    labels: [],
 }
 
 const lineSizeMailbox = {

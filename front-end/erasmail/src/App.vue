@@ -1,9 +1,7 @@
-<template>
+<template >
   <div id="app">
     <Navbar v-if="currentRouteName != 'loading'"></Navbar>
-    <section class="section mt-5" >
       <router-view />
-    </section>
     <Footer></Footer>
   </div>
 </template>
@@ -55,5 +53,16 @@ export default {
 </script>
 
 <style>
+
+
+/*#app {*/
+/*  padding: 50px 0;*/
+/*  position: absolute;*/
+/*  top: 0;*/
+/*  bottom: 0;*/
+/*  left: 0;*/
+/*  right: 0;*/
+/*}*/
+
 
 </style>
