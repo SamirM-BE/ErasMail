@@ -34,7 +34,7 @@
             <span class="icon">
                 <i class="fas fa-weight-hanging fa-xs"></i>
             </span>
-            <span class="is-size-7">{{readableSize(email.size)}} {{email.size}}</span>
+            <span class="is-size-7">{{readableSize(email.size)}}</span>
         </div>
     </div>
 </template>

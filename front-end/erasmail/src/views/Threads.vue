@@ -4,20 +4,8 @@
   <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject"
     @hide-modal="showModalFlag = false" @delete="deleteEmailsOrAttachments">
   </EmailModal>
-  <article class="message is-link m-4">
-    <div class="message-body">
-      <h3 class="is-size-3 has-text-left">
-        You have <strong>{{ threadsSorted.length }}</strong> conversation<span v-if="threadsSorted.length > 1">s</span>,
-        which have generated about
-        <strong>{{ readableCo2 }}</strong> of CO<sub>2</sub> so far...
-      </h3>
-      <h4 v-if="pollutionComparison.comparison" class="is-size-4 has-text-right is-italic">
-        The environmental impact of your conversation<span v-if="threadsSorted.length > 1">s</span> on the planet is
-        about the same as if
-        <strong>{{pollutionComparison.comparison.msg}}</strong>
-      </h4>
-    </div>
-  </article>
+  <AwarenessMessage :itemCount="threadsSorted.length" :co2="totalPollution"
+    :itemName="'conversation' + (threadsSorted.length > 1 ? 's' : '')" />
   <div class="columns mx-4 mt-4" :class="{'is-clipped': showModalFlag}">
     <div class="column is-half has-border p-0">
       <div class="is-scrollable">
@@ -34,13 +22,12 @@
 
 <script>
 import {getAPI} from "../axios-api";
-import {getOptimalComparison} from "../utils/pollution";
 import {mapGetters} from "vuex";
+import AwarenessMessage from "../components/AwarenessMessage";
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
 import EmailModal from "../components/EmailModal";
 
-const convert = require('convert-units');
 
 
 export default {
@@ -72,20 +59,12 @@ export default {
       }
       return pollution
     },
-    readableCo2() {
-      let co2 = convert(this.totalPollution).from('g').toBest({
-        exclude: ['mcg', 'mg', 'oz', 'lb', 'mt']
-      })
-      return `${co2.val.toFixed(2)}${co2.unit}`
-    },
-    pollutionComparison() {
-      return getOptimalComparison(this.totalPollution)
-    }
   },
   components: {
     ThreadBox,
     EmailModal,
     Treemap,
+    AwarenessMessage
   },
   created() {
     if (this.loggedIn) {

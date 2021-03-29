@@ -39,6 +39,7 @@ from .utils.pollution import emailPollution, getYearlyCarbonForecast
 
 User = get_user_model()
 
+from time import time
 
 class EmailView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -56,9 +57,10 @@ class EmailView(APIView):
         EmailHeaders.objects.filter(receiver=user).delete()
 
         try:
-            print("start imap fetching")
+            print('start imap fetching')
+            s1 = time()
             mail_messages = get_all_emails(host, email, app_password)
-            print("finish imap fetching")
+            print('finish imap fetching', time() - s1)
 
             mailbox_size = 0
             emitted_co2 = 0
@@ -66,7 +68,8 @@ class EmailView(APIView):
             emails_received_count = 0
             received_at_min = timezone.now()
 
-            print("save in the DB")
+            print('save in the DB')
+            s = time()
             for mail in mail_messages:
 
                 if mail.list_unsubscribe:
@@ -135,8 +138,10 @@ class EmailView(APIView):
                     )
                     for name, size in mail.attachments
                 ]
+            print('finish db saving', time() - s)
 
-            print("start stats")
+            print('start stats')
+            s = time()
             EmailStats.objects.update_or_create(
                 user=user,
                 defaults={
@@ -149,13 +154,15 @@ class EmailView(APIView):
                     / (365.25 / 12),
                 },
             )
-            print("finish stats")
+            print('finish stats', time() - s)
 
-            print("start threading")
+            print('start threading')
+            s = time()
             threads = conversation_threading(mail_messages)
-            print("finish threading")
+            print('finish threading', time() - s)
 
-            print("update DB with threads")
+            print('update DB with threads')
+            s = time()
             for idx, thread in enumerate(threads):  # imporove with a generator
                 folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:
@@ -164,12 +171,30 @@ class EmailView(APIView):
                     )
                     email_header.thread_id = idx
                     email_header.save()
-            print("finish")
+            print('finish', time() - s, time() - s1)
 
             return Response(status=status.HTTP_201_CREATED)
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        before_than = int(request.query_params.get("before_than", 0))
+        seen = request.query_params.get("seen", False) == "true"
+        folder = request.query_params.get("folder", False)
+        user = request.user
+
+        emails= EmailHeaders.objects.filter(receiver=user, received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))# .order_by('received_at')
+        if not seen:
+            emails = emails.filter(seen=seen)
+        if folder:
+            emails = emails.filter(folder=folder)
+
+        serializer = EmailHeadersSerializer(emails, many=True)
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
 
     def delete(self, request):
         email = request.user.email
@@ -208,7 +233,15 @@ class EmailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class Attachments(APIView):
+class FolderView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        user = request.user
+        folders = EmailHeaders.objects.filter(receiver=user).values_list('folder', flat=True).distinct()
+        return Response(data=folders, status=status.HTTP_200_OK)
+
+class AttachmentView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def delete(self, request):
@@ -357,37 +390,17 @@ class Statistics(APIView):
                     Sum("attachment_count", filter=Q(thread_id__isnull=False)), 0
                 ),
                 emails_unseen_co2=Coalesce(
-                    Sum("attachment_count", filter=Q(seen=False)), 0
-                ),
-                emails_before_count=Count(
-                    "pk",
-                    filter=Q(
-                        received_at__lte=timezone.now()
-                        - timedelta(days=before_than * 365)
-                    ),
-                ),
-                emails_before_co2=Coalesce(
-                    Sum(
-                        "co2",
-                        filter=Q(
-                            received_at__lte=timezone.now()
-                            - timedelta(days=before_than * 365)
-                        ),
-                    ),
-                    0,
-                ),
-                emails_unseen_before_co2=Coalesce(
-                    Sum(
-                        "co2",
-                        filter=Q(
-                            seen=False,
-                            received_at__lte=timezone.now()
-                            - timedelta(days=before_than * 365),
-                        ),
-                    ),
-                    0,
-                ),
-                emails_larger_count=Count("pk", filter=Q(size__gte=larger_than)),
+                    Sum('attachment_count', filter=Q(seen=False)), 0),
+
+                emails_before_count=Count('pk', filter=Q(
+                    received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))),
+                emails_before_co2=Coalesce(Sum('co2', filter=Q(
+                    received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))), 0),
+                emails_unseen_before_co2=Coalesce(Sum('co2', filter=Q(
+                    seen=False, received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))), 0),
+
+                emails_larger_count=Count(
+                    'pk', filter=Q(size__gte=larger_than)),
                 emails_larger_co2=Coalesce(
                     Sum("co2", filter=Q(size__gte=larger_than)), 0
                 ),

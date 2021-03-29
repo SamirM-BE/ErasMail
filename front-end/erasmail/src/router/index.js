@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Loading from '../views/Loading.vue'
 import Threads from '../views/Threads.vue'
+import Emails from '../views/Emails.vue'
 import LandingPage from '../views/LandingPage.vue'
 import Stats from '../views/Stats.vue'
 import Newsletters from '../views/Newsletters.vue'
@@ -39,6 +40,12 @@ const routes = [
     path: '/threads',
     name: 'threads',
     component: Threads,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/emails',
+    name: 'emails',
+    component: Emails,
     meta: { requiresAuth: true }
   },
   {

@@ -1,8 +1,8 @@
 <template>
     <form>
         <div class="field" v-for="(email, index) in emails" :key="index">
-            <div class="box control px-0">
-                <input type="checkbox" :value="index" :id="index" v-model="checkedEmails">
+            <div class="box control px-0 py-1">
+                <input type="checkbox" class="m-5" :value="index" :id="index" v-model="checkedEmails">
                 <label :for="index" class="checkbox">
                     <EmailDetails class="has-border-left" :email="email" :attachmentStyles="attachmentStyles(index)">
                     </EmailDetails>
@@ -28,9 +28,12 @@ export default {
         },
         selectAll: {
             type: Boolean,
-            required: true
+            default: false
         },
-        attachmentStylesList: Array,
+        attachmentStylesList: {
+            type: Array,
+            default: () => null,
+        },
         reset: Boolean,
     },
     emits: ['checked-emails'],
@@ -66,10 +69,6 @@ export default {
 </script>
 
 <style scoped>
-input {
-    margin: 4%;
-}
-
 label {
     width: 100%;
 }
