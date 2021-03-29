@@ -1,35 +1,31 @@
-version: '3.8'
+version: '3.7'
+
 services:
   web:
-    build: ./back-end/erasmail # = app
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - ./back-end/erasmail:/usr/src/app
-    ports:
-      - 8000:8000
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - db
-  frontend:
-    container_name: frontend_dev_vet
+    image: meroxbe/erasmail_web:test
     build:
-      context: ./front-end/erasmail
-    volumes:
-      - ./front-end/erasmail:/app/:ro
-    ports:
-      - 8080:8080
+      context: ./back-end/erasmail
+    command: gunicorn erasmail.wsgi:application --bind 0.0.0.0:8000
+    expose:
+      - 8000
+    env_file:
+      - ./.env.prod
     depends_on:
-      - web
       - db
-
   db:
-    image: postgres:alpine
+    image: meroxbe/postgres:test
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=samir
-      - POSTGRES_PASSWORD=erasmail@2021
-      - POSTGRES_DB=erasmail
+    env_file:
+      - ./.env.prod.db
+  nginx:
+    image: meroxbe/erasmail_nginx:test
+    build:
+      context: ./
+      dockerfile: ./nginx/Dockerfile
+    ports:
+      - 1337:80
+    depends_on:
+      - web
 volumes:
   postgres_data:

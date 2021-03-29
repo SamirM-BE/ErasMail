@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  web:
+    build: ./back-end/erasmail # = app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./back-end/erasmail:/usr/src/app
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+  frontend:
+    container_name: frontend_dev_vet
+    build:
+      context: ./front-end/erasmail
+    volumes:
+      - ./front-end/erasmail:/app/:ro
+    ports:
+      - 8080:8080
+    depends_on:
+      - web
+      - db
+
+  db:
+    image: postgres:alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=samir
+      - POSTGRES_PASSWORD=erasmail@2021
+      - POSTGRES_DB=erasmail
+volumes:
+  postgres_data:
