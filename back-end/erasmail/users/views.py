@@ -1,18 +1,16 @@
+from datetime import timedelta
+
+from imapclient import IMAPClient
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 from .models import CustomUser
 from .serializers import UserSerializer
-
 from .token import get_tokens_for_user
 
-from imapclient import IMAPClient
-
-from datetime import timedelta
 
 class LoginView(APIView):
     permission_classes = (AllowAny,)

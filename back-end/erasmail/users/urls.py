@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import UserRetrieveDestroyView, LogoutView, LoginView
+
+from .views import LoginView, LogoutView, UserRetrieveDestroyView
 
 urlpatterns = [
     path('me', UserRetrieveDestroyView.as_view(), name='me'),

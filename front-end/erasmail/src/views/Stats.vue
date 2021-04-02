@@ -219,6 +219,7 @@ export default {
       axios.all([resquestUserStats, requestErasmailStats])
           .then((responses) => {
             this.userStats = responses[0].data
+            console.log(responses[0].data)
             this.erasmailStats = responses[1].data
             this.updateDataRadialbar()
           })

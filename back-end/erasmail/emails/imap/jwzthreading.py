@@ -1,10 +1,10 @@
 # https://www.jwz.org/doc/threading.html
 # https://github.com/akuchling/jwzthreading
 
-from .message import MailMessage
-
 import re
 from collections import deque
+
+from .message import MailMessage
 
 restrip_pat = re.compile("""(
   (Re(\[\d+\])?:) | (\[ [^]]+ \])

@@ -1,6 +1,6 @@
-from imapclient import IMAPClient, imapclient
 import email
 
+from imapclient import IMAPClient, imapclient
 
 HELP_STRING = """Cet email contenait une pièce jointe qui a été supprimé via ErasMail.\nLa pièce jointe s'appelait: %(filename)s"""
 

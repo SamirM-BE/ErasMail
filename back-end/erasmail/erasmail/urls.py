@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework_simplejwt.views import (TokenRefreshView, TokenVerifyView)
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
+
+# import debug_toolbar
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,4 +27,6 @@ urlpatterns = [
     path('api/emails/', include('emails.urls')),
     path('api/token-refresh/', TokenRefreshView.as_view()),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    # path('__debug__/', include(debug_toolbar.urls)),
 ]
+

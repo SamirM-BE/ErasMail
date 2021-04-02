@@ -6,6 +6,7 @@ import Loading from '../views/Loading.vue'
 import Threads from '../views/Threads.vue'
 import LandingPage from '../views/LandingPage.vue'
 import Stats from '../views/Stats.vue'
+import Newsletters from '../views/Newsletters.vue'
 
 const routes = [
   {
@@ -46,6 +47,13 @@ const routes = [
     component: Stats,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/newsletters',
+    name: 'newsletters',
+    component: Newsletters,
+    meta: { requiresAuth: true }
+  },
+
   {
     // will match everything
     path: "/:catchAll(.*)",

@@ -1,7 +1,8 @@
-from .utils import *
 import re
 from email.header import decode_header
 from email.parser import BytesHeaderParser
+
+from .utils import *
 
 parser = BytesHeaderParser()  # Creates a header parser
 
