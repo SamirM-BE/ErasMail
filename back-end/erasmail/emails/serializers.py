@@ -17,7 +17,7 @@ class EmailHeadersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmailHeaders
-        exclude = ('id', 'receiver', 'message_id', 'unsubscribe')
+        exclude = ('receiver', 'unsubscribe')
 
 class NewsletterSerializer(serializers.ModelSerializer):
     # get sender_name from related model (emailheaders)
@@ -32,14 +32,14 @@ class NewsletterSerializer(serializers.ModelSerializer):
     emails_uids = serializers.SlugRelatedField(
         many=True,
         read_only=True,
-        source='newsletters',
+        source='email_headers',
         slug_field='uid'
      )
 
 
     def get_sender_email(self, obj):
         try :
-            return obj.newsletters.first().sender_name
+            return obj.email_headers.first().sender_name
         except :
             return ''
 

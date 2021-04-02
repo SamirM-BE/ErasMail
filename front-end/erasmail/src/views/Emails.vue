@@ -1,66 +1,55 @@
 <template>
-  <AwarenessMessage :itemCount="emailCount" :itemName="featureName" :co2="co2" />
+  <AwarenessMessage :itemCount="emailCount" :itemName="featureName" :co2="generated_carbon"
+    :forecastCarbon="carbon_yforecast"
+    :forecastMsg="`Keeping these emails for another year will have an additional impact equivalent to `" />
   <div class="toolbox m-4">
     <div class="is-flex is-justify-content-space-between">
-      <div class="is-flex is-align-items-center">
-        <span class="dropdown" :class="{'is-active': showDropdownFolder}">
-          <div class="dropdown-trigger" @click="showDropdownFolder = !showDropdownFolder">
-            <button class="button" aria-haspopup="true" aria-controls="dropdown-folder">
-              <span>{{ folderList[selectedFolderIdx] }}</span>
-              <span class="icon is-small">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button>
-          </div>
-          <div class="dropdown-menu" id="dropdown-menu" role="folders">
-            <div class="dropdown-content">
-              <a class="dropdown-item" v-for="(folderName, idx) in folderList" :key="idx"
-                :class="{'is-active': selectedFolderIdx === idx}" @click="selectFolder(idx)">
-                {{folderName}}
-              </a>
-            </div>
-          </div>
-        </span>
-        <span id="options-button" class="icon is-medium is-clickable" @click="displayOptions()">
-          <i class="fas fa-lg  fa-ellipsis-v" />
-        </span>
-      </div>
+      <Dropdown :defaultText="'Inbox'" :toText="folderToText" :currentValue="selectedFolder" :valueList="folderList"
+          @on-click="selectFolder" />
 
-      <div>
-        <button class="button is-focused is-danger is-light mx-2" @click="remove(true)">Delete attachments</button>
-        <button class="button is-focused is-danger" @click="remove(false)">Delete emails</button>
-      </div>
+      <button class="button is-focused is-danger" @click="remove()">Delete emails</button>
     </div>
-    <div v-if="showOptions" class="mt-2 is-flex is-align-items-center">
-      <div class="dropdown" :class="{'is-active': showDropdownYear}">
-        <div class="dropdown-trigger" @click="showDropdownYear = !showDropdownYear">
-          <button class="button" aria-haspopup="true" aria-controls="dropdown-years">
-            <span v-if="yearBefore==0">Any date</span>
-            <span v-else>Older than {{yearBefore}} year<span v-if="yearBefore > 1">s</span></span>
+    <div class="mt-2 is-flex is-align-items-center">
+      <Dropdown :defaultText="'Any date'" :toText="yearToText" :currentValue="yearBefore" :valueList="yearList"
+        @on-click="selectYear" />
+      <Dropdown class="mx-3" :defaultText="'Any size'" :toText="sizeToText" :currentValue="sizeGreatherThan"
+        :valueList="sizeList" @on-click="selectSize"></Dropdown>
+
+      <div class="dropdown" :class="{'is-active':showFilters}">
+        <div class="dropdown-trigger" @click="showFilters = !showFilters">
+          <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+            <span>Smart filters</span>
             <span class="icon is-small">
               <i class="fas fa-angle-down" aria-hidden="true"></i>
             </span>
           </button>
         </div>
-        <div class="dropdown-menu" id="dropdown-menu" role="years">
+        <div class="dropdown-menu" id="dropdown-menu" role="menu">
           <div class="dropdown-content">
-            <a class="dropdown-item" v-for="(year, idx) in yearList" :key="idx"
-              :class="{'is-active': year === yearBefore}" @click="selectYear(year)">
-              <span v-if="year==0">Any date</span>
-              <span v-else>Older than {{year}} year<span v-if="year > 1">s</span></span>
-            </a>
+            <form>
+              <div class="field dropdown-item" v-for="(filterName, idx) in filterNames" :key="idx">
+                <div class="control">
+                  <label class="checkbox">
+                    <input type="checkbox" :value="idx" v-model="selectedFilters">
+                    {{ filterName }}
+                  </label>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
+
       <label class="checkbox mx-3">
         <input type="checkbox" v-model="unread">
         Only unread emails
       </label>
+
     </div>
+    <hr>
   </div>
-  <hr>
-  <div class="emails">
-     <EmailForm :emails="emailList" :reset="reset" @checked-emails="updateCheckedEmails" class="mx-4" />
+  <div class="container">
+    <EmailForm :emails="emailList" :reset="reset" @checked-emails="updateCheckedEmails" class="mx-4" />
   </div>
 </template>
 
@@ -70,23 +59,43 @@ import {
 } from "../axios-api";
 import AwarenessMessage from "../components/AwarenessMessage";
 import EmailForm from "../components/EmailForm";
+import Dropdown from "../components/Dropdown";
 
 export default {
   data() {
     return {
-      showOptions: false,
-
       showDropdownFolder: false,
       folderList: [],
-      selectedFolderIdx: 0,
+      selectedFolder: 'Inbox',
 
-      showDropdownYear: false,
       yearList: [0, 1, 3, 5, 10],
       yearBefore: 0,
+  
+      sizeList: [0, 1, 2, 5], // in MB
+      sizeGreatherThan: 0,
 
       unread: false,
 
-      emails: {},
+      showFilters: false,
+      selectedFilters: [],
+      filterNames: {
+        reminder: 'Reminder',
+        welcome: 'Welcome',
+        invitation: 'Invitation',
+        meeting: 'Meeting',
+        verification: 'Verification',
+        update: 'Update',
+        confirmation: 'Confirmation',
+        social: 'Social',
+        no_reply: 'No reply',
+      },
+
+      nextPageNumber: 1,
+
+      emailCount: 0,
+      generated_carbon: 0,
+      carbon_yforecast: 0,
+      emails: [],
       checkedEmails: [],
 
       reset: false,
@@ -98,6 +107,22 @@ export default {
     if (this.yearList.includes(queryYearBefore)) {
       this.yearBefore = queryYearBefore
     }
+    let querySizeGreatherThan = parseInt(this.$route.query.greater_than)
+    if (this.sizeList.includes(querySizeGreatherThan)) {
+      this.sizeGreatherThan = querySizeGreatherThan
+    }
+    let querySelectedFilters = this.$route.query['selected_filters[]']
+    if(querySelectedFilters){
+      // if only one element is seleted then `querySelectedFilters` is a string type 
+      if(typeof(querySelectedFilters) == "string"){
+        querySelectedFilters = [querySelectedFilters]
+      }
+      let allowedFilters = Object.keys(this.filterNames)
+      // remove unvalide filters 
+      querySelectedFilters =  querySelectedFilters.filter(filter => allowedFilters.includes(filter));
+      this.selectedFilters = querySelectedFilters
+    }
+
     getAPI
       .get(
         "/api/emails/folders", {
@@ -112,29 +137,34 @@ export default {
         let inbox = "inbox"
         this.folderList.sort((x, y) => x.toLowerCase() === inbox ? -1 : y.toLowerCase() == inbox ? 1 : 0)
 
-        this.fetchEmails()
+        this.fetchNextEmails(true)
       })
       .catch((err) => {
         console.log(err);
       });
+  },
+  mounted () {
+    window.onscroll = () => {
+      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight
+      if (bottomOfWindow) {
+        this.fetchNextEmails(false)
+      }
+    }
   },
   watch: {
     unread() {
       this.refreshURL()
       this.reset = ! this.reset
     },
-    yearBefore() {
+    selectedFilters() {
       this.refreshURL()
       this.reset = ! this.reset
     },
-    selectedFolderIdx(){
-      this.fetchEmails()
-      this.reset = ! this.reset
-    }
   },
   components: {
     AwarenessMessage,
-    EmailForm
+    EmailForm,
+    Dropdown
   },
   computed: {
     featureName() {
@@ -143,109 +173,136 @@ export default {
       msg += 'email' + (this.emailCount > 1 ? 's' : '')
       if(this.yearBefore)
          msg += ` older than ${this.yearBefore} year` + (this.yearBefore > 1 ? 's' : '')
+      if(this.yearBefore && this.sizeGreatherThan)
+         msg +=  ' and'
+      if(this.sizeGreatherThan)
+         msg += ` greather than ${this.sizeGreatherThan} MB`
       return msg
     },
     emailList(){
       return Object.values(this.emails)
     },
-    emailCount() {
-      return this.emailList.length
-    },
-    co2() {
-      let pollution = 0.0
-      if (this.emailList.length) {
-        pollution = this.emailList.map(email => email.co2).reduce((prev, curr) => prev + curr, 0)
-      }
-      return pollution
-    },
   },
   methods: {
-    selectFolder(idx) {
-      this.showDropdownFolder = false
-      this.selectedFolderIdx = idx
+    selectFolder(folder) {
+      this.selectedFolder = folder
+      this.refreshURL()
+      this.reset = ! this.reset
+    },
+    folderToText(folder){
+      return folder
     },
     selectYear(year) {
-      this.showDropdownYear = false
       this.yearBefore = year
+      this.refreshURL()
+      this.reset = ! this.reset
     },
-    displayOptions() {
-      this.showDropdownFolder = false
-      this.showOptions = !this.showOptions
+    yearToText(year){
+      let txt =  `Older than ${year} year`
+      if(year > 1){
+        txt += 's'
+      }
+      return txt
+    },
+    selectSize(size) {
+      this.sizeGreatherThan = size
+      this.refreshURL()
+      this.reset = ! this.reset
+    },
+    sizeToText(size){
+      return `Greather than ${size} MB`
     },
     updateCheckedEmails(newCheckedEmails) {
       this.checkedEmails = newCheckedEmails
     },
-    fetchEmails() {
-      getAPI
+    fetchNextEmails(newQuery) {
+      if(newQuery) {
+        this.nextPageNumber = 1
+      }
+      if(this.nextPageNumber){
+        getAPI
         .get(
-          `/api/emails/?seen=${!this.unread}&before_than=${this.yearBefore}&folder=${this.folderList[this.selectedFolderIdx]}`, {
+          `/api/emails/`, {
             headers: {
               Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
             },
+            params: {
+              seen: !this.unread,
+              selected_filters: this.selectedFilters,
+              before_than: this.yearBefore,
+              greater_than: this.sizeGreatherThan,
+              folder: this.selectedFolder,
+              page: this.nextPageNumber,
+            }
           }
         )
         .then((response) => {
-          this.emails = response.data
+          console.log(response.data)
+          this.emailCount = response.data.count
+          this.generated_carbon = response.data.generated_carbon
+          this.carbon_yforecast = response.data.carbon_yforecast
+          if(newQuery){
+            this.emails = response.data.results
+          } else {
+            this.emails.push(...response.data.results)
+          }
+          if(response.data.next){
+            this.nextPageNumber ++
+          } else {
+            this.nextPageNumber = null
+          }
         })
         .catch((err) => {
           console.log(err);
         });
+      }
     },
     refreshURL() {
       this.$router.replace({
         name: this.$route.name,
         query: {
           unseen: this.unread,
-          before_than: this.yearBefore
+          before_than: this.yearBefore,
+          greater_than: this.sizeGreatherThan,
+          'selected_filters[]': this.selectedFilters,
         }
       })
-      this.fetchEmails()
+      this.fetchNextEmails(true)
     },
-    remove(onlyAttachments) {
+    remove() {
       const emailKeys = Object.keys(this.emails)
 
       let uids = {}
+      let pks = []
       for (const checkedEmail of this.checkedEmails) {
         let index = emailKeys[checkedEmail]
         let email = this.emails[index]
-        // If this email has no attachments so no need to process
-        if(onlyAttachments && !email.attachments.length){
-          continue
-        }
+
+        pks.push(email.id)
+        
         let selectedUids = uids[email.folder] || []
         selectedUids.push(email.uid)
         uids[email.folder] = selectedUids
 
-        if(onlyAttachments){
-          // delete attachments
-          let attachmentSize = email.attachments.map(attachment => attachment.size).reduce((prev, curr) => prev + curr, 0)
-          email.size = Math.max(0, email.size - attachmentSize)
-          email.attachments = []
-            //////////////////////
-           // TODO update co2 ?//
-          //////////////////////
-        } else {
-          delete this.emails[index]
-        }
+        delete this.emails[index]
       }
 
       this.reset = ! this.reset
 
-      let url = '/api/emails/'
-      if (onlyAttachments) {
-        url += 'attachments'
-      }
-
       getAPI
-        .delete(url, {
+        .delete('/api/emails/', {
           headers: {
             Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
           },
           data: {
             app_password: this.$store.state.auth.app_password,
             host: this.$store.state.auth.host,
-            uids: uids
+            uids: uids,
+            pks: pks
           }
+        })
+        .then(()=>{
+          this.fetchNextEmails(true)
         })
         .catch((err) => {
           console.log(err);
@@ -263,10 +320,5 @@ export default {
 #options-button:hover {
   background-color: rgb(247, 245, 245);
 }
-.emails{
-  overflow-y: scroll;
-  height: 63vh;
-}
-
 
 </style>

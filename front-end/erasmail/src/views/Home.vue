@@ -7,7 +7,7 @@
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${userStats.emails_before_count} emails older than 3 years.`"
                       :frontTitle="'Old unread e-mails'"
-                      @click="routePage('threads')"/>
+                      @click="$router.push({name: 'emails', query: {unseen: true, before_than: 3}})"/>
         <!--TODO: passer 3 ans en param-->
       </div>
       <div class="column c2 is-3 is-offset-1">
@@ -33,14 +33,14 @@
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${userStats.emails_larger_count} e-mails larger than 2MB.`"
                       :frontTitle="'Large e-mails'"
-                      @click="routePage('threads')"/>
+                     @click="$router.push({name: 'emails', query: {greater_than: 2}})"/>
       </div>
       <div class="column c5 is-3 is-offset-1"> <!--TODO ! -->
         <FlippingCard :backData="'Delete your e-mails, save the nature !'"
                       :backTitle="'This is equivalent to 300 plastics bags'"
                       :frontData="`You have ${uselessCount} useless e-mails. (Calendar e-mails, reminder e-mails, empty e-mails)`"
                       :frontTitle="'Useless e-mails'"
-                      @click="routePage('threads')"/>
+                      @click="$router.push({name: 'emails', query: { 'selected_filters[]': ['reminder', 'welcome', 'invitation', 'meeting', 'verification', 'update', 'confirmation', 'social', 'no_reply']}})"/>
       </div>
       <div class="column c6 is-3 is-offset-1">
         <FlippingCard :backData="'Delete your e-mails, save the nature !'"

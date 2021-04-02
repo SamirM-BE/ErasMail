@@ -25,7 +25,10 @@ const routes = [
     path: '/login',
     name: 'login',
     component: Login,
-    meta: { requiresUnAuth: true }
+    beforeEnter: (to, from, next) => {
+      if (from.name === 'loading' || !store.getters['auth/loggedIn']) next()
+      else next({ name: 'landingpage' })
+    }
   },
   {
     path: '/loading',
@@ -80,16 +83,6 @@ router.beforeEach((to, from, next) => {
     if (!store.getters['auth/loggedIn']) {
       next({
         name: 'login'
-      })
-    } else {
-      next()
-    }
-  } else if (to.matched.some(record => record.meta.requiresUnAuth)) {
-    // this route requires auth, check if logged in
-    // if not, redirect to login page.
-    if (store.getters['auth/loggedIn']) {
-      next({
-        name: 'landingpage'
       })
     } else {
       next()

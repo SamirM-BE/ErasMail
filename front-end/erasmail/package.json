@@ -22,10 +22,13 @@
     "d3": "^6.5.0",
     "d3-request": "^1.0.6",
     "random-color": "^1.0.1",
+    "sass": "^1.32.8",
+    "sass-loader": "^10.0.0-rc.0",
     "string-similarity": "^4.0.4",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
     "vue3-apexcharts": "^1.2.1",
+    "vueperslides": "^3.2.0",
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {

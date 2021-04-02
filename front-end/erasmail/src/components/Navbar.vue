@@ -69,7 +69,7 @@ export default {
       this.$store.dispatch('auth/userLogout')
         .then(() => {
           this.$router.push({
-            name: 'login'
+            name: 'landingpage'
           })
         })
     }

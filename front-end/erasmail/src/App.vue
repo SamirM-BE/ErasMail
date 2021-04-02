@@ -1,7 +1,9 @@
 <template >
   <div id="app">
     <Navbar v-if="currentRouteName != 'loading'"></Navbar>
-    <router-view />
+    <div>
+      <router-view />
+    </div>
     <Footer></Footer>
   </div>
 </template>

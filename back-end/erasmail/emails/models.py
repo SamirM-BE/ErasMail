@@ -1,12 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Min
-from django.utils import timezone
-from .managers import (NewsletterQuerySet, )
+from django.db.models import F
+
+
+from .managers import (NewsletterQuerySet, EmailHeadersQuerySet, AttachmentQuerySet, EmailStatsQuerySet)
 from .utils.pollution import emailPollution, getYearlyCarbonForecast
 
 User = get_user_model()
+
 
 class EmailStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -20,6 +22,24 @@ class EmailStats(models.Model):
 
     saved_co2 = models.FloatField(default=0, validators=[MinValueValidator(0.0)])
     deleted_emails_count = models.PositiveIntegerField(default=0)
+
+    objects = EmailStatsQuerySet.as_manager()
+
+    def update_deleted_email(self, emails):
+        self.deleted_emails_count = F('deleted_emails_count') + emails.get('emails_count', 0)
+        self.emails_count = F('emails_count') - emails.get('emails_count', 0)
+        self.emails_received_count = F('emails_received_count') - emails.get('emails_received_count', 0)
+        self.emails_seen_count = F('emails_seen_count') - emails.get('emails_seen_count', 0)
+        self.mailbox_size = F('mailbox_size') - emails.get('mailbox_size', 0)
+        self.saved_co2 = F('saved_co2') + emails.get('carbon_eq', 0)
+        self.carbon_eq = F('carbon_eq') - emails.get('carbon_eq', 0)
+        self.save()
+    
+    def update_deleted_attachments(self, attachments_stats):
+        self.saved_co2 = F('saved_co2') + attachments_stats['generated_carbon_tot']
+        self.carbon_eq = F('carbon_eq') - attachments_stats['generated_carbon_tot']
+        self.mailbox_size = F('mailbox_size') - attachments_stats['attachment_size_tot']
+        self.save()
 
     def save(self, *args, **kwargs):
         if not self.carbon_eq_at_creation:
@@ -36,7 +56,8 @@ class Newsletter(models.Model):
     objects = NewsletterQuerySet.as_manager()
     
     def get_latest_email(self):
-        return self.newsletters.latest('received_at')
+        return self.email_headers.latest('received_at')
+
 
     #TODO: remove double .all()
     #generated co2 until now from storing newsletter emails
@@ -73,19 +94,35 @@ class EmailHeaders(models.Model):
     message_id = models.CharField(max_length=5000)
     folder = models.CharField(max_length=5000)
     thread_id = models.IntegerField(null=True)
-    co2 = models.FloatField(validators=[MinValueValidator(0.0)])
+    generated_carbon = models.FloatField(validators=[MinValueValidator(0.0)])
     carbon_yforecast = models.FloatField(validators=[MinValueValidator(0.0)])
     is_received = models.BooleanField(default=False)
 
-    unsubscribe = models.ForeignKey(Newsletter, related_name='newsletters', on_delete=models.CASCADE, blank=True, null=True) # change newsletters to emailheaders
+    unsubscribe = models.ForeignKey(Newsletter, related_name='email_headers', on_delete=models.CASCADE, blank=True, null=True) # change newsletters to emailheaders
+
+    objects = EmailHeadersQuerySet.as_manager()
+
+    def update_deleted_attachments(self, attachments_stats):
+        self.size = F('size') - attachments_stats['attachment_size_tot']
+        self.generated_carbon = F('generated_carbon') - attachments_stats['generated_carbon_tot']
+        self.save()
 
     def __str__(self):
         return f'from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}'
+
+    
+    def save(self, *args, **kwargs):
+        self.generated_carbon=emailPollution(self.size, self.received_at)
+        self.carbon_yforecast=getYearlyCarbonForecast(self.size, self.received_at)
+        super(EmailHeaders, self).save(*args, **kwargs)
+
 
 class Attachment(models.Model):
     email_header = models.ForeignKey(EmailHeaders, related_name='attachments', on_delete=models.CASCADE)
     name = models.CharField(max_length=5000)
     size = models.IntegerField()
+
+    objects = AttachmentQuerySet.as_manager()
 
     def __str__(self):
         return f'{self.name} {self.size}'

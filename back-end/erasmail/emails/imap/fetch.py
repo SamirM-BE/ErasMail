@@ -38,7 +38,7 @@ def fetch_messages_bulk(server, messages):
     return fetched
 
 
-def get_all_emails(host, username, password):
+def get_emails(host, username, password):
     server = IMAPClient(host)
     server.normalise_times = False
     server.login(username, password)
@@ -49,12 +49,12 @@ def get_all_emails(host, username, password):
     fetched_emails = []
 
     for folder in folders:
-        received = True
+        is_received = True
         if is_undesirable_folder(folder):
             # print(folder)
             continue
         elif imapclient.SENT in folder[0]:
-            received = False
+            is_received = False
 
 
         selected_folder = folder[2]  # (b'\\HasNoChildren',), b'/', 'INBOX')
@@ -71,7 +71,7 @@ def get_all_emails(host, username, password):
 
             email_headers = MailMessage(
                 selected_folder,
-                received,
+                is_received,
                 uid,
                 data[b"FLAGS"],
                 data[b"RFC822.SIZE"],
@@ -82,7 +82,7 @@ def get_all_emails(host, username, password):
                 data[b"BODYSTRUCTURE"],
             )
 
-            fetched_emails.append(email_headers)
+            fetched_emails.append(email_headers.to_dict())
         server.unselect_folder()
 
     server.logout()
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     USERNAME = "test.memory.20.21@outlook.be"
     PASSWORD = "ighymaubdccnvjxv"
 
-    emails = get_all_emails(HOST, USERNAME, PASSWORD)
+    emails = get_emails(HOST, USERNAME, PASSWORD)
 
     # for mail in emails:
     #     print(mail)

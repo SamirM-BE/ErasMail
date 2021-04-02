@@ -9,7 +9,7 @@
   <div class="columns mx-4 mt-4" :class="{'is-clipped': showModalFlag}">
     <div class="column is-half has-border p-0">
       <div class="is-scrollable">
-        <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :subject="thread.subject" :co2="thread.co2"
+        <ThreadBox class="thread-box" v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :subject="thread.subject" :co2="thread.generated_carbon"
           :size="thread.size" :created_at="new Date(thread.children[0].received_at)"
           @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
@@ -47,7 +47,7 @@ export default {
     threadsSorted() {
       if (this.threads.children) {
         let threadsList = this.threads.children
-        threadsList.sort((a, b) => b.co2 - a.co2)
+        threadsList.sort((a, b) => b.generated_carbon - a.generated_carbon)
         return threadsList
       }
       return []
@@ -55,7 +55,7 @@ export default {
     totalPollution() {
       let pollution = 0.0
       if (this.threads.children) {
-        pollution = this.threads.children.map(thread => thread.co2).reduce((prev, curr) => prev + curr, 0)
+        pollution = this.threads.children.map(thread => thread.generated_carbon).reduce((prev, curr) => prev + curr, 0)
       }
       return pollution
     },
@@ -115,7 +115,8 @@ export default {
               data: {
                 app_password: this.$store.state.auth.app_password,
                 host: this.$store.state.auth.host,
-                uids: emails.uids
+                uids: emails.uids,
+                pks: emails.pks,
               }
             })
             .then(() => {
@@ -150,17 +151,8 @@ export default {
 }
 
 .is-scrollable {
-  overflow-y: scroll;
-  margin-right: -50%;
-  padding-right: 50%;
+  overflow: auto;
   height: 100%;
-  /* Hide scrollbar for IE, Edge and Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-/* Hide scrollbar for Chrome, Safari and Opera */
-.is-scrollable::-webkit-scrollbar {
-  display: none;
 }
 
 .has-border {
@@ -168,4 +160,5 @@ export default {
   border: solid;
   border-width: thin;
 }
+
 </style>

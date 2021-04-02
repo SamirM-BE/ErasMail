@@ -1,48 +1,61 @@
+from time import time
 import re
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.db.models import (
-    Avg,
-    Case,
-    Count,
-    DateField,
-    ExpressionWrapper,
-    F,
-    FloatField,
-    Max,
-    Min,
-    Q,
-    Sum,
-    When,
-)
-from django.db.models.functions import Cast, Coalesce, ExtractDay
+from django.db.models import (Sum, Q)
 from django.utils import timezone
-from rest_framework import response, status
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
 
 
 from .imap.attachments import remove_attachments
 from .imap.delete import move_to_trash
-from .imap.fetch import get_all_emails
+from .imap.fetch import get_emails
 from .imap.jwzthreading import conversation_threading
-from .models import Attachment, EmailHeaders, EmailStats, Newsletter
+from .models import EmailHeaders, EmailStats, Newsletter
 from .serializers import (
     EmailHeadersSerializer,
     EmailStatsSerializer,
     NewsletterSerializer,
 )
-from .utils.pollution import emailPollution, getYearlyCarbonForecast
-
 User = get_user_model()
 
-from time import time
+
+class BasicPagination(PageNumberPagination):
+    page_size = 10
+
 
 class EmailView(APIView):
     permission_classes = (IsAuthenticated,)
+    pagination_class = BasicPagination
+    serializer_class = EmailHeadersSerializer
+
+    @property
+    def paginator(self):
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        else:
+            pass
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset,
+                                                self.request, view=self)
+
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
 
     def post(self, request):
         email = request.user.email
@@ -53,107 +66,33 @@ class EmailView(APIView):
 
         user = request.user
 
-        # This remove all old history if the logout was not done successfully
+        # Remove all old history if the logout was not done successfully
         EmailHeaders.objects.filter(receiver=user).delete()
 
         try:
             print('start imap fetching')
             s1 = time()
-            mail_messages = get_all_emails(host, email, app_password)
+            # Get the emails from the service layer
+            mail_messages = get_emails(host, email, app_password)
             print('finish imap fetching', time() - s1)
-
-            mailbox_size = 0
-            emitted_co2 = 0
-            emails_seen_count = 0
-            emails_received_count = 0
-            received_at_min = timezone.now()
 
             print('save in the DB')
             s = time()
-            for mail in mail_messages:
-
-                if mail.list_unsubscribe:
-                    try:
-                        unsubscribe = Newsletter.objects.get(
-                            receiver=user, sender_email=mail.sender_email
-                        )
-                        # if the one_click is set we don't change anything because it is the best way to unsubscribe
-                        if (not unsubscribe.one_click) and mail.list_unsubscribe_post:
-                            unsubscribe.one_click = True
-                            unsubscribe.list_unsubscribe = mail.list_unsubscribe
-
-                            unsubscribe.save()
-                        elif (not unsubscribe.one_click) and mail.list_unsubscribe[
-                            :6
-                        ] == "mailto":
-                            unsubscribe.one_click = False
-                            unsubscribe.list_unsubscribe = mail.list_unsubscribe
-
-                            unsubscribe.save()
-                    except Newsletter.DoesNotExist as e:
-                        unsubscribe = Newsletter.objects.create(
-                            receiver=user,
-                            list_unsubscribe=mail.list_unsubscribe,
-                            one_click=mail.list_unsubscribe_post,
-                            sender_email=mail.sender_email,
-                        )
-                    except Newsletter.MultipleObjectsReturned as e:
-                        print(
-                            f"Multiple objects Newsletter returned\nError from Django = {e}"
-                        )
-                else:
-                    unsubscribe = None
-
-                co2 = emailPollution(mail.size, mail.received_at)
-                carbon_yforecast = getYearlyCarbonForecast(mail.size, mail.received_at)
-
-                if mail.received_at and mail.received_at < received_at_min:
-                    received_at_min = mail.received_at
-
-                mailbox_size += mail.size
-                emitted_co2 += co2
-                emails_seen_count += mail.seen
-                emails_received_count += mail.received
-
-                email_headers_model = EmailHeaders.objects.create(
-                    uid=mail.uid,
-                    seen=mail.seen,
-                    subject=mail.subject,
-                    sender_name=mail.sender_name,
-                    sender_email=mail.sender_email,
+            [
+                EmailHeaders.objects.create(
                     receiver=user,
-                    size=mail.size,
-                    received_at=mail.received_at,
-                    message_id=mail.message_id,
-                    folder=mail.folder,
-                    unsubscribe=unsubscribe,
-                    co2=co2,
-                    carbon_yforecast=carbon_yforecast,
-                    is_received=mail.received,
+                    **mail,
                 )
+                for mail in mail_messages
+            ]
 
-                [
-                    Attachment.objects.create(
-                        email_header=email_headers_model, name=name, size=size
-                    )
-                    for name, size in mail.attachments
-                ]
             print('finish db saving', time() - s)
 
             print('start stats')
             s = time()
-            EmailStats.objects.update_or_create(
-                user=user,
-                defaults={
-                    "mailbox_size": mailbox_size,
-                    "carbon_eq": emitted_co2,
-                    "emails_count": len(mail_messages),
-                    "emails_seen_count": emails_seen_count,
-                    "emails_received_count": emails_received_count,
-                    "months_since_creation": (timezone.now() - received_at_min).days
-                    / (365.25 / 12),
-                },
-            )
+            stats = EmailHeaders.objects.filter(
+                receiver=user).get_statistics()
+            EmailStats.objects.update_or_create(user=user, defaults=stats)
             print('finish stats', time() - s)
 
             print('start threading')
@@ -180,54 +119,80 @@ class EmailView(APIView):
 
     def get(self, request):
         before_than = int(request.query_params.get("before_than", 0))
-        seen = request.query_params.get("seen", False) == "true"
-        folder = request.query_params.get("folder", False)
+        greater_than = int(request.query_params.get("greater_than", 0))  # in MB
+        seen = request.query_params.get("seen") == "true"
+        selected_filters = request.query_params.getlist("selected_filters[]")
+
+        folder = request.query_params.get("folder")
+
+        print(selected_filters)
+
         user = request.user
 
-        emails= EmailHeaders.objects.filter(receiver=user, received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))# .order_by('received_at')
+        emails_headers = EmailHeaders.objects.filter(receiver=user)
+
+        tot = emails_headers.count()
+
+        if before_than:
+            emails_headers = emails_headers.filter(
+                received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))
+        if greater_than:
+            emails_headers = emails_headers.filter(size__gte=greater_than*1e6)
         if not seen:
-            emails = emails.filter(seen=seen)
+            emails_headers = emails_headers.filter(seen=seen)
         if folder:
-            emails = emails.filter(folder=folder)
+            emails_headers = emails_headers.filter(folder__iexact=folder)
+        if selected_filters:
+            # sender_emails = [
+            #     # emails to yourself
+            #     # 'amazon',
+            #     # 'aliexpress',
+            #     # 'zoom',
+            #     # 'uber',
+            # ]
+            try:
+                emails_headers = emails_headers.apply_filters(selected_filters)
+            except AttributeError:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = EmailHeadersSerializer(emails, many=True)
+        print(emails_headers.count() / tot)
 
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        emails_headers = emails_headers.order_by('-received_at')
 
+        carbon_data = emails_headers.get_carbon_stats()
 
+        page = self.paginate_queryset(emails_headers)
+        if page is not None:
+            serializer = self.get_paginated_response(
+                self.serializer_class(page, many=True).data)
+        else:
+            serializer = self.serializer_class(emails_headers, many=True)
+
+        data = {**carbon_data, **serializer.data}
+        return Response(data, status=status.HTTP_200_OK)
 
     def delete(self, request):
-        email = request.user.email
         user = request.user
+        email = user.email
 
         # request body
         app_password = request.data.get("app_password", None)
         host = request.data.get("host", None)
         folder_uids = request.data.get("uids", False)
+        pks = request.data.get("pks", False)
         # uids template
         # "uids": {
         #     "INBOX":[3, 5],
         #     "SENT" :[14, 53],
         #     }
-        if folder_uids:
+        if folder_uids and pks:
             move_to_trash(host, email, app_password, folder_uids)
-            stats = EmailStats.objects.get(user=user)
-            for folder_name, uids in folder_uids.items():
-                for uid in uids:
-                    email = EmailHeaders.objects.get(
-                        receiver=user, folder=folder_name, uid=uid
-                    )
-                    stats.deleted_emails_count += 1
-                    stats.emails_count -= 1
-                    if email.is_received:
-                        stats.emails_received_count -= 1
-                    if email.seen:
-                        stats.emails_seen_count -= 1
-                    stats.saved_co2 += email.co2
-                    stats.mailbox_size -= email.size
-                    stats.carbon_eq -= email.co2
-                    email.delete()
-            stats.save()
+            emails_headers = EmailHeaders.objects.filter(pk__in=pks)
+            emails_headers_stats = emails_headers.get_statistics()
+            emails_headers.delete()
+            email_stats = user.emailstats
+            email_stats.update_deleted_email(emails_headers_stats)
+
         else:
             EmailHeaders.objects.filter(receiver=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -238,55 +203,51 @@ class FolderView(APIView):
 
     def get(self, request):
         user = request.user
-        folders = EmailHeaders.objects.filter(receiver=user).values_list('folder', flat=True).distinct()
+        folders = EmailHeaders.objects.filter(
+            receiver=user).values_list('folder', flat=True).distinct()
         return Response(data=folders, status=status.HTTP_200_OK)
+
 
 class AttachmentView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def delete(self, request):
-        email = request.user.email
         user = request.user
+        email = user.email
 
         # request body
         app_password = request.data.get("app_password", None)
         host = request.data.get("host", None)
         folder_uids = request.data.get("uids", False)
+        pks = request.data.get("pks", False)
         # uids template
         # "uids": {
         #     "INBOX":[3, 5],
         #     "SENT" :[14, 53],
         #     }
-        if folder_uids:
+        if folder_uids and pks:
             remove_attachments(host, email, app_password, folder_uids)
-            stats = EmailStats.objects.get(user=user)
+            email_stats = user.emailstats
+            emails_headers = EmailHeaders.objects.filter(pk__in=pks)
             for folder_name, uids in folder_uids.items():
+                emails_headers_folder = emails_headers.filter(
+                    folder=folder_name)
                 for uid in uids:
-                    email = EmailHeaders.objects.get(
-                        receiver=user, folder=folder_name, uid=uid
-                    )
-                    attachments = email.attachments.all()
-                    for attachment in attachments:
-                        attachment_co2 = emailPollution(
-                            attachment.size, attachment.email_header.received_at
-                        )
-                        # the size of the email is not correctly estimated by some IMAP server
-                        attachment_size = min(email.size, attachment.size)
-                        saved_co2 = min(email.co2, attachment_co2)
-                        stats.saved_co2 += saved_co2
-                        stats.carbon_eq -= saved_co2
-                        stats.mailbox_size -= attachment_size
-                        email.size -= attachment_size
-                        email.co2 -= saved_co2
+                    email_header = emails_headers_folder.get(uid=uid)
+                    attachments = email_header.attachments.all()
+                    attachments_stats = attachments.get_attachment_stats()
                     attachments.delete()
-                    email.save()
-            stats.save()
+                    email_stats.update_deleted_attachments(attachments_stats)
+                    email_header.update_deleted_attachments(attachments_stats)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ThreadListView(APIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = EmailHeadersSerializer
 
     def get(self, request):
         user = request.user
@@ -295,7 +256,7 @@ class ThreadListView(APIView):
             receiver=user, thread_id__isnull=False
         ).order_by("received_at")
 
-        serializer = EmailHeadersSerializer(emails_threads, many=True)
+        serializer = self.serializer_class(emails_threads, many=True)
         threads = {}
 
         restrip_pat = re.compile(
@@ -309,7 +270,7 @@ class ThreadListView(APIView):
                 {
                     "thread_id": mail["thread_id"],
                     "subject": "",
-                    "co2": 0,
+                    "generated_carbon": 0,
                     "size": 0,
                     "children": [],
                 },
@@ -320,7 +281,7 @@ class ThreadListView(APIView):
                 # remove space at the beginning. This is exactly the space between RE: and the subject name
                 data["subject"] = subj.strip()
 
-            data["co2"] += mail["co2"]
+            data["generated_carbon"] += mail["generated_carbon"]
             data["size"] += mail["size"]
             data["children"].append(mail)
 
@@ -333,6 +294,7 @@ class ThreadListView(APIView):
 
 class ThreadDetailView(APIView):
     permission_classes = (IsAuthenticated,)
+    serializer_class = EmailHeadersSerializer
 
     def get(self, request, thread_id):
         user = request.user
@@ -341,15 +303,16 @@ class ThreadDetailView(APIView):
             receiver=user, thread_id=thread_id
         ).order_by("received_at")
 
-        serializer = EmailHeadersSerializer(emails_threads, many=True)
+        serializer = self.serializer_class(emails_threads, many=True)
 
         restrip_pat = re.compile(
             """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE
         )
+
         subject = restrip_pat.sub("", serializer.data[0]["subject"]).strip()
 
         stats = emails_threads.aggregate(
-            co2=Sum("co2"),
+            generated_carbon=Sum("generated_carbon"),
             size=Sum("size"),
         )
 
@@ -375,103 +338,33 @@ class Statistics(APIView):
             larger_than = float(request.query_params.get("larger_than", 0))
 
             # generate statistics based on EmailHeaders: these stats aren't persistents
-            all_emails = EmailHeaders.objects.filter(receiver=user)
-            email_header_stats = all_emails.annotate(
-                attachment_count=Count("attachments")
-            ).aggregate(
-                threads_count=Count("thread_id", distinct=True),
-                # Q create a query to filter
-                # Coalesce return 0 if the query set generated by the filter is empty
-                thread_co2=Coalesce(Sum("co2", filter=Q(thread_id__isnull=False)), 0),
-                thread_carbon_yforecast=Coalesce(
-                    Sum("carbon_yforecast", filter=Q(thread_id__isnull=False)), 0
-                ),
-                thread_attachment_count=Coalesce(
-                    Sum("attachment_count", filter=Q(thread_id__isnull=False)), 0
-                ),
-                emails_unseen_co2=Coalesce(
-                    Sum('attachment_count', filter=Q(seen=False)), 0),
-
-                emails_before_count=Count('pk', filter=Q(
-                    received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))),
-                emails_before_co2=Coalesce(Sum('co2', filter=Q(
-                    received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))), 0),
-                emails_unseen_before_co2=Coalesce(Sum('co2', filter=Q(
-                    seen=False, received_at__lte=timezone.now() - timedelta(days=int(before_than*365.25)))), 0),
-
-                emails_larger_count=Count(
-                    'pk', filter=Q(size__gte=larger_than)),
-                emails_larger_co2=Coalesce(
-                    Sum("co2", filter=Q(size__gte=larger_than)), 0
-                ),
-            )
+            emails_headers = EmailHeaders.objects.filter(receiver=user)
+            email_header_stats = {
+                ** emails_headers.get_stats_unseen_emails(),
+                ** emails_headers.get_thread_stats(),
+                ** emails_headers.get_stats_before_than(before_than),
+                ** emails_headers.get_stats_larger_than(larger_than),
+            }
 
             # generate statistics based on Newsletter
-            all_newsletters = Newsletter.objects.filter(receiver=user)
+            newsletters = Newsletter.objects.filter(receiver=user)
+            newsletter_stats = newsletters.get_newsletter_stats()
 
-            newsletter_stats = all_newsletters.annotate(
-                email_count=Count("newsletters"),
-                co2=Coalesce(Sum("newsletters__co2"), 0),
-                since=Cast(Min("newsletters__received_at"), output_field=DateField()),
-                last=Cast(Max("newsletters__received_at"), output_field=DateField()),
-                years_count_since=Cast(
-                    ExtractDay(F("last") - F("since")), output_field=FloatField()
-                )
-                / 365.25,
-                email_count_yearly=Case(
-                    When(years_count_since=0, then=0),
-                    default=ExpressionWrapper(
-                        F("email_count") / F("years_count_since"),
-                        output_field=FloatField(),
-                    ),
-                ),
-            ).aggregate(
-                newsletters_subscribed_email_yearly_sum=Coalesce(
-                    Sum("email_count_yearly", filter=Q(unsubscribed=False)), 0
-                ),
-                newsletters_unsubscribed_email_yearly_sum=Coalesce(
-                    Sum("email_count_yearly", filter=Q(unsubscribed=True)), 0
-                ),
-                emails_newsletters_count=Sum("email_count"),
-                emails_newsletters_co2=Sum("co2"),
-                newsletters_count=Count("pk"),
-                unsubscribed_newsletters_count=Count("pk", filter=Q(unsubscribed=True)),
-            )
             # generate statistics based on EmailStats
-            email_stats = EmailStatsSerializer(EmailStats.objects.get(user=user)).data
+            email_stats = EmailStatsSerializer(
+                EmailStats.objects.get(user=user)).data
+
             # merge all statistics
-            response = {**email_stats, **email_header_stats, **newsletter_stats}
+            response = {**email_stats, **
+                        email_header_stats, **newsletter_stats}
         elif kind == "erasmail":
             # generate average users statistics based on EmailStats
-            average_users_stats = EmailStats.objects.annotate(
-                emails_received_rate=ExpressionWrapper(
-                    F("emails_received_count") / F("months_since_creation"),
-                    output_field=FloatField(),
-                ),
-                emails_send_rate=ExpressionWrapper(
-                    (F("emails_count") - F("emails_received_count"))
-                    / F("months_since_creation"),
-                    output_field=FloatField(),
-                ),
-                open_rate=ExpressionWrapper(
-                    F("emails_seen_count")
-                    / Cast(F("emails_count"), output_field=FloatField()),
-                    output_field=FloatField(),
-                ),
-            ).aggregate(
-                avg_mailbox_size=Avg("mailbox_size"),
-                avg_carbon_eq=Avg("carbon_eq"),
-                avg_saved_co2=Avg("saved_co2"),
-                avg_monthly_emails_received=Avg("emails_received_rate"),
-                avg_monthly_emails_sent=Avg("emails_send_rate"),
-                avg_open_rate=Avg("open_rate"),
-                # avg email size
-            )
-            response = average_users_stats
+            response = EmailStats.objects.get_general_stats()
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data=response, status=status.HTTP_200_OK)
+
 
 class NewsletterListView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -482,8 +375,8 @@ class NewsletterListView(APIView):
         newsletters = (
             Newsletter.objects.filter(receiver=user)
             .with_email_counter()
-            .seen_email_counter()
-            .avg_daily_emails()
+            .with_seen_email_counter()
+            .with_avg_daily_emails()
             .with_carbon()
         )
 
@@ -492,10 +385,7 @@ class NewsletterListView(APIView):
 
     def delete(request):
         pass
-    
-    @api_view(['POST']) #TODO: temporary, should be @action with viewset
+
+    @api_view(['POST'])  # TODO: temporary, should be @action with viewset
     def unsubcribe(request):
         pass
-
-
-        

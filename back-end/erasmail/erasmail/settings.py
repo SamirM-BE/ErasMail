@@ -169,7 +169,7 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=50),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(minutes=50),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=3),
 }
 
 # INTERNAL_IPS = ('127.0.0.1', '0.0.0.0', 'localhost',)

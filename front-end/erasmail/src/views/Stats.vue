@@ -142,7 +142,7 @@
         <article class="tile is-child notification is-warning is-light">
           <div class="content">
             <p class="title">You are subscribed to {{ userStats.newsletters_count }} newsletters</p>
-            <p class="subtitle">You might receive {{ Math.round(userStats.newsletters_subscribed_email_yearly_sum) }} emails this year.</p>
+            <p class="subtitle">You might receive {{ Math.round(userStats.newsletters_subscribed_email_daily__sum * 365.25) }} emails this year.</p>
             <div class="content">
               <!-- Content -->
             </div>
@@ -151,7 +151,7 @@
         <article class="tile is-child notification is-primary is-light">
           <div class="content">
             <p class="title">You unsubscribed from {{ userStats.unsubscribed_newsletters_count }} newsletters</p>
-            <p class="subtitle">You avoided {{ Math.round(userStats.newsletters_unsubscribed_email_yearly_sum) }} emails.</p>
+            <p class="subtitle">You avoided {{ Math.round(userStats.newsletters_unsubscribed_email_daily__sum * 365.25) }} emails.</p>
             <div class="content">
               <!-- Content -->
             </div>

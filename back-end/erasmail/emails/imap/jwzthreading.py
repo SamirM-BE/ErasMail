@@ -79,7 +79,7 @@ class Container:
         folder_uid = []
         if self.message:
             folder_uid.append(
-                (self.message.message.folder, self.message.message.uid))
+                (self.message.message.get('folder',''), self.message.message.get('uid','')))
         for child in self.children:
             folder_uid += child.get_folder_uid()
         return folder_uid
@@ -116,18 +116,18 @@ def make_message(msg: MailMessage) -> Message:
     """
     new = Message(msg)
 
-    m_id = msg.message_id
+    m_id = msg.get('message_id', '')
     if m_id is None:
         raise ValueError("Message does not contain a Message-ID: header")
 
     new.message_id = m_id
-    new.subject = msg.subject
+    new.subject = msg.get('subject','')
 
     # Get list of unique message IDs from the References: header
-    new.references = msg.references
+    new.references = msg.get('references','')
 
     # Get In-Reply-To: header and add it to references
-    in_reply_to = msg.in_reply_to
+    in_reply_to = msg.get('in_reply_to','')
     if in_reply_to:
         msg_id = in_reply_to[0]
         if msg_id not in new.references:

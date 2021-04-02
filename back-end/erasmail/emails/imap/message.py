@@ -156,7 +156,7 @@ class MailMessage:
     def __init__(
         self,
         folder,
-        received,
+        is_received,
         uid,
         flags,
         size,
@@ -167,7 +167,7 @@ class MailMessage:
         bodystructure,
     ):
         self.folder = folder
-        self.received = received
+        self.is_received = is_received
         self.uid = uid
         self.seen = get_seen_flag(flags)
         self.size = size
@@ -185,23 +185,8 @@ class MailMessage:
         self.list_unsubscribe_post = b"One-Click" in list_unsubscribe_post
         self.attachments = get_attachments(bodystructure)
 
+    def to_dict(self):
+        return self.__dict__
+
     def __str__(self):
-        return str(
-            {
-                "folder": self.folder,
-                "received": self.received,
-                "uid": self.uid,
-                "subject": self.subject,
-                "sender_name": self.sender_name,
-                "sender_email": self.sender_email,
-                "size": self.size,
-                "received_at": self.received_at,
-                "message_id": self.message_id,
-                "attachments": self.attachments,
-                "references": self.references,
-                "in_reply_to": self.in_reply_to,
-                "list_unsubscribe": self.list_unsubscribe,  # List-Unsubscribe
-                "list_unsubscribe_post": self.list_unsubscribe_post,  # List-Unsubscribe-Post
-                "seen": self.seen,
-            }
-        )
+        return str(self.to_dict())

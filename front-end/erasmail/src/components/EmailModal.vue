@@ -27,6 +27,7 @@
                 </EmailForm>
             </div>
             <footer class="modal-card-foot has-background-primary-dark">
+
                 <div class="dropdown is-up" :class="{'is-active': showDropdown}">
                     <div class="dropdown-trigger" @click="showDropdown = !showDropdown">
                         <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
@@ -50,6 +51,7 @@
                         </div>
                     </div>
                 </div>
+
                 <button class="button is-danger ml-1" :disabled="selectedAction === 'Select an action' || !checkedEmails.length"
                     @click="executeAction()">Execute</button>
                 <div>
@@ -255,15 +257,19 @@ export default {
             let toRemove = {
                 count: 0,
                 uids: {},
+                pks: [],
                 onlyAttachments: false,
             }
             toRemove.count = this.checkedEmails.length
             for (let i = 0; i < this.checkedEmails.length; i++) {
                 let index = this.checkedEmails[i]
                 let email = this.emails[index]
-                let uids = toRemove.uids[email.folder] || []
-                uids.push(email.uid)
-                toRemove.uids[email.folder] = uids
+
+                toRemove.pks.push(email.id)
+
+                let selectedUids = toRemove.uids[email.folder] || []
+                selectedUids.push(email.uid)
+                toRemove.uids[email.folder] = selectedUids
             }
             if (this.selectedAction == this.removeEmail) {
                 this.$emit('delete', toRemove)
