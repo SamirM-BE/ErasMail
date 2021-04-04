@@ -1,78 +1,78 @@
 <template>
   <section class="section cmp p-0">
     <div class="columns">
-      <div class="pricing-table">
+<!--      <div class="pricing-table">-->
 
-        <div class="column c1">
-          <div class="pricing-plan current is-success">
-            <div class="plan-header">Current situation</div>
-            <div class="title is-4 has-text-centered has-text-success">
-              You saved 900g CO<sub>2</sub>.
-            </div>
-            <div class="subtitle is-4 has-text-centered has-text-success">
-              This is the same as 90 plastic bags.
-            </div>
-            <div class="plan-items">
-              <div class="plan-item has-background-success-light">
-                900 g CO<sub>2</sub> saved
-              </div>
-              <div class="plan-item has-background-success-light">
-                365 deleted emails
-              </div>
-            </div>
-            <div class="plan-footer">
-              <button class="button is-small m-3 is-facebook has-background-facebook"
-                      @click="openWindowSharing(facebookLink, 'facebook')">
-                <span class="icon">
-                  <i class="fab fa-facebook"></i>
-                </span>
-                <span>Share on Facebook</span>
-              </button>
-              <button class="button is-small m-3 is-twitter has-background-twitter"
-                      @click="openWindowSharing(twitterLink, 'twitter')">
-                <span class="icon">
-                  <i class="fab fa-twitter"></i>
-                </span>
-                <span>Share on Twitter</span>
-              </button>
-            </div>
-          </div>
-        </div>
+<!--        <div class="column c1">-->
+<!--          <div class="pricing-plan current is-success">-->
+<!--            <div class="plan-header">Current situation</div>-->
+<!--            <div class="title is-4 has-text-centered has-text-success">-->
+<!--              You saved 900g CO<sub>2</sub>.-->
+<!--            </div>-->
+<!--            <div class="subtitle is-4 has-text-centered has-text-success">-->
+<!--              This is the same as 90 plastic bags.-->
+<!--            </div>-->
+<!--            <div class="plan-items">-->
+<!--              <div class="plan-item has-background-success-light">-->
+<!--                900 g CO<sub>2</sub> saved-->
+<!--              </div>-->
+<!--              <div class="plan-item has-background-success-light">-->
+<!--                365 deleted emails-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="plan-footer">-->
+<!--              <button class="button is-small m-3 is-facebook has-background-facebook"-->
+<!--                      @click="openWindowSharing(facebookLink, 'facebook')">-->
+<!--                <span class="icon">-->
+<!--                  <i class="fab fa-facebook"></i>-->
+<!--                </span>-->
+<!--                <span>Share on Facebook</span>-->
+<!--              </button>-->
+<!--              <button class="button is-small m-3 is-twitter has-background-twitter"-->
+<!--                      @click="openWindowSharing(twitterLink, 'twitter')">-->
+<!--                <span class="icon">-->
+<!--                  <i class="fab fa-twitter"></i>-->
+<!--                </span>-->
+<!--                <span>Share on Twitter</span>-->
+<!--              </button>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
 
-        <div class="column c2">
-          <apexchart
-              :options="radialBarPotentialImpact"
-              :series="radialBarPotentialImpact.series"
-              height="100%"
-              type="radialBar"
-              width="100%"
-          ></apexchart>
-        </div>
+<!--        <div class="column c2">-->
+<!--          <apexchart-->
+<!--              :options="radialBarPotentialImpact"-->
+<!--              :series="radialBarPotentialImpact.series"-->
+<!--              height="100%"-->
+<!--              type="radialBar"-->
+<!--              width="100%"-->
+<!--          ></apexchart>-->
+<!--        </div>-->
 
-        <div class="column c3">
-          <div class="pricing-plan potential is-warning">
-            <div class="plan-header">Potential impact</div>
-            <div class="title is-4 has-text-centered has-text-warning-dark">
-              You're wasting 5kg of CO<sub>2</sub> on emails you probably won't open.
-            </div>
-            <div class="subtitle is-4 has-text-centered has-text-warning-dark">
-              This is the same as if your drove 75 km in an average car.
-            </div>
-            <div class="plan-items">
-              <div class="plan-item has-background-warning-light">
-                2.3 kg CO<sub>2</sub> potentially savable
-              </div>
-              <div class="plan-item has-background-warning-light">
-                3841 potentially unnecessary emails
-              </div>
-            </div>
-            <div class="plan-footer">
-              <button class="button is-fullwidth">Take action</button>
-            </div>
-          </div>
-        </div>
+<!--        <div class="column c3">-->
+<!--          <div class="pricing-plan potential is-warning">-->
+<!--            <div class="plan-header">Potential impact</div>-->
+<!--            <div class="title is-4 has-text-centered has-text-warning-dark">-->
+<!--              You're wasting 5kg of CO<sub>2</sub> on emails you probably won't open.-->
+<!--            </div>-->
+<!--            <div class="subtitle is-4 has-text-centered has-text-warning-dark">-->
+<!--              This is the same as if your drove 75 km in an average car.-->
+<!--            </div>-->
+<!--            <div class="plan-items">-->
+<!--              <div class="plan-item has-background-warning-light">-->
+<!--                2.3 kg CO<sub>2</sub> potentially savable-->
+<!--              </div>-->
+<!--              <div class="plan-item has-background-warning-light">-->
+<!--                3841 potentially unnecessary emails-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div class="plan-footer">-->
+<!--              <button class="button is-fullwidth">Take action</button>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
 
-      </div>
+<!--      </div>-->
     </div>
 
   </section>
@@ -97,12 +97,12 @@
             <article class="tile is-child notification is-light">
               <p class="title">E-mail box size evolution</p>
               <p class="subtitle">With an image</p>
-              <apexchart
-                  :options="lineSizeMailbox.chartOptions"
-                  :series="lineSizeMailbox.series"
-                  type="area"
-                  width="100%"
-              ></apexchart>
+<!--              <apexchart-->
+<!--                  :options="lineSizeMailbox.chartOptions"-->
+<!--                  :series="lineSizeMailbox.series"-->
+<!--                  type="area"-->
+<!--                  width="100%"-->
+<!--              ></apexchart>-->
             </article>
           </div>
         </div>
@@ -163,7 +163,7 @@
 </template>
 
 <script>
-import VueApexCharts from "vue3-apexcharts";
+// import VueApexCharts from "vue3-apexcharts";
 import {lineSizeMailbox, radialBarPotentialImpact} from "@/apex-data";
 
 export default {
@@ -178,7 +178,7 @@ export default {
   },
   computed: {},
   components: {
-    apexchart: VueApexCharts,
+    // apexchart: VueApexCharts,
   },
   methods: {
     openWindowSharing(mediaLink, media) {
