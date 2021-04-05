@@ -1,26 +1,13 @@
 <template>
-  <!--  <div>-->
-<!--  newslettersCount-->
-  <AwarenessMessage :co2="totalCarbon" :itemCount="50" :itemName="'newsletters'"/>
-
-  <div class="container">
-    <div class="buttons is-pulled-right my-1">
-      <button class="button is-focused is-link mx-1" @click="unsubscribe()">Unsubscribe</button>
-      <button class="button is-focused is-danger mx-1" @click="deleteEmails()">Delete emails</button>
-      <button class="button is-focused is-danger is-light  mx-1" @click="unsubscribe(); deleteEmails()">Unsubscribe &
-        delete
-      </button>
-    </div>
-  </div>
+  <AwarenessMessage :co2="totalCarbon" :itemCount="newslettersCount" :itemName="'newsletters'"/>
 
   <div class="container newsletters">
-    <form>
-      <div v-for="(newsletter, index) in newsletters" :key="index" class="field">
-        <div class="box control px-0">
-          <input :id="index" v-model="checkedNewsletters" :value="index" type="checkbox">
-          <label :for="index" class="checkbox">
-            <div class="newsletter-detail has-border-left px-2">
-
+    <div v-for="(newsletter, index) in newsletters" :key="index" class="field">
+      {{ isUnsubscribed(index)}}
+      <transition name="fade">
+        <div v-if="newsletter && (!newsletter.unsubscribed || newsletter.emails_cnt !== 0)" class="box control px-0">
+          <div class="newsletter-detail px-2 is-flex is-justify-content-space-between">
+            <div class="leftpart">
               <div class="icon-text">
                   <span class="icon">
                       <i class="far fa-address-card fa-sm"></i>
@@ -57,11 +44,48 @@
               </span>
               <p class="has-text-weight-bold">Last email received : {{ newsletter.received_at }}</p>
             </div>
-          </label>
+            <div class="buttontop">
+              <button v-if="!newsletter.unsubscribed" class="button is-small  is-info p-1"
+                      @click="unsubscribe(index)">Unsubscribe
+              </button>
+
+              <span v-else class="tag is-fixed-corner-bottom is-success is-light is-rounded ml-1">
+                <span class="icon">
+                  <i class="far fa-thumbs-up"></i>
+                </span>
+                Unsubscribed
+              </span>
+
+              <button v-if="newsletter.emails_cnt !== 0"
+                      class="button is-small  is-danger ml-1 p-1"
+                      @click="deleteEmails(index)">Delete emails
+              </button>
+              <span v-else class="tag is-fixed-corner-bottom is-danger is-light is-rounded ml-1">
+                <span class="icon">
+                  <i class="far fa-thumbs-up"></i>
+                </span>
+                Deleted
+              </span>
+
+              <br>
+              <button v-if="(!newsletter.unsubscribed && newsletter.emails_cnt !== 0)"
+                      :class="{ 'is-hidden': newsletter.emails_cnt === 0 }"
+                      class="button is-fullwidth is-small  is-success mt-1"
+                      @click="unsubscribe(index); deleteEmails(index); fadeMe()">Unsubscribe & Delete
+              </button>
+
+
+
+            </div>
+          </div>
 
         </div>
-      </div>
-    </form>
+
+
+      </transition>
+
+    </div>
+    <!--    </form>-->
   </div>
 
 </template>
@@ -75,13 +99,14 @@ export default {
   data() {
     return {
       newsletters: {},
-      checkedNewsletters: [],
-      totalCarbon: 0.0,
+      totalCarbon: 0,
+      showDeleteButton: [],
+      show: true,
     };
   },
   computed: {
     newslettersCount() {
-      return this.newsletters.length
+      return Object.keys(this.newsletters).length !== 0 ? this.newsletters.length : 0;
     },
 
   },
@@ -90,6 +115,7 @@ export default {
   },
   methods: {
     fetchNewsletters() {
+      console.log("fetch des newsletters")
       getAPI
           .get(
               "/api/emails/newsletters", {
@@ -106,6 +132,10 @@ export default {
             console.log(err);
           });
     },
+    fadeMe: function () {
+      console.log("aaaaaaaaaaaa")
+      this.show = !this.show
+    },
     getNewsletterOpenRate(newsletter) {
       if (newsletter.emails_count !== 0 && newsletter.seen_emails_cnt !== 0) {
         let open_rate = newsletter.seen_emails_cnt / newsletter.emails_cnt * 100
@@ -120,8 +150,117 @@ export default {
 
         pollution = newsletters.reduce((a, b) => a + (b['generated_carbon'] || 0), 0);
       }
-      this.totalCarbon =  pollution
+      this.totalCarbon = pollution
     },
+    parseMailTo(s) {
+      var r = {};
+      var email = s.match(/mailto:([^?]*)/);
+      email = email[1] ? email[1] : false;
+      var subject = s.match(/subject=([^&]+)/);
+      subject = subject ? subject[1].replace(/\+/g, ' ') : false;
+
+      if (email) {
+        r['email'] = email;
+      }
+      if (subject) {
+        r['subject'] = subject;
+      }
+
+      return r;
+    },
+    deleteEmails(clickedNewsletter) {
+
+      let newsletter
+      let sender_emails = []
+
+      this.showDeleteButton[clickedNewsletter] = false
+      newsletter = this.newsletters[clickedNewsletter]
+      sender_emails.push(newsletter.sender_email)
+      this.newsletters[clickedNewsletter].emails_cnt = 0
+      this.newsletters[clickedNewsletter].seen_emails_cnt = 0
+
+
+      // delete this.newsletters[clickedNewsletter]
+      //TODO: AVOID ONE REQUEST BY NEWSLETTER
+      getAPI
+          .delete(
+              "/api/emails/newsletters", {
+                headers: {
+                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                },
+                data: {
+                  senders: sender_emails,
+                  uids_to_delete: newsletter.uids_folders,
+                  host: this.$store.state.auth.host,
+                  app_password: this.$store.state.auth.app_password
+                }
+              }
+          )
+          .then(() => {
+            delete this.newsletters[clickedNewsletter].uids_folders
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+    },
+    // if no email is received from more than 3 months we consider the newsletter as unsubscribed
+    isUnsubscribed(clickedNewsletter){
+      let lastReceptionDate = new Date(this.newsletters[clickedNewsletter].received_at)
+      let today = new Date()
+      if( (today.getMonth() - lastReceptionDate.getMonth() + (12 * (today.getFullYear() - lastReceptionDate.getFullYear())))>3)
+        this.newsletters[clickedNewsletter].unsubscribed = true
+    },
+    unsubscribe(clickedNewsletter) {
+      let newsletter = []
+
+      let request_data = {}
+
+      this.newsletters[clickedNewsletter].unsubscribed = true
+      this.newsletters[clickedNewsletter].forecasted_carbon = 0
+      newsletter = this.newsletters[clickedNewsletter]
+      request_data["id"] = newsletter.id
+
+      //ONE-CLICK
+      if (newsletter.one_click) {
+        // unsubscribe_type = "oneclick"
+        request_data["unsubscribe_type"] = "oneclick"
+        request_data["url"] = newsletter.list_unsubscribe
+      }
+      //MAILTO
+      else if (newsletter.list_unsubscribe.substring(0, 6) === "mailto") {
+        request_data["unsubscribe_type"] = "mailto"
+        var mailtoParams = this.parseMailTo(newsletter.list_unsubscribe)
+        request_data["to"] = mailtoParams['email']
+        request_data["subject"] = mailtoParams['subject']
+        request_data["host"] = this.$store.state.auth.host
+        request_data["app_password"] = this.$store.state.auth.app_password
+
+      }
+      //MANUAL
+      else {
+        window.open(newsletter.list_unsubscribe, '_blank');
+      }
+      getAPI
+          .post(
+              "/api/emails/newsletters/unsubscribe",
+              request_data,
+              {
+                headers: {
+                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                },
+              }
+          )
+          .then(() => {
+            console.log("Successfull unsubscribe")
+          })
+          .catch((err) => {
+            console.log(err.response);
+          });
+      //}
+      // }
+
+    },
+
   },
   created() {
     this.fetchNewsletters()
@@ -134,20 +273,42 @@ input {
   margin: 1%;
 }
 
-.has-border-left {
-  border-left-width: thin !important;
-  border-left: solid;
-}
 
-.box.control {
+.control {
   display: flex;
   align-items: center;
   border-color: lightgray !important;
   border: solid;
   border-width: thin;
+
 }
 
 .is-size-6-2 {
   font-size: 0.85rem;
 }
+
+.newsletter-detail {
+  width: 100%;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 1s
+}
+
+.fade-enter,
+.fade-leave-to
+  /* .fade-leave-active in <2.1.8 */
+
+{
+  opacity: 0
+}
+
+.is-fixed-corner-bottom {
+  position: absolute;
+  bottom: 20%;
+  right: 0.2%;
+}
+
+
 </style>

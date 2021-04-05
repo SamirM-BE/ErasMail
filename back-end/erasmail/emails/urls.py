@@ -8,6 +8,7 @@ urlpatterns = [
     path('threads', ThreadListView.as_view(), name='thread-list'),
     path('threads/<int:thread_id>', ThreadDetailView.as_view(), name='thread-detail'),
     path('stats/<str:kind>', Statistics.as_view(), name='stats'),
-    path('newsletters', NewsletterListView.as_view(), name='newsletter')
+    path('newsletters', NewsletterListView.as_view(), name='newsletter'),
+    path('newsletters/unsubscribe', NewsletterListView.unsubscribe, name='unsubscribe')
 
 ]

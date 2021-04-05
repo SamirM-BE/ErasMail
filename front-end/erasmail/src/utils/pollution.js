@@ -39,7 +39,7 @@ const comparison = {
 
 function getAllComparisons(emailCO2){
     
-    let comparisons = new Array()
+    let comparisons = []
     let level = 0
 
     for (const property in comparison) {

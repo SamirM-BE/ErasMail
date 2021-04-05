@@ -20,38 +20,59 @@ class EmailHeadersSerializer(serializers.ModelSerializer):
         exclude = ('receiver', 'unsubscribe')
 
 class NewsletterSerializer(serializers.ModelSerializer):
-    # get sender_name from related model (emailheaders)
-    # sender_name = serializers.SlugRelatedField(many=True, slug_field='sender_name', read_only=True, source="newsletters")
-    sender_email = serializers.SerializerMethodField('get_sender_email', read_only=True, )
-    emails_cnt = serializers.IntegerField(read_only=True, help_text="nb of stored emails", )
-    seen_emails_cnt = serializers.IntegerField(read_only=True, )
-    avg_daily_emails = serializers.FloatField(read_only=True, help_text="average daily nb of emails received", )
-    received_at = serializers.SerializerMethodField('get_received_at', read_only=True, help_text="Last time that an email was received", )
-    generated_carbon = serializers.FloatField(read_only=True, help_text="generated co2 until now", )
-    forecasted_carbon = serializers.FloatField(read_only=True, help_text="forecast co2 one year from now", )
-    emails_uids = serializers.SlugRelatedField(
-        many=True,
+    sender_name = serializers.SerializerMethodField(
+        "get_sender_name",
         read_only=True,
-        source='email_headers',
-        slug_field='uid'
-     )
+    )
+    emails_cnt = serializers.IntegerField(
+        read_only=True,
+        help_text="nb of stored emails",
+    )
+    seen_emails_cnt = serializers.IntegerField(
+        read_only=True,
+    )
+    avg_daily_emails = serializers.FloatField(
+        read_only=True,
+        help_text="average daily nb of emails received",
+    )
+    received_at = serializers.SerializerMethodField(
+        "get_received_at",
+        read_only=True,
+        help_text="Last time that an email was received",
+    )
+    generated_carbon = serializers.FloatField(
+        read_only=True,
+        help_text="generated co2 until now",
+    )
+    forecasted_carbon = serializers.FloatField(
+        read_only=True,
+        help_text="forecast co2 one year from now",
+    )
 
+    uids_folders = serializers.SerializerMethodField("get_uids_folder")
 
-    def get_sender_email(self, obj):
-        try :
+    def get_sender_name(self, obj):
+        try:
             return obj.email_headers.first().sender_name
-        except :
-            return ''
+        except:
+            return ""
 
     def get_received_at(self, obj):
-        try :
+        try:
             return obj.get_latest_email().received_at.date()
-        except :
+        except:
             return timezone.now() - timedelta(weeks=4800)
+
+    def get_uids_folder(self, obj):
+        uids_folder = {}
+        for email in obj.email_headers.all():
+            uids_folder.setdefault(email.folder,[]).append(email.uid)
+        return uids_folder
 
     class Meta:
         model = Newsletter
-        exclude = ('id','receiver')
+        exclude = ["receiver"]
+
 
 class EmailStatsSerializer(serializers.ModelSerializer):
 

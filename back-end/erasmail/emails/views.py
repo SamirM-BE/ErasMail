@@ -1,34 +1,34 @@
-from time import time
 import re
 from datetime import timedelta
-
+import requests
 from django.contrib.auth import get_user_model
 from django.db.models import (Sum, Q)
 from django.utils import timezone
-from rest_framework import status
+from rest_framework import response, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 
-
 from .imap.attachments import remove_attachments
 from .imap.delete import move_to_trash
 from .imap.fetch import get_emails
+from .imap.newsletters import send_email, delete_unsub_email
 from .imap.jwzthreading import conversation_threading
-from .models import EmailHeaders, EmailStats, Newsletter
+from .models import Attachment, EmailHeaders, EmailStats, Newsletter
 from .serializers import (
     EmailHeadersSerializer,
     EmailStatsSerializer,
     NewsletterSerializer,
 )
+from .utils.pollution import emailPollution, getYearlyCarbonForecast
+
 User = get_user_model()
-
-
 class BasicPagination(PageNumberPagination):
     page_size = 10
 
+from time import time
 
 class EmailView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -377,15 +377,52 @@ class NewsletterListView(APIView):
             .with_email_counter()
             .with_seen_email_counter()
             .with_avg_daily_emails()
-            .with_carbon()
+            .with_carbon().order_by('-avg_daily_emails')
         )
 
         serializer = NewsletterSerializer(newsletters, many=True)
         return Response(serializer.data)
 
-    def delete(request):
-        pass
+    def delete(self, request):
+        user = request.user
+        senders = request.data.get("senders", None) #TODO: check if PK better than senders
+        host= request.data["host"]
+        app_password = request.data["app_password"]
+        uids_to_delete = request.data.get("uids_to_delete", {})
 
-    @api_view(['POST'])  # TODO: temporary, should be @action with viewset
-    def unsubcribe(request):
-        pass
+        move_to_trash(host, user.email, app_password, uids_to_delete)
+        Newsletter.objects.filter(receiver=user, sender_email__in=senders).delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    # unsubscribe from one-lick links
+    @api_view(['POST']) #TODO: temporary, should be @action with viewset
+    def unsubscribe(request):
+
+        user = request.user
+        unsubscribe_type = request.data.get("unsubscribe_type", "")
+        pk = request.data["id"]
+
+        Newsletter.objects.filter(pk=pk).update(unsubscribed=True)
+        if unsubscribe_type == "oneclick":
+            url = request.data.get("url", "")
+            req = requests.post(url, data = {'List-Unsubscribe':'One-Click'}) # confirm data
+            if req.status_code == 200:
+                return Response(status=status.HTTP_200_OK)
+
+        elif unsubscribe_type == "mailto":
+            to = request.data.get("to", "")
+            subject = request.data.get("subject", "")
+            host= request.data["host"] #TODO: !!!CAREFUL!!! : STMP host != host
+            app_password = request.data["app_password"]
+            send_email(sender=user.email, smtp_host=host, password=app_password, to=to, subject=subject)
+            delete_unsub_email(host=host, sender=user.email, password=app_password, to=to)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            print("open browser")
+
+        return Response(status.HTTP_400_BAD_REQUEST)
+
+
+        

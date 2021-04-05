@@ -2,13 +2,10 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F
-
-
-from .managers import (NewsletterQuerySet, EmailHeadersQuerySet, AttachmentQuerySet, EmailStatsQuerySet)
+from .managers import (NewsletterQuerySet, EmailStatsQuerySet, EmailHeadersQuerySet, AttachmentQuerySet, )
 from .utils.pollution import emailPollution, getYearlyCarbonForecast
 
 User = get_user_model()
-
 
 class EmailStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -34,7 +31,7 @@ class EmailStats(models.Model):
         self.saved_co2 = F('saved_co2') + emails.get('carbon_eq', 0)
         self.carbon_eq = F('carbon_eq') - emails.get('carbon_eq', 0)
         self.save()
-    
+
     def update_deleted_attachments(self, attachments_stats):
         self.saved_co2 = F('saved_co2') + attachments_stats['generated_carbon_tot']
         self.carbon_eq = F('carbon_eq') - attachments_stats['generated_carbon_tot']
@@ -110,7 +107,7 @@ class EmailHeaders(models.Model):
     def __str__(self):
         return f'from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}'
 
-    
+
     def save(self, *args, **kwargs):
         self.generated_carbon=emailPollution(self.size, self.received_at)
         self.carbon_yforecast=getYearlyCarbonForecast(self.size, self.received_at)
