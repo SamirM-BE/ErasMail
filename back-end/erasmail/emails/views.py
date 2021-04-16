@@ -24,9 +24,7 @@ from .serializers import (
     EmailHeadersSerializer,
     EmailStatsSerializer,
     NewsletterSerializer,
-
 )
-
 
 User = get_user_model()
 
@@ -378,14 +376,14 @@ class Statistics(APIView):
                 "deleted_emails": email_stats_data['deleted_emails'],
                 "deleted_emails_older_filter" : email_stats_data['deleted_emails_older_filter'],
                 "deleted_emails_larger_filter" : email_stats_data['deleted_emails_larger_filter'],
-                "deleted_emails_useless_filter" : email_stats_data['deleted_emails_useless_filter'], 
+                "deleted_emails_useless_filter" : email_stats_data['deleted_emails_useless_filter'],
                 "deleted_emails_threads_feature" : email_stats_data['deleted_emails_threads_feature'],
                 "deleted_emails_newsletters_feature" : email_stats_data['deleted_emails_newsletters_feature'],
                 "unsubscribed_newsletters" : email_stats_data['unsubscribed_newsletters'],
                 "deleted_attachments" : email_stats_data['deleted_attachments'],
                 "shared_badges" : email_stats_data['shared_badges'],
                 "shared_stats" : email_stats_data['shared_stats'],
-                "saved_carbon"  : email_stats_data['saved_carbon'],               
+                "saved_carbon"  : email_stats_data['saved_carbon'],
             }
 
             emailbox_stats = {
@@ -407,7 +405,7 @@ class Statistics(APIView):
             response = statistics
         elif kind == "users":
             users_stats = EmailStats.objects.all().with_score().order_by('-score')
-            
+
             users_stats_serializer = EmailStatsSerializer(users_stats, many=True).data
             current_user_id = users_stats.get(user=user).pk
 

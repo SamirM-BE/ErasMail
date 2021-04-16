@@ -36,11 +36,11 @@
       <div class="navbar-end">
 
         <div v-if="loggedIn" class="navbar-item badges">
-          <router-link :to="{ name: 'user' }" class="container is-flex is-justify-content-space-around py-1 is-clickable" title="Unlocked badges">
+          <div class="container is-flex is-justify-content-space-around py-1">
             <figure v-for="(badge, idx) in badges" v-bind:key="idx" class="image is-32x32" :class="{'is-lock': badge.savedCarbon > savedCarbon}">
               <img class="is-rounded" :src="require(`../assets/badges/sunflower-36/Sunflower${idx+1}.png`)">
             </figure>
-          </router-link>
+          </div>
         </div>
 
         <div v-if="loggedIn" class="navbar-item user mr-2">
@@ -52,9 +52,6 @@
         <div v-if="!loggedIn && currentRouteName !== 'login'" class="navbar-item">
           <router-link :to="{ name: 'login' }" class="button is-primary" exact>Login</router-link>
         </div>
-        <button class="button is-danger is-fullwidth ml-1 is-bottom" @click="logout()">Logout</button>
-
-
       </div>
     </div>
   </nav>
@@ -63,7 +60,6 @@
 <script>
 import {mapGetters} from "vuex";
 import {badgesData} from "@/gamification-data";
-
 export default {
   name: "Navbar",
   data() {
@@ -78,19 +74,9 @@ export default {
       return this.$route.name;
     },
     savedCarbon() {
-      return this.$store.state.stats.statistics.erasmail.saved_co2
+      return this.$store.state.stats.saved_co2 
     },
   },
-  methods: {
-    logout() {
-      this.$store.dispatch('auth/userLogout')
-          .then(() => {
-            this.$router.push({
-              name: 'landingpage'
-            })
-          })
-    },
-  }
 }
 </script>
 

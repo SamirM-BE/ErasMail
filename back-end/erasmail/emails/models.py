@@ -29,7 +29,7 @@ class EmailStats(models.Model):
     deleted_attachments = models.PositiveIntegerField(default=0, help_text="Number of deleted attachments")
 
 
-    
+
 
 
     objects = EmailStatsQuerySet.as_manager()
