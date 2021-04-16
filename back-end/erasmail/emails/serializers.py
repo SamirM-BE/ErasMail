@@ -75,7 +75,30 @@ class NewsletterSerializer(serializers.ModelSerializer):
 
 
 class EmailStatsSerializer(serializers.ModelSerializer):
+    nickname = serializers.SerializerMethodField(
+        "get_nickname",
+        read_only=True,
+    )
+
+    score = serializers.SerializerMethodField(
+        "get_score",
+        read_only=True,
+    )
+
+    def get_nickname(self, obj):
+        try:
+            return obj.user.nickname
+        except:
+            return ""
+
+    def get_score(self, obj):
+        try:
+            return obj.score
+        except:
+            return 0
 
     class Meta:
         model = EmailStats
-        exclude = ('id','user')
+        exclude = ["user"]
+
+

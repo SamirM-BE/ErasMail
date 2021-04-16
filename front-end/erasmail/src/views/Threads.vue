@@ -1,17 +1,19 @@
 <template>
   <div :class="loaderIsActive" class="pageloader"><span class="title">Preparing the page, this will take a few
       seconds</span></div>
-  <EmailModal :showModal="showModalFlag" :emails="emails" :threadSubject="threadSubject"
-    @hide-modal="showModalFlag = false" @delete="deleteEmailsOrAttachments">
+  <EmailModal :emails="emails" :showModal="showModalFlag" :threadSubject="threadSubject"
+              @delete="deleteEmailsOrAttachments" @hide-modal="showModalFlag = false">
   </EmailModal>
-  <AwarenessMessage :itemCount="threadsSorted.length" :co2="totalPollution"
-    :itemName="'conversation' + (threadsSorted.length > 1 ? 's' : '')" />
-  <div class="columns mx-4 mt-4" :class="{'is-clipped': showModalFlag}">
+  <AwarenessMessage :co2="totalPollution" :itemCount="threadsSorted.length"
+                    :itemName="'conversation' + (threadsSorted.length > 1 ? 's' : '')"/>
+  <div :class="{'is-clipped': showModalFlag}" class="columns mx-4 mt-4">
     <div class="column is-half has-border p-0">
       <div class="is-scrollable">
-        <ThreadBox class="thread-box" v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :subject="thread.subject" :co2="thread.generated_carbon"
-          :size="thread.size" :created_at="new Date(thread.children[0].received_at)"
-          @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
+        <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :co2="thread.generated_carbon"
+                   :created_at="new Date(thread.children[0].received_at)"
+                   :size="thread.size"
+                   :subject="thread.subject" class="thread-box"
+                   @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
     </div>
     <div class="column is-half has-border p-0">
@@ -27,11 +29,17 @@ import AwarenessMessage from "../components/AwarenessMessage";
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
 import EmailModal from "../components/EmailModal";
-
+import {useToast} from "vue-toastification";
 
 
 export default {
-  name: "Home",
+  name: "Threads",
+  components: {
+    ThreadBox,
+    EmailModal,
+    Treemap,
+    AwarenessMessage
+  },
   data() {
     return {
       threads: {},
@@ -41,30 +49,6 @@ export default {
       emails: [],
       loaderIsActive: 'is-active',
     }
-  },
-  computed: {
-    ...mapGetters("auth", ["loggedIn"]),
-    threadsSorted() {
-      if (this.threads.children) {
-        let threadsList = this.threads.children
-        threadsList.sort((a, b) => b.generated_carbon - a.generated_carbon)
-        return threadsList
-      }
-      return []
-    },
-    totalPollution() {
-      let pollution = 0.0
-      if (this.threads.children) {
-        pollution = this.threads.children.map(thread => thread.generated_carbon).reduce((prev, curr) => prev + curr, 0)
-      }
-      return pollution
-    },
-  },
-  components: {
-    ThreadBox,
-    EmailModal,
-    Treemap,
-    AwarenessMessage
   },
   created() {
     if (this.loggedIn) {
@@ -87,6 +71,27 @@ export default {
   updated() {
     this.loaderIsActive = ''
   },
+  computed: {
+    ...mapGetters("auth", ["loggedIn"]),
+    threadsSorted() {
+      if (this.threads.children) {
+        let threadsList = this.threads.children
+        threadsList.sort((a, b) => b.generated_carbon - a.generated_carbon)
+        return threadsList
+      }
+      return []
+    },
+    totalPollution() {
+      let pollution = 0.0
+      if (this.threads.children) {
+        pollution = this.threads.children.map(thread => thread.generated_carbon).reduce((prev, curr) => prev + curr, 0)
+      }
+      return pollution
+    },
+    successDetails() {
+      return this.$store.state.success.successDetails
+    },
+  },
   methods: {
     showModal(threadSubject, emails, idx) {
       this.showModalFlag = true
@@ -94,8 +99,27 @@ export default {
       this.emails = emails
       this.threadIndex = idx
     },
+    showSuccess(success) {
+      const toast = useToast();
+      toast.success(`Unlocked success : ${success}`);
+    },
+    updateStatisticsState(statisticID, value) {
+      this.$store
+          .dispatch("stats/updateStatistics", {ids: statisticID, value: value})
+          .then(() => {
+            for (const statisticID of statisticID) {
+              for (const success of this.successDetails[statisticID]) {
+                if (this.$store.state.stats.statistics[statisticID] >= success.minValue && !success.done)
+                  this.showSuccess(success.todo)
+              }
+              this.$store.dispatch('success/setSuccessDone', statisticID)
+            }
+          })
+          .catch((err) => {
+            console.log(err)
+          })
+    },
     deleteEmailsOrAttachments(emails) {
-      // https://vuejs.org/v2/guide/reactivity.html
       if (emails.count) {
         let url = '/api/emails/'
         if (emails.onlyAttachments) {
@@ -107,6 +131,9 @@ export default {
           this.threads.children.splice(this.threadIndex, 1)
           deleted = true
         }
+        let statisticID = emails.onlyAttachments ? ['deleted_attachments_count'] : ['threads_deleted_emails_count']
+        this.updateStatisticsState(statisticID, emails.pks.length)
+
         getAPI
             .delete(url, {
               headers: {
@@ -117,6 +144,7 @@ export default {
                 host: this.$store.state.auth.host,
                 uids: emails.uids,
                 pks: emails.pks,
+                stats_to_update: statisticID,
               }
             })
             .then(() => {

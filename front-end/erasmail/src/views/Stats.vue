@@ -1,5 +1,7 @@
 <template>
+  <section class="section wrapper">
   <section class="section cmp">
+
     <div class="columns">
       <div class="pricing-table">
 
@@ -76,6 +78,7 @@
     </div>
 
   </section>
+  </section>
 
   <section class="section stats">
     <div class="tile is-ancestor">
@@ -141,7 +144,7 @@
       <div class="tile is-parent is-vertical">
         <article class="tile is-child notification is-warning is-light">
           <div class="content">
-            <p class="title">You are subscribed to {{ userStats.newsletters_count }} newsletters</p>
+            <p class="title">You are subscribed to {{ userStats.subscribed_newsletters_count }} newsletters</p>
             <p class="subtitle">You might receive {{ Math.round(userStats.newsletters_subscribed_email_daily__sum * 365.25) }} emails this year.</p>
             <div class="content">
               <!-- Content -->
@@ -202,6 +205,7 @@ export default {
   },
   methods: {
     fetchStats() {
+      //TODO: SAMIR important !!! user or users ????????????????
       const resquestUserStats = getAPI.get(
           "/api/emails/stats/user", {
             headers: {

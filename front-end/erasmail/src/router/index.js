@@ -8,6 +8,7 @@ import Emails from '../views/Emails.vue'
 import LandingPage from '../views/LandingPage.vue'
 import Stats from '../views/Stats.vue'
 import Newsletters from '../views/Newsletters.vue'
+import User from '../views/User.vue'
 
 const routes = [
   {
@@ -61,6 +62,12 @@ const routes = [
     path: '/newsletters',
     name: 'newsletters',
     component: Newsletters,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/user',
+    name: 'user',
+    component: User,
     meta: { requiresAuth: true }
   },
 

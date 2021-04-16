@@ -47,9 +47,9 @@
 </template>
 
 <script>
-import {
-  getAPI
-} from "../axios-api";
+import {getAPI} from "../axios-api";
+import {useToast} from "vue-toastification";
+
 import SuccessNotification from "../components/SuccessNotification";
 
 const display_time_awareness = 7; // display time of awareness messages in seconds
@@ -86,6 +86,10 @@ const features = [{
 ]
 
 export default {
+  name: "Loading",
+  components: {
+    SuccessNotification,
+  },
   data() {
     return {
       awareness_counter: Math.floor(Math.random() * awareness_messages.length),
@@ -93,6 +97,36 @@ export default {
       features: features,
       feature_counter: 0,
     };
+  },
+  created() {
+    getAPI
+      .post(
+        "/api/emails/", {
+          app_password: this.$store.state.auth.app_password,
+          host: this.$store.state.auth.host,
+        }, {
+          headers: {
+            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+          },
+        }
+      )
+      .then(() => {
+        return this.fetchUserStats()
+      })
+      .then(() => {
+        this.$router.push({
+          name: "home",
+        })
+      })
+      .catch((err) => {
+        console.log(err);
+        this.$store.dispatch('auth/userLogout')
+          .then(() => {
+            this.$router.push({
+              name: 'login'
+            })
+          })
+      })
   },
   mounted() {
     setInterval(() => {
@@ -111,37 +145,30 @@ export default {
       let start = i * 3;
       let finish = (i + 1) * 3
       return this.features.slice(start, finish)
+    },
+    successDetails() {
+      return this.$store.state.success.successDetails
     }
   },
-  components: {
-    SuccessNotification,
-  },
-  created() {
-    getAPI
-      .post(
-        "/api/emails/", {
-          app_password: this.$store.state.auth.app_password,
-          host: this.$store.state.auth.host,
-        }, {
-          headers: {
-            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-          },
-        }
-      )
-      .then(() => {
-        this.$router.push({
-          name: "home",
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-        this.$store.dispatch('auth/userLogout')
+  methods: {
+    showSuccess(success) {
+      const toast = useToast();
+      toast.success(`Unlocked success : ${success}`);
+    },
+    fetchUserStats() {
+      return this.$store.dispatch("stats/getInitialState")
           .then(() => {
-            this.$router.push({
-              name: 'login'
-            })
+
+            //Check if user has unlocked the connected_count success
+            let statToUpdate = 'connected_count'
+            for (const success of this.successDetails[statToUpdate]) {
+              if (this.$store.state.stats.statistics.connected_count === success.minValue && !success.done) {
+                this.showSuccess(success.todo)
+              }
+            }
+            this.$store.dispatch('success/updateAllSuccess',)
           })
-      })
+    },
   },
 }
 </script>
