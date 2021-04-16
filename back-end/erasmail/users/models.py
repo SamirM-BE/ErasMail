@@ -8,6 +8,8 @@ from .managers import CustomUserManager
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email address'), unique=True)
+    nickname = models.CharField(max_length=20, default="N/A")
+    connected_count = models.PositiveIntegerField(default=0, help_text="Number of times the user connected to ErasMail")
 
     is_staff = models.BooleanField(
         _('staff status'),
@@ -30,4 +32,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.email
+        return f'{self.email}'
+
+# class Success(models.Model):
+#     user = models.ForeignKey(CustomUser, related_name='success', on_delete=models.CASCADE)
+#     name = models.CharField(max_length=256, unique=True, blank=True)
+#     done = models.BooleanField(default=False)

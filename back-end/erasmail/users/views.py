@@ -1,16 +1,15 @@
-from datetime import timedelta
-
 from imapclient import IMAPClient
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
 from .serializers import UserSerializer
 from .token import get_tokens_for_user
 
+from django.db.models import F
 
 class LoginView(APIView):
     permission_classes = (AllowAny,)
@@ -27,6 +26,8 @@ class LoginView(APIView):
             server.logout()
 
             user, is_created = CustomUser.objects.get_or_create(email=email)
+            CustomUser.objects.filter(email=email).update(connected_count=F('connected_count')+1)
+
 
             token = get_tokens_for_user(user)
 
@@ -51,7 +52,7 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserRetrieveDestroyView(APIView):
+class UserRetrieveUpdateDestroyView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
@@ -59,8 +60,31 @@ class UserRetrieveDestroyView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
+
+    def put(self, request):
+        user = request.user
+        nickname = request.data.get("nickname", "")
+
+        if len(nickname) > 20:
+            return Response(data={"nickname must have a maximum of 20 characters"},status=status.HTTP_400_BAD_REQUEST)
+        user.nickname = nickname
+        user.save()
+        
+        return Response(status=status.HTTP_200_OK)
     
     def delete(self, request):
         user = request.user
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# class SuccessListView(APIView):
+#     permission_classes = (IsAuthenticated,)
+
+#     def get(self, request):
+#         user = request.user
+
+#         success = Success.objects.filter(email=user.email)
+
+#         serializer = SuccessSerializer(success, many=True)
+#         return Response(serializer.data)

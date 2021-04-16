@@ -1,0 +1,164 @@
+{
+  "connected_count": [
+    {
+      "todo": "Connect to ErasMail two times",
+      "minValue": 2,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Connect to ErasMail five times",
+      "minValue": 5,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Connect to ErasMail ten times",
+      "minValue": 10,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "unsubscribed_newsletters_count": [
+    {
+      "todo": "Unsubscribe from 1 newsletter",
+      "minValue": 1,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Unsubscribe from 5 newsletters",
+      "minValue": 5,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Unsubscribe from 10 newsletters",
+      "minValue": 10,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "newsletters_deleted_emails_count": [
+    {
+      "todo": "Delete 5 newsletters emails",
+      "minValue": 5,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Delete 50 newsletters emails",
+      "minValue": 50,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Delete 500 newsletters emails",
+      "minValue": 500,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "deleted_emails_olderF_count": [
+    {
+      "todo": "Use the older than filter and delete 10 emails",
+      "minValue": 10,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Use the older than filter and delete 100 emails",
+      "minValue": 100,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Use the older than filter and delete 500 emails",
+      "minValue": 500,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "deleted_emails_largerF_count": [
+    {
+      "todo": "Use the larger than filter and delete 10 emails",
+      "minValue": 10,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Use the larger than filter and delete 100 emails",
+      "minValue": 100,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Use the larger than filter and delete 500 emails",
+      "minValue": 500,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "deleted_emails_useless_count": [
+    {
+      "todo": "Delete 10 useless emails",
+      "minValue": 10,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Delete 100 useless emails",
+      "minValue": 100,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Delete 500 useless emails",
+      "minValue": 500,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "threads_deleted_emails_count": [
+    {
+      "todo": "Delete 10 emails using the thread feature",
+      "minValue": 10,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Delete 100 emails using the thread feature",
+      "minValue": 100,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Delete 500 emails using the thread feature",
+      "minValue": 500,
+      "difficulty": 3,
+      "done": false
+    }
+  ],
+  "deleted_attachments_count": [
+    {
+      "todo": "Delete attachments in 1 email",
+      "minValue": 1,
+      "difficulty": 1,
+      "done": false
+    },
+    {
+      "todo": "Delete attachments in 5 emails",
+      "minValue": 5,
+      "difficulty": 2,
+      "done": false
+    },
+    {
+      "todo": "Delete attachments in 10 emails",
+      "minValue": 10,
+      "difficulty": 3,
+      "done": false
+    }
+  ]
+}
+
+

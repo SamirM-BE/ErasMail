@@ -1,9 +1,12 @@
 <template>
   <AwarenessMessage :co2="totalCarbon" :itemCount="newslettersCount" :itemName="'newsletters'"/>
-
+  <!--  <div class="notification is-success">-->
+  <!--    <button class="delete"></button>-->
+  <!--    Unlocked Success : Connect to ErasMail two different days !-->
+  <!--  </div>-->
   <div class="container newsletters">
     <div v-for="(newsletter, index) in newsletters" :key="index" class="field">
-      {{ isUnsubscribed(index)}}
+      {{ isUnsubscribed(index) }}
       <transition name="fade">
         <div v-if="newsletter && (!newsletter.unsubscribed || newsletter.emails_cnt !== 0)" class="box control px-0">
           <div class="newsletter-detail px-2 is-flex is-justify-content-space-between">
@@ -75,7 +78,6 @@
               </button>
 
 
-
             </div>
           </div>
 
@@ -93,6 +95,8 @@
 <script>
 import {getAPI} from "@/axios-api";
 import AwarenessMessage from "../components/AwarenessMessage";
+import {useToast} from "vue-toastification";
+// import {successDetails} from "@/gamification-data";
 
 export default {
   name: "Newsletters",
@@ -104,11 +108,22 @@ export default {
       show: true,
     };
   },
+  created() {
+    this.fetchNewsletters()
+  },
   computed: {
     newslettersCount() {
       return Object.keys(this.newsletters).length !== 0 ? this.newsletters.length : 0;
     },
-
+    // unsubscribed_count() {
+    //   return this.$store.state.stats.unsubscribed_newsletters_count
+    // },
+    // deleted_count() {
+    //   return this.$store.state.stats.newsletters_deleted_emails_count
+    // },
+    successDetails() {
+      return this.$store.state.success.successDetails
+    }
   },
   components: {
     AwarenessMessage
@@ -133,8 +148,24 @@ export default {
           });
     },
     fadeMe: function () {
-      console.log("aaaaaaaaaaaa")
       this.show = !this.show
+    },
+    checkNotification(isUnsubscribe) {
+      let statToUpdate
+      if (isUnsubscribe) {
+        statToUpdate = 'unsubscribed_newsletters_count'
+      } else {
+        statToUpdate = 'newsletters_deleted_emails_count'
+      }
+      for (const success of this.successDetails[statToUpdate]) {
+        if (this.$store.state.stats.statistics[statToUpdate] >= success.minValue && !success.done)
+          this.showSuccess(success.todo)
+      }
+      this.$store.dispatch('success/setSuccessDone', statToUpdate)
+    },
+    showSuccess(success) {
+      const toast = useToast();
+      toast.success(`Unlocked success : ${success}`);
     },
     getNewsletterOpenRate(newsletter) {
       if (newsletter.emails_count !== 0 && newsletter.seen_emails_cnt !== 0) {
@@ -169,13 +200,16 @@ export default {
       return r;
     },
     deleteEmails(clickedNewsletter) {
-
       let newsletter
       let sender_emails = []
 
       this.showDeleteButton[clickedNewsletter] = false
       newsletter = this.newsletters[clickedNewsletter]
       sender_emails.push(newsletter.sender_email)
+
+      let statisticID = 'newsletters_deleted_emails_count'
+      this.updateStatisticsState(statisticID, newsletter.emails_cnt)
+
       this.newsletters[clickedNewsletter].emails_cnt = 0
       this.newsletters[clickedNewsletter].seen_emails_cnt = 0
 
@@ -204,11 +238,25 @@ export default {
           });
     },
     // if no email is received from more than 3 months we consider the newsletter as unsubscribed
-    isUnsubscribed(clickedNewsletter){
+    isUnsubscribed(clickedNewsletter) {
       let lastReceptionDate = new Date(this.newsletters[clickedNewsletter].received_at)
       let today = new Date()
-      if( (today.getMonth() - lastReceptionDate.getMonth() + (12 * (today.getFullYear() - lastReceptionDate.getFullYear())))>3)
+      if ((today.getMonth() - lastReceptionDate.getMonth() + (12 * (today.getFullYear() - lastReceptionDate.getFullYear()))) > 3)
         this.newsletters[clickedNewsletter].unsubscribed = true
+    },
+    //Update the state that keeps the statistics to add the number of deleted emails or unsunscribed newsletters by user.
+    updateStatisticsState(statisticID, value) {
+      this.$store.dispatch("stats/updateStatistics", {ids: [statisticID], value: value})
+          .then(() => {
+            for (const success of this.successDetails[statisticID]) {
+              if (this.$store.state.stats.statistics[statisticID] >= success.minValue && !success.done)
+                this.showSuccess(success.todo)
+            }
+            this.$store.dispatch('success/setSuccessDone', statisticID)
+          })
+          .catch((err) => {
+            console.log(err)
+          })
     },
     unsubscribe(clickedNewsletter) {
       let newsletter = []
@@ -217,6 +265,11 @@ export default {
 
       this.newsletters[clickedNewsletter].unsubscribed = true
       this.newsletters[clickedNewsletter].forecasted_carbon = 0
+
+      let statisticID = 'unsubscribed_newsletters_count'
+      this.updateStatisticsState(statisticID, 1)
+
+
       newsletter = this.newsletters[clickedNewsletter]
       request_data["id"] = newsletter.id
 
@@ -262,9 +315,6 @@ export default {
     },
 
   },
-  created() {
-    this.fetchNewsletters()
-  }
 }
 </script>
 

@@ -2,15 +2,16 @@ from django.utils import timezone
 
 from django.db import models
 from django.db.models import (
-    Count,
     Q,
     F,
     Avg,
     Min,
-    DateField,
-    ExpressionWrapper,
-    FloatField,
     Sum,
+    Count,
+    ExpressionWrapper,
+    DateField,
+    FloatField,
+    IntegerField,
 )
 
 from django.db.models.functions import (
@@ -46,6 +47,17 @@ class EmailStatsQuerySet(models.QuerySet):
                 F("emails_seen_count")
                 / Cast(F("emails_count"), output_field=FloatField()),
                 output_field=FloatField(),
+            ),
+        )
+
+    def with_score(self):
+        return self.annotate(
+            score=ExpressionWrapper(
+                F("stats_shared") * 1000
+                + F("stats_shared") * 1000
+                + F("user__connected_count") * 25 
+                + (F("saved_co2")), # the amount of CO2 saved in kg
+                output_field=IntegerField(),
             ),
         )
 
@@ -314,5 +326,5 @@ class NewsletterQuerySet(models.QuerySet):
             emails_newsletters_count=Sum("emails_cnt"),
             emails_newsletters_co2=Sum("generated_carbon"),
             newsletters_count=Count("pk"),
-            unsubscribed_newsletters_count=Count("pk", filter=Q(unsubscribed=True)),
+            subscribed_newsletters_count=Count("pk", filter=Q(unsubscribed=False)),
         )

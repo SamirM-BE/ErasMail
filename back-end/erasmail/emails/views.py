@@ -17,11 +17,16 @@ from .imap.fetch import get_emails
 from .imap.newsletters import send_email, delete_unsub_email
 from .imap.jwzthreading import conversation_threading
 from .models import EmailHeaders, EmailStats, Newsletter
+
+from django.db.models import F
+
 from .serializers import (
     EmailHeadersSerializer,
     EmailStatsSerializer,
     NewsletterSerializer,
+
 )
+
 
 User = get_user_model()
 
@@ -61,8 +66,8 @@ class EmailView(APIView):
         email = request.user.email
 
         # request body
-        app_password = request.data["app_password"]
-        host = request.data["host"]
+        app_password = request.data.get("app_password", "")
+        host = request.data.get("host", "")
 
         user = request.user
 
@@ -174,19 +179,23 @@ class EmailView(APIView):
         host = request.data.get("host", None)
         folder_uids = request.data.get("uids", False)
         pks = request.data.get("pks", False)
-        # uids template
-        # "uids": {
-        #     "INBOX":[3, 5],
-        #     "SENT" :[14, 53],
-        #     }
+
+        stats_to_update = request.data.get("stats_to_update", False)
         if folder_uids and pks:
             move_to_trash(host, email, app_password, folder_uids)
             emails_headers = EmailHeaders.objects.filter(pk__in=pks)
+            email_stats = user.emailstats
+
+            #Success need some stats to be updated, like nb of deleted emails through smart filters
+            if stats_to_update:
+                deleted_cnt = emails_headers.count() # nb of deleted emails
+                updated_success_stats = {statistic: deleted_cnt for statistic in stats_to_update}
+                email_stats.add(**updated_success_stats)
+
             emails_headers_stats = emails_headers.get_statistics()
             emails_headers.delete()
-            email_stats = user.emailstats
             email_stats.update_deleted_email(emails_headers_stats)
-
+            email_stats.save()
         else:
             EmailHeaders.objects.filter(receiver=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -219,6 +228,11 @@ class AttachmentView(APIView):
         #     "INBOX":[3, 5],
         #     "SENT" :[14, 53],
         #     }
+        uids_cnt = 0
+        for folder in folder_uids:
+            uids_cnt += len(folder_uids[folder]) # get nb of emails to delete
+        EmailStats.objects.update(deleted_attachments_count=F('deleted_attachments_count')+uids_cnt)
+
         if folder_uids and pks:
             remove_attachments(host, email, app_password, folder_uids)
             email_stats = user.emailstats
@@ -233,6 +247,8 @@ class AttachmentView(APIView):
                     attachments.delete()
                     email_stats.update_deleted_attachments(attachments_stats)
                     email_header.update_deleted_attachments(attachments_stats)
+                    email_stats.save()
+                    email_header.save()
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -324,9 +340,9 @@ class Statistics(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, kind):
+        user = request.user
 
         if kind == "user":
-            user = request.user
 
             before_than = int(request.query_params.get("before_than", 0))
             larger_than = float(request.query_params.get("larger_than", 0))
@@ -351,6 +367,16 @@ class Statistics(APIView):
             # merge all statistics
             response = {**email_stats, **
                         email_header_stats, **newsletter_stats}
+        elif kind == "users":
+            users_stats = EmailStats.objects.all().with_score().order_by('-score')
+            
+            users_stats_serializer = EmailStatsSerializer(users_stats, many=True).data
+            current_user_id = users_stats.get(user=user).pk
+
+            response = {
+                'users_stats':users_stats_serializer,
+                'current_user_id': current_user_id,
+                }
         elif kind == "erasmail":
             # generate average users statistics based on EmailStats
             response = EmailStats.objects.get_general_stats()
@@ -358,6 +384,11 @@ class Statistics(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data=response, status=status.HTTP_200_OK)
+
+    # def put(self, request, kind):
+    #     user = request.user
+
+    #     if kind==''
 
 
 class NewsletterListView(APIView):
@@ -382,7 +413,16 @@ class NewsletterListView(APIView):
         senders = request.data.get("senders", None) #TODO: check if PK better than senders
         host= request.data["host"]
         app_password = request.data["app_password"]
+
+        email_stats = user.emailstats
+
         uids_to_delete = request.data.get("uids_to_delete", {})
+        uids_cnt = 0
+        for folder in uids_to_delete:
+            uids_cnt += len(uids_to_delete[folder]) # get nb of emails to delete
+
+        email_stats.add(newsletters_deleted_emails_count=uids_cnt)
+        email_stats.save()
 
         move_to_trash(host, user.email, app_password, uids_to_delete)
         Newsletter.objects.filter(receiver=user, sender_email__in=senders).delete()
@@ -399,6 +439,7 @@ class NewsletterListView(APIView):
         pk = request.data["id"]
 
         Newsletter.objects.filter(pk=pk).update(unsubscribed=True)
+        EmailStats.objects.filter(user=user).update(unsubscribed_newsletters_count=F('unsubscribed_newsletters_count')+1)
         if unsubscribe_type == "oneclick":
             url = request.data.get("url", "")
             req = requests.post(url, data = {'List-Unsubscribe':'One-Click'}) # confirm data
@@ -420,3 +461,23 @@ class NewsletterListView(APIView):
 
 
         
+
+    # def delete(self, request):
+    #     user = request.user
+    #     host= request.data["host"]
+    #     app_password = request.data["app_password"]
+
+    #     Newsletter.objects.filter(receiver=user, sender_email__in=senders).delete()
+
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    
+    # @api_view(['POST']) 
+    # def unsubscribe(request):
+
+    #     user = request.user
+       
+    #     return Response(status=status.HTTP_200_OK)
+    #     return Response(status.HTTP_400_BAD_REQUEST)
+

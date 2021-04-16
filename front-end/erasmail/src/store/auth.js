@@ -3,10 +3,10 @@ import {axiosBase, getAPI} from '../axios-api'
 export const auth = {
     namespaced: true,
     state: {
-        accessToken: localStorage.getItem('token-access'),
-        refreshToken: localStorage.getItem('token-refresh'),
-        app_password: localStorage.getItem('app-password'),
-        host: localStorage.getItem("host"),
+        accessToken: null,
+        refreshToken: null,
+        app_password: null,
+        host: null,
     },
     getters: {
         loggedIn(state) {
@@ -21,21 +21,15 @@ export const auth = {
             app_password,
             host
         }) {
-            localStorage.setItem('token-access', access)
-            localStorage.setItem('token-refresh', refresh)
-            localStorage.setItem('app-password', app_password)
-            localStorage.setItem('host', host)
             state.accessToken = access
             state.refreshToken = refresh
             state.app_password = app_password
             state.host = host
         },
         updateAccess(state, access) {
-            localStorage.setItem('token-access', access)
             state.accessToken = access
         },
         destroyAuth(state) {
-            localStorage.clear()
             state.accessToken = null
             state.refreshToken = null
             state.app_password = null
@@ -55,6 +49,8 @@ export const auth = {
                 })
                 .catch(err => {
                     console.log(`Error return while trying to refresh the token in vueX: ${err}`)
+                    context.dispatch('stats/destroyStats', null, {root: true})
+                    context.dispatch('success/destroySuccess', null, {root: true})
                     context.commit('destroyAuth')
                 })
         },
@@ -75,11 +71,15 @@ export const auth = {
                         })
                     })
                     .then(() => {
+                        context.dispatch('stats/destroyStats', null, {root: true})
+                        context.dispatch('success/destroySuccess', null, {root: true})
                         context.commit('destroyAuth')
                     })
                     .catch(err => {
                         console.log(`Error return while trying to execute userLogout : ${err}`)
                         context.commit('destroyAuth')
+                        context.dispatch('stats/destroyStats', null, { root: true })
+                        context.dispatch('success/destroySuccess', null, { root: true })
                         return err
                     })
             }
