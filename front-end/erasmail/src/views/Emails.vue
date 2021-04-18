@@ -99,10 +99,13 @@ export default {
       checkedEmails: [],
 
       reset: false,
+      
+      initializationDone: false, // to check if all variables used for the backend request are correctly initialized or not
     }
   },
   created() {
     this.unread = this.$route.query.unseen === 'true'
+    
     let queryYearBefore = parseInt(this.$route.query.before_than)
     if (this.yearList.includes(queryYearBefore)) {
       this.yearBefore = queryYearBefore
@@ -111,6 +114,7 @@ export default {
     if (this.sizeList.includes(querySizeGreatherThan)) {
       this.sizeGreatherThan = querySizeGreatherThan
     }
+
     let querySelectedFilters = this.$route.query['selected_filters[]']
     if(querySelectedFilters){
       // if only one element is seleted then `querySelectedFilters` is a string type 
@@ -122,6 +126,8 @@ export default {
       querySelectedFilters =  querySelectedFilters.filter(filter => allowedFilters.includes(filter));
       this.selectedFilters = querySelectedFilters
     }
+
+    this.initializationDone = true
 
     getAPI
       .get(
@@ -136,12 +142,12 @@ export default {
         // put the inbox folder at the first position
         let inbox = "inbox"
         this.folderList.sort((x, y) => x.toLowerCase() === inbox ? -1 : y.toLowerCase() == inbox ? 1 : 0)
-
-        this.fetchNextEmails(true)
       })
       .catch((err) => {
         console.log(err);
       });
+
+    this.refreshURL()
   },
   mounted () {
     window.onscroll = () => {
@@ -154,11 +160,9 @@ export default {
   watch: {
     unread() {
       this.refreshURL()
-      this.reset = ! this.reset
     },
     selectedFilters() {
       this.refreshURL()
-      this.reset = ! this.reset
     },
   },
   components: {
@@ -187,7 +191,6 @@ export default {
     selectFolder(folder) {
       this.selectedFolder = folder
       this.refreshURL()
-      this.reset = ! this.reset
     },
     folderToText(folder){
       return folder
@@ -195,7 +198,6 @@ export default {
     selectYear(year) {
       this.yearBefore = year
       this.refreshURL()
-      this.reset = ! this.reset
     },
     yearToText(year){
       let txt =  `Older than ${year} year`
@@ -207,7 +209,6 @@ export default {
     selectSize(size) {
       this.sizeGreatherThan = size
       this.refreshURL()
-      this.reset = ! this.reset
     },
     sizeToText(size){
       return `Greather than ${size} MB`
@@ -219,43 +220,46 @@ export default {
       if(newQuery) {
         this.nextPageNumber = 1
       }
-      if(this.nextPageNumber){
-        getAPI
-        .get(
-          `/api/emails/`, {
-            headers: {
-              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-            },
-            params: {
-              seen: !this.unread,
-              selected_filters: this.selectedFilters,
-              before_than: this.yearBefore,
-              greater_than: this.sizeGreatherThan,
-              folder: this.selectedFolder,
-              page: this.nextPageNumber,
-            }
-          }
-        )
-        .then((response) => {
-          console.log(response.data)
-          this.emailCount = response.data.count
-          this.generated_carbon = response.data.generated_carbon
-          this.carbon_yforecast = response.data.carbon_yforecast
-          if(newQuery){
-            this.emails = response.data.results
-          } else {
-            this.emails.push(...response.data.results)
-          }
-          if(response.data.next){
-            this.nextPageNumber ++
-          } else {
-            this.nextPageNumber = null
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      if(!this.initializationDone || !this.nextPageNumber){
+        // if the variables used for the backend request are not correctly initialized or if there is no page to retrieve.
+        // thus don't query the backend
+        return
       }
+      getAPI
+      .get(
+        `/api/emails/`, {
+          headers: {
+            Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+          },
+          params: {
+            seen: !this.unread,
+            selected_filters: this.selectedFilters,
+            before_than: this.yearBefore,
+            greater_than: this.sizeGreatherThan,
+            folder: this.selectedFolder,
+            page: this.nextPageNumber,
+          }
+        }
+      )
+      .then((response) => {
+        console.log(response.data)
+        this.emailCount = response.data.count
+        this.generated_carbon = response.data.generated_carbon
+        this.carbon_yforecast = response.data.carbon_yforecast
+        if(newQuery){
+          this.emails = response.data.results
+        } else {
+          this.emails.push(...response.data.results)
+        }
+        if(response.data.next){
+          this.nextPageNumber = new URL(response.data.next).searchParams.get('page')
+        } else {
+          this.nextPageNumber = null
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      })
     },
     refreshURL() {
       this.$router.replace({
@@ -267,6 +271,7 @@ export default {
           'selected_filters[]': this.selectedFilters,
         }
       })
+      this.reset = ! this.reset
       this.fetchNextEmails(true)
     },
     remove() {
