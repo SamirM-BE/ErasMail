@@ -16,7 +16,8 @@
                    @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
     </div>
-    <div class="column is-half has-border p-0">
+    <!-- need to add is-clipped because some svg inside the Treemap are out of bounds -->
+    <div class="column is-half has-border is-clipped p-0">
       <Treemap :threads_prop="threads"></Treemap>
     </div>
   </div>
@@ -91,7 +92,7 @@ export default {
     totalPollution() {
       let pollution = 0.0
       if (this.threads.children) {
-        pollution = this.threads.children.map(thread => thread.generated_carbon).reduce((prev, curr) => prev + curr, 0)
+        pollution = this.threads.children.reduce((a, b) => a + (b['generated_carbon'] || 0), 0)
       }
       return pollution
     },
@@ -182,7 +183,7 @@ export default {
 @import "./../../node_modules/bulma-pageloader/dist/css/bulma-pageloader.min.css";
 
 .column {
-  height: 70vh;
+  height: 75vh;
 }
 
 .is-scrollable {

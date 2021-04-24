@@ -1,6 +1,5 @@
 <template>
-
-    <footer class="footer px-3">
+    <footer class="footer">
         <div class="columns is-vcentered">
             <div class="column main">
                 <strong class="title is-5 has-text-primary">ErasMail</strong>
@@ -14,16 +13,16 @@
                 <a href="mailto:info.erasmail@gmail.com">Contact</a>
             </div>
             <div class="column social">
-                <a class="icon is-large is-pulled-right has-text-grey-dark" 
-                   href="https://github.com/SamirM-BE/ErasMail" target="_blank">
+                <a class="icon is-large is-pulled-right has-text-grey-dark" href="https://github.com/SamirM-BE/ErasMail"
+                    target="_blank">
                     <i class="fab fa-lg fa-github"></i>
                 </a>
-                <a class="icon is-large is-pulled-right has-text-grey-dark" 
-                   href="https://twitter.com/eras_mail" target="_blank">
+                <a class="icon is-large is-pulled-right has-text-grey-dark" href="https://twitter.com/eras_mail"
+                    target="_blank">
                     <i class="fab fa-lg fa-twitter"></i>
                 </a>
-                <a class="icon is-large is-pulled-right has-text-grey-dark" 
-                   href="https://www.linkedin.com/company/erasmail" target="_blank">
+                <a class="icon is-large is-pulled-right has-text-grey-dark"
+                    href="https://www.linkedin.com/company/erasmail" target="_blank">
                     <i class="fab fa-lg fa-linkedin-in"></i>
                 </a>
             </div>
@@ -35,24 +34,12 @@
 
 export default {
 	name: "Footer",
-	computed: {
-	}
 }
 </script>
 
 
 <style scoped>
-.footer {
-    padding: 0em;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%
-}
-
-
 .social span {
     margin-left: 3%;
 }
-
 </style>

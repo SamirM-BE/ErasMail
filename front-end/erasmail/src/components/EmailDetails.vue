@@ -1,5 +1,6 @@
 <template>
     <div class="email-detail px-2" @mouseover="hover = true" @mouseleave="hover = false">
+        <span v-if="!email.seen" title="badge" class="badge is-danger is-top-right"></span>
         <strong>{{email.subject}}</strong>
         <p class="is-pulled-right">{{readableDate}}</p>
 
@@ -7,11 +8,15 @@
             <span class="icon">
                 <i class="far fa-address-card fa-sm"></i>
             </span>
-
-
-            <span class="is-size-6">{{email.sender_name}}<span v-if="email.sender_name" class="is-size-6-2">
-                    ({{email.sender_email}})</span>
+            <span v-if="email.is_received" class="is-size-6">
+                From: {{email.sender_name}}
+                <span v-if="email.sender_name" class="is-size-6-2">({{email.sender_email}})</span>
                 <span v-else>{{email.sender_email}}</span>
+            </span>
+            <span v-else class="is-size-6">
+                To: {{email.receiver_name}}
+                <span v-if="email.receiver_name" class="is-size-6-2">({{email.receiver_email}})</span>
+                <span v-else>{{email.receiver_email}}</span>
             </span>
         </div>
 
@@ -145,7 +150,9 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
+@import "./../../node_modules/@creativebulma/bulma-badge/dist/bulma-badge.min.css";
+
 .tag{
     float: right;
 }

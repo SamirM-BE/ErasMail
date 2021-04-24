@@ -70,7 +70,7 @@ class EmailView(APIView):
         user = request.user
 
         # Remove all old history if the logout was not done successfully
-        EmailHeaders.objects.filter(receiver=user).delete()
+        EmailHeaders.objects.filter(owner=user).delete()
 
         try:
             print('start imap fetching')
@@ -83,7 +83,7 @@ class EmailView(APIView):
             s = time()
             [
                 EmailHeaders.objects.create(
-                    receiver=user,
+                    owner=user,
                     **mail,
                 )
                 for mail in mail_messages
@@ -94,7 +94,7 @@ class EmailView(APIView):
             print('start stats')
             s = time()
             stats = EmailHeaders.objects.filter(
-                receiver=user).get_statistics()
+                owner=user).get_statistics()
             EmailStats.objects.update_or_create(user=user, defaults=stats)
             print('finish stats', time() - s)
 
@@ -109,7 +109,7 @@ class EmailView(APIView):
                 folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:
                     email_header = EmailHeaders.objects.get(
-                        receiver=user, uid=uid, folder=folder
+                        owner=user, uid=uid, folder=folder
                     )
                     email_header.thread_id = idx
                     email_header.save()
@@ -130,7 +130,7 @@ class EmailView(APIView):
 
         user = request.user
 
-        emails_headers = EmailHeaders.objects.filter(receiver=user)
+        emails_headers = EmailHeaders.objects.filter(owner=user)
 
         if before_than:
             emails_headers = emails_headers.filter(
@@ -195,7 +195,7 @@ class EmailView(APIView):
             email_stats.update_deleted_email(emails_headers_stats)
             email_stats.save()
         else:
-            EmailHeaders.objects.filter(receiver=user).delete()
+            EmailHeaders.objects.filter(owner=user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -205,7 +205,7 @@ class FolderView(APIView):
     def get(self, request):
         user = request.user
         folders = EmailHeaders.objects.filter(
-            receiver=user).values_list('folder', flat=True).distinct()
+            owner=user).values_list('folder', flat=True).distinct()
         return Response(data=folders, status=status.HTTP_200_OK)
 
 
@@ -261,7 +261,7 @@ class ThreadListView(APIView):
         user = request.user
 
         emails_threads = EmailHeaders.objects.filter(
-            receiver=user, thread_id__isnull=False
+            owner=user, thread_id__isnull=False
         ).order_by("received_at")
 
         serializer = self.serializer_class(emails_threads, many=True)
@@ -308,7 +308,7 @@ class ThreadDetailView(APIView):
         user = request.user
 
         emails_threads = EmailHeaders.objects.filter(
-            receiver=user, thread_id=thread_id
+            owner=user, thread_id=thread_id
         ).order_by("received_at")
 
         serializer = self.serializer_class(emails_threads, many=True)
@@ -349,7 +349,7 @@ class Statistics(APIView):
             emailbox_stats = {} # statistics about the mailbox (e.g. size, carbon, ...)
 
             # generate statistics based on EmailHeaders: these stats aren't persistent
-            emails_headers = EmailHeaders.objects.filter(receiver=user)
+            emails_headers = EmailHeaders.objects.filter(owner=user)
             # generate statistics based on EmailStats
             email_stats_data = EmailStatsSerializer(EmailStats.objects.get(user=user)).data
             emails_stats = {

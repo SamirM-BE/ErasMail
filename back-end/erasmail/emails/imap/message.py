@@ -137,17 +137,17 @@ def get_subject(subject_header) -> str:
         return ""
 
 
-def get_sender_name(from_header) -> str:
-    if from_header:
-        msg_sender_name = decode_header(from_header.decode())
-        return decode_value(msg_sender_name[0][0], msg_sender_name[0][1])
+def get_name(name_header) -> str:
+    if name_header:
+        msg_name = decode_header(name_header.decode())
+        return decode_value(msg_name[0][0], msg_name[0][1])
     else:
         return ""
 
 
-def get_sender_email(mailbox, host) -> str:
+def get_email(mailbox, host) -> str:
     if mailbox and host:
-        return mailbox.decode() + "@" + host.decode()
+        return (mailbox.decode() + "@" + host.decode()).lower()
     else:
         return ""
 
@@ -156,7 +156,6 @@ class MailMessage:
     def __init__(
         self,
         folder,
-        is_received,
         uid,
         flags,
         size,
@@ -165,17 +164,21 @@ class MailMessage:
         list_unsubscribe,
         list_unsubscribe_post,
         bodystructure,
-    ):
+    ):  
         self.folder = folder
-        self.is_received = is_received
         self.uid = uid
         self.seen = get_seen_flag(flags)
         self.size = size
         self.subject = get_subject(envelope.subject)
-        self.sender_name = get_sender_name(envelope.from_[0].name)
-        self.sender_email = get_sender_email(
+        self.sender_name = get_name(envelope.from_[0].name)
+        self.sender_email = get_email(
             envelope.from_[0].mailbox, envelope.from_[0].host
         )
+        if envelope.to:
+            self.receiver_name = get_name(envelope.to[0].name)
+            self.receiver_email = get_email(
+                envelope.to[0].mailbox, envelope.to[0].host
+            )
         self.received_at = envelope.date
         self.message_id = get_message_id(envelope.message_id)
         self.in_reply_to = get_in_reply_to(envelope.in_reply_to)  # [] if none

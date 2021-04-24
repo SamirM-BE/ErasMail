@@ -312,6 +312,6 @@ def conversation_threading(emails: MailMessage):
 
 
 # from emails.models import EmailHeaders
-# EmailHeaders.objects.filter(receiver__pk = 1).count()
+# EmailHeaders.objects.filter(owner__pk = 1).count()
 # from django.db.models import Q
-# EmailHeaders.objects.filter(receiver__pk = 1).filter(Q(reference__isnull = False) | Q(inreplyto__isnull = False)).count()
+# EmailHeaders.objects.filter(owner__pk = 1).filter(Q(reference__isnull = False) | Q(inreplyto__isnull = False)).count()

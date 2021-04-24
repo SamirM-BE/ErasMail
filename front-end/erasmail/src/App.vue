@@ -1,20 +1,19 @@
 <template >
   <div id="app">
     <Navbar v-if="currentRouteName != 'loading'"></Navbar>
-    <div>
+    <div id="content">
       <router-view />
     </div>
-    <Footer></Footer>
   </div>
 </template>
 
 <script>
-// import axios from 'axios'
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
-
 
 export default {
+  components: {
+    Navbar,
+  },
   data() {
     return {
       gap_time: 0,
@@ -33,38 +32,31 @@ export default {
   },
   computed: {
     currentRouteName() {
-        return this.$route.name;
+      return this.$route.name;
     }
-},
+  },
   methods: {
-      beforeunloadHandler() {
-        this.beforeUnload_time = new Date().getTime();
-      },
-      unloadHandler() {
-        this.gap_time = new Date().getTime() - this.beforeUnload_time;
-        if (this.gap_time <= 10) {
-          return this.$store.dispatch("auth/userLogout");
-        }
-      },
+    beforeunloadHandler() {
+      this.beforeUnload_time = new Date().getTime();
     },
-  components: {
-      Navbar,
-      Footer,
+    unloadHandler() {
+      this.gap_time = new Date().getTime() - this.beforeUnload_time;
+      if (this.gap_time <= 10) {
+        return this.$store.dispatch("auth/userLogout");
+      }
     },
+  },
 }
 </script>
 
 <style>
+/* body{
+  background-color: hsl(0, 0%, 96%);
+} */
 
-
-/*#app {*/
-/*  padding: 50px 0;*/
-/*  position: absolute;*/
-/*  top: 0;*/
-/*  bottom: 0;*/
-/*  left: 0;*/
-/*  right: 0;*/
-/*}*/
-
-
+#content{
+  /* 3.25rem is the height of the navbar */
+  min-height: calc(100vh - 3.25rem);
+  /* background-color: greenyellow; */
+}
 </style>
