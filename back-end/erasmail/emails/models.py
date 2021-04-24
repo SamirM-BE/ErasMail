@@ -28,10 +28,6 @@ class EmailStats(models.Model):
     deleted_emails_useless_filter = models.PositiveIntegerField(default=0, help_text="Number of deleted useless emails")
     deleted_attachments = models.PositiveIntegerField(default=0, help_text="Number of deleted attachments")
 
-
-
-
-
     objects = EmailStatsQuerySet.as_manager()
 
     def add(self, **kwargs):
@@ -76,12 +72,14 @@ class Newsletter(models.Model):
 
 
 class EmailHeaders(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     uid = models.IntegerField()
     seen = models.BooleanField(default=False)
     subject = models.CharField(max_length=5000, blank=True)
     sender_name = models.CharField(max_length=5000, blank=True)
     sender_email = models.EmailField()
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE)
+    receiver_name = models.CharField(max_length=5000, blank=True)
+    receiver_email = models.EmailField()
     size = models.PositiveIntegerField(default=0)
     received_at = models.DateTimeField(null=True)
     message_id = models.CharField(max_length=5000)
@@ -89,7 +87,6 @@ class EmailHeaders(models.Model):
     thread_id = models.IntegerField(null=True)
     generated_carbon = models.FloatField(validators=[MinValueValidator(0.0)])
     carbon_yforecast = models.FloatField(validators=[MinValueValidator(0.0)])
-    is_received = models.BooleanField(default=False)
 
     unsubscribe = models.ForeignKey(Newsletter, related_name='email_headers', on_delete=models.CASCADE, blank=True, null=True) # change newsletters to emailheaders
 
@@ -100,7 +97,7 @@ class EmailHeaders(models.Model):
         self.generated_carbon = F('generated_carbon') - attachments_stats['generated_carbon_tot']
 
     def __str__(self):
-        return f'from: {self.sender_email}\nto: {self.receiver}\nsubject: {self.subject}'
+        return f'from: {self.sender_email}\n\nsubject: {self.subject}'
 
 
     def save(self, *args, **kwargs):

@@ -3,14 +3,15 @@
                     :forecastMsg="`Keeping these emails for another year will have an additional impact equivalent to `"
                     :itemCount="emailCount"
                     :itemName="featureName"/>
-  <div class="toolbox m-4">
-    <div class="is-flex is-justify-content-space-between">
-      <Dropdown :currentValue="selectedFolder" :defaultText="'Inbox'" :toText="folderToText" :valueList="folderList"
-                @on-click="selectFolder"/>
+  <div class="toolbox mx-4">
+    <hr>
+    
+    <Dropdown :currentValue="selectedFolder" :defaultText="'Inbox'" :toText="folderToText" :valueList="folderList"
+      @on-click="selectFolder" />
 
-      <button class="button is-focused is-danger" @click="remove()">Delete emails</button>
-    </div>
-    <div class="mt-2 is-flex is-align-items-center">
+    <button class="button is-danger is-pulled-right" :disabled="!checkedEmails.length" @click="remove()">Delete emails</button>
+
+    <div class="mt-2">
       <Dropdown :currentValue="yearBefore" :defaultText="'Any date'" :toText="yearToText" :valueList="yearList"
                 @on-click="selectYear"/>
       <Dropdown :currentValue="sizeGreatherThan" :defaultText="'Any size'" :toText="sizeToText" :valueList="sizeList"
@@ -40,11 +41,13 @@
           </div>
         </div>
       </div>
-
-      <label class="checkbox mx-3">
-        <input v-model="unread" type="checkbox">
-        Only unread emails
-      </label>
+      <div class=" button mx-3">
+        <label class="checkbox">
+          <input v-model="unread" type="checkbox">
+          Only unread emails
+        </label>
+      </div>
+      
 
     </div>
     <hr>
@@ -376,5 +379,14 @@ export default {
 #options-button:hover {
   background-color: rgb(247, 245, 245);
 }
+
+.toolbox{
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  z-index: 2;
+  background-color: white;
+  top: 3rem;
+}
+
 
 </style>

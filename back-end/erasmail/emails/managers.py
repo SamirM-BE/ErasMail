@@ -90,10 +90,12 @@ class EmailHeadersQuerySet(models.QuerySet):
         if 'in_reply_to' in kwargs:
             del kwargs['in_reply_to']
 
+        kwargs.setdefault('receiver_email', kwargs['owner'].email) # the owner's email is the default receiver_email
+
         unsubscribe = None
         if list_unsubscribe:
             unsubscribe, _ = Newsletter.objects.get_or_create(
-                receiver=kwargs['receiver'],
+                receiver=kwargs['owner'],
                 sender_email=kwargs['sender_email'],
                 defaults={
                     'list_unsubscribe': list_unsubscribe,
@@ -242,7 +244,7 @@ class EmailHeadersQuerySet(models.QuerySet):
             emailbox_carbon=Coalesce(Sum('generated_carbon'),0),
             emails_count=Count('pk'),
             read=Count('pk', filter=Q(seen=True)),
-            received=Count('pk', filter=Q(is_received=True)),
+            received=Count('pk', filter=Q(owner__email=F('receiver_email'))),
             created_since_months=Cast(
                 ExtractDay(
                     timezone.now() - Cast(Min('received_at'),
@@ -308,10 +310,11 @@ class NewsletterQuerySet(models.QuerySet):
 
     def with_carbon(self):
         return self.annotate(
-            generated_carbon=Sum(
-                "email_headers__generated_carbon", output_field=FloatField()),
-            forecasted_carbon=Sum(
-                "email_headers__carbon_yforecast", output_field=FloatField()
+            generated_carbon=Coalesce(
+                Sum("email_headers__generated_carbon", output_field=FloatField()), 0
+            ),
+            forecasted_carbon=Coalesce(
+                Sum("email_headers__carbon_yforecast", output_field=FloatField()), 0
             ),
         )
 
@@ -324,7 +327,7 @@ class NewsletterQuerySet(models.QuerySet):
                 Sum("avg_daily_emails", filter=Q(unsubscribed=True)), 0
             ),
             total=Count("pk"),
-            carbon=Sum("generated_carbon"),
-            emails_count=Sum("emails_cnt"),
+            carbon=Coalesce(Sum("generated_carbon"), 0),
+            emails_count=Coalesce(Sum("emails_cnt"), 0),
             subscribed=Count("pk", filter=Q(unsubscribed=False)),
         )

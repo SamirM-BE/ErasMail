@@ -4,7 +4,7 @@
             <div class="box control px-0 py-1">
                 <input type="checkbox" class="m-5" :value="index" :id="index" v-model="checkedEmails">
                 <label :for="index" class="checkbox">
-                    <EmailDetails class="has-border-left" :email="email" :attachmentStyles="attachmentStyles(index)">
+                    <EmailDetails class="has-border-left" :email="email" :attachmentStyles="attachmentStylesList[index]">
                     </EmailDetails>
                 </label>
             </div>
@@ -32,7 +32,7 @@ export default {
         },
         attachmentStylesList: {
             type: Array,
-            default: () => null,
+            default: () => [],
         },
         reset: Boolean,
     },
@@ -57,14 +57,6 @@ export default {
             }
         }
     },
-    methods: {
-        attachmentStyles(index) {
-            if (this.attachmentStylesList) {
-                return this.attachmentStylesList[index]
-            }
-            return null
-        },
-    }
 }
 </script>
 

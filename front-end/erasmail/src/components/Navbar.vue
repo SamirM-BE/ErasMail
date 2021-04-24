@@ -36,22 +36,25 @@
       <div class="navbar-end">
 
         <div v-if="loggedIn" class="navbar-item badges">
-          <div class="container is-flex is-justify-content-space-around py-1">
+          <div class="container is-flex is-justify-content-space-around py-1 is-clickable" @click="$router.push({name: 'user'})">
             <figure v-for="(badge, idx) in badges" v-bind:key="idx" class="image is-32x32" :class="{'is-lock': badge.savedCarbon > savedCarbon}">
               <img class="is-rounded" :src="require(`../assets/badges/sunflower-36/Sunflower${idx+1}.png`)">
             </figure>
           </div>
         </div>
 
-        <div v-if="loggedIn" class="navbar-item user mr-2">
-          <router-link class="icon" :to="{ name: 'user' }" exact>
+        <div v-if="loggedIn" class="navbar-item user">
+          <span class="icon is-clickable" @click="$router.push({name: 'user'})">
             <i class="fas fa-user has-text-white"></i>
-          </router-link>
+          </span>
+        </div>
+
+        
+        <div class="navbar-item">
+          <router-link v-if="!loggedIn && currentRouteName !== 'login'" :to="{ name: 'login' }" class="button is-primary" exact>Login</router-link>
+          <button v-if="loggedIn" class="button is-danger"  @click="logout()">Logout</button>
         </div>
         
-        <div v-if="!loggedIn && currentRouteName !== 'login'" class="navbar-item">
-          <router-link :to="{ name: 'login' }" class="button is-primary" exact>Login</router-link>
-        </div>
       </div>
     </div>
   </nav>
@@ -74,9 +77,22 @@ export default {
       return this.$route.name;
     },
     savedCarbon() {
-      return this.$store.state.stats.saved_co2 
+      return this.$store.state.stats.statistics.erasmail.saved_carbon
     },
   },
+  methods: {
+    logout() {
+      this.$store.dispatch('auth/userLogout')
+        .then(() => {
+          this.$router.push({
+            name: 'landingpage'
+          })
+        })
+    },
+    hello() {
+      console.log('hello')
+    }
+  }
 }
 </script>
 

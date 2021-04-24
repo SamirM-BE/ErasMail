@@ -1,6 +1,6 @@
 <template>
   <div class="treemap">
-    <svg :width="width+'%'" :height="84.5+'vh'" style="margin-left: 0%;" position="absolute" id="package">
+    <svg :width="width+'%'" :height="91+'vh'" style="margin-left: 0%;" position="absolute" id="package">
       <g style="shape-rendering: crispEdges;" transform="translate(0,20)" v-if="selectedNode">
         <g class="children" v-for="(children, index) in selectedNode._children" :key="'c_' + index">
 

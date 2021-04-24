@@ -121,5 +121,11 @@ export default {
 </script>
 
 <style scoped>
-
+.container {
+  width: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 </style>

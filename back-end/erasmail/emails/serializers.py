@@ -14,10 +14,21 @@ class AttachmentSerializer(serializers.ModelSerializer):
 
 class EmailHeadersSerializer(serializers.ModelSerializer):
     attachments = AttachmentSerializer(many=True, read_only=True)
+    is_received = serializers.SerializerMethodField(
+        "get_is_received",
+        read_only=True,
+    )
+
+    def get_is_received(self, obj):
+        try:
+            return obj.owner.email == obj.receiver_email
+        except:
+            print('hello')
+            return False
 
     class Meta:
         model = EmailHeaders
-        exclude = ('receiver', 'unsubscribe')
+        exclude = ('owner', 'unsubscribe')
 
 class NewsletterSerializer(serializers.ModelSerializer):
     sender_name = serializers.SerializerMethodField(

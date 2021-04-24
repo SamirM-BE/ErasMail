@@ -1,5 +1,8 @@
 <template>
-  <AwarenessMessage :co2="totalCarbon" :itemCount="newslettersCount" :itemName="'newsletters'"/>
+  <AwarenessMessage :co2="totalCarbon" :forecastCarbon="totalForecastedCarbon"
+                    :forecastMsg="`Keeping these newsletters for another year will have an additional impact equivalent to `"
+                    :itemCount="newslettersCount"
+                    :itemName="'newsletters'"/>
   <!--  <div class="notification is-success">-->
   <!--    <button class="delete"></button>-->
   <!--    Unlocked Success : Connect to ErasMail two different days !-->
@@ -100,10 +103,12 @@ import {useToast} from "vue-toastification";
 
 export default {
   name: "Newsletters",
+  components: {
+    AwarenessMessage
+  },
   data() {
     return {
       newsletters: {},
-      totalCarbon: 0,
       showDeleteButton: [],
       show: true,
     };
@@ -123,10 +128,19 @@ export default {
     // },
     successDetails() {
       return this.$store.state.success.successDetails
-    }
-  },
-  components: {
-    AwarenessMessage
+    },
+    totalCarbon() {
+      if(this.newsletters){
+        return Object.values(this.newsletters).reduce((a, b) => a + (b['generated_carbon'] || 0), 0);
+      }
+      return 0
+    },
+    totalForecastedCarbon() {
+      if(this.newsletters){
+        return Object.values(this.newsletters).reduce((a, b) => a + (b['forecasted_carbon'] || 0), 0);
+      }
+      return 0
+    },
   },
   methods: {
     fetchNewsletters() {
@@ -140,7 +154,6 @@ export default {
               }
           )
           .then((response) => {
-            this.newsletterPollution(response.data)
             this.newsletters = response.data
           })
           .catch((err) => {
@@ -170,18 +183,10 @@ export default {
     getNewsletterOpenRate(newsletter) {
       if (newsletter.emails_count !== 0 && newsletter.seen_emails_cnt !== 0) {
         let open_rate = newsletter.seen_emails_cnt / newsletter.emails_cnt * 100
-        open_rate = open_rate.toPrecision(3)
+        open_rate = open_rate.toPrecision(2)
         return open_rate
       } else
         return 0
-    },
-    newsletterPollution(newsletters) {
-      let pollution = 0.0
-      if (newsletters) {
-
-        pollution = newsletters.reduce((a, b) => a + (b['generated_carbon'] || 0), 0);
-      }
-      this.totalCarbon = pollution
     },
     parseMailTo(s) {
       var r = {};

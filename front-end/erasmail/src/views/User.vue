@@ -1,6 +1,6 @@
 <template>
-  <div class="columns">
-    <div class="column sidebar is-narrow is-flex is-flex-direction-column is-justify-content-space-between">
+  <div class="columns main-layout">
+    <div class="column sidebar is-narrow">
       <!--<h1 class="title is-size-5 has-text-white is-uppercase">ErasMail</h1>-->
       <aside class="menu mt-5">
         <ul class="menu-list">
@@ -44,28 +44,38 @@
           </li>
         </ul>
       </aside>
-      <button class="button is-danger is-fullwidth ml-1 is-bottom" @click="logout()">Logout</button>
     </div>
 
     <div class="column c1">
 
-      <section class="section user-top">
-        <div class="columns is-fullwidth">
-          <div class="column is-narrow">
+      <section class="user-top message is-link m-4">
+        <div class="message-body py-3 is-flex is-justify-content-space-between">
+          <!-- To put congratulation at the middle TODO improve it -->
+          <div></div>
+
+          <div class="congratulation has-text-centered">
+            <h3 class="is-size-3">Congratulations you deleted {{ deletedEmails }} e-mails</h3>
+            <h3 class="is-size-3"> and saved more than {{ readableCo2(savedCarbon) }} of CO<sub>2</sub> !</h3>
+            <h4 v-if="pollutionComparison.comparison" class="is-size-4">This is equivalent to
+              <strong>{{ pollutionComparison.comparison.msg }}</strong></h4>
+          </div>
+
+          <div class="user-data">
             <div class="columns is-multiline">
               <div class="column is-narrow">
                 <figure class="image is-64x64">
                   <img class="is-rounded" src="https://bulma.io/images/placeholders/128x128.png">
                 </figure>
               </div>
-              <div class="column pb-0">
+              <div class="column has-text-black pb-0">
                 <p><strong>Email:</strong></p>
                 <p>{{ currentEmail }}</p>
                 <p><strong>Nickname:</strong></p>
                 <p>{{ currentNickname }}</p>
               </div>
             </div>
-            <button v-if="!showSettings" class="button is-text px-0 is-small" @click="showSettings=!showSettings">Change
+            <button v-if="!showSettings" class="button is-small is-text has-text-black px-0"
+              @click="showSettings=!showSettings">Change
               nickname
             </button>
             <div v-else class="field is-grouped">
@@ -76,20 +86,14 @@
                 <button class="button is-success is-light is-outlined" @click="changeNickname()">
                   Save
                 </button>
+                <!-- save if enter is pressed -->
+                <!-- button to cancel it -->
               </p>
             </div>
           </div>
-
-          <div class="column is-6 has-text-centered">
-            <h1 class="title">Congratulations you deleted {{ deletedEmails }} e-mails and saved more than
-              {{ readableCo2(savedCarbon) }} of CO<sub>2</sub> !
-            </h1>
-            <h2 v-if="pollutionComparison.comparison" class="subtitle">This is equivalent to
-              <strong>{{ pollutionComparison.comparison.msg }}</strong></h2>
-          </div>
         </div>
-
       </section>
+
       <!-- BADGES -->
       <section v-if="selectedView == 'Profile'" class="section badges-section">
         <div class="container grid-badges-container has-background-success-light">
@@ -227,7 +231,7 @@ export default {
     },
     lockedSuccessCount() {
       // return the number of success to unlock
-      return this.successList.map(success => this.successData[success.id]<success.minValue).reduce((a, b) => a + b, 0)
+      return this.successList.reduce((a, b) => a + (this.successData[b.id]<b.minValue  || 0), 0)
     },
     nextBadgeSavedCarbon() {
       for (const badge of this.badges) {
@@ -326,7 +330,7 @@ export default {
 <style scoped>
 .sidebar {
   background: hsl(171, 100%, 22%);
-  min-height: 91vh;
+  min-height: calc(100vh - 2.5rem)
 }
 
 li a:hover {

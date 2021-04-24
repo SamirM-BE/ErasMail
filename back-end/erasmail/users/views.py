@@ -16,9 +16,9 @@ class LoginView(APIView):
 
 
     def post(self, request):
-        email = request.data['email']
-        app_password = request.data['app_password']
-        host = request.data['host']
+        email = request.data.get('email', '').lower()
+        app_password = request.data.get('app_password', '')
+        host = request.data.get('host', '')
 
         try:
             server = IMAPClient(host)
@@ -56,7 +56,6 @@ class UserRetrieveUpdateDestroyView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        print(request.user)
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)

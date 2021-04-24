@@ -49,12 +49,8 @@ def get_emails(host, username, password):
     fetched_emails = []
 
     for folder in folders:
-        is_received = True
         if is_undesirable_folder(folder):
-            # print(folder)
             continue
-        elif imapclient.SENT in folder[0]:
-            is_received = False
 
 
         selected_folder = folder[2]  # (b'\\HasNoChildren',), b'/', 'INBOX')
@@ -68,10 +64,8 @@ def get_emails(host, username, password):
             #     data[b"BODY[HEADER]"]
             # )  # Parse a byte structure as a dictionary structure
             # parsed_header = make_readable_headers(parsed_header)
-
             email_headers = MailMessage(
                 selected_folder,
-                is_received,
                 uid,
                 data[b"FLAGS"],
                 data[b"RFC822.SIZE"],
