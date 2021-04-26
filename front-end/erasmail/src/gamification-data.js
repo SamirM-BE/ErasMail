@@ -31,7 +31,7 @@ const badgesData = [
 
 // {
 //     "todo": "Share your badges on social media",
-//     id: 'badges_shared',
+//     id: 'shared_badges',
 //       "minValue": 1,
 //     "difficulty": 3,
 //     "done": false,

@@ -153,12 +153,12 @@ export default {
     checkNotification(isUnsubscribe) {
       let statToUpdate
       if (isUnsubscribe) {
-        statToUpdate = 'unsubscribed_newsletters_count'
+        statToUpdate = 'unsubscribed_newsletters'
       } else {
-        statToUpdate = 'newsletters_deleted_emails_count'
+        statToUpdate = 'deleted_emails_newsletters_feature'
       }
       for (const success of this.successDetails[statToUpdate]) {
-        if (this.$store.state.stats.statistics[statToUpdate] >= success.minValue && !success.done)
+        if (this.$store.state.stats.statistics.erasmail[statToUpdate] >= success.minValue && !success.done)
           this.showSuccess(success.todo)
       }
       this.$store.dispatch('success/setSuccessDone', statToUpdate)
@@ -207,7 +207,7 @@ export default {
       newsletter = this.newsletters[clickedNewsletter]
       sender_emails.push(newsletter.sender_email)
 
-      let statisticID = 'newsletters_deleted_emails_count'
+      let statisticID = 'deleted_emails_newsletters_feature'
       this.updateStatisticsState(statisticID, newsletter.emails_cnt)
 
       this.newsletters[clickedNewsletter].emails_cnt = 0
@@ -249,7 +249,7 @@ export default {
       this.$store.dispatch("stats/updateStatistics", {ids: [statisticID], value: value})
           .then(() => {
             for (const success of this.successDetails[statisticID]) {
-              if (this.$store.state.stats.statistics[statisticID] >= success.minValue && !success.done)
+              if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                 this.showSuccess(success.todo)
             }
             this.$store.dispatch('success/setSuccessDone', statisticID)
@@ -266,7 +266,7 @@ export default {
       this.newsletters[clickedNewsletter].unsubscribed = true
       this.newsletters[clickedNewsletter].forecasted_carbon = 0
 
-      let statisticID = 'unsubscribed_newsletters_count'
+      let statisticID = 'unsubscribed_newsletters'
       this.updateStatisticsState(statisticID, 1)
 
 

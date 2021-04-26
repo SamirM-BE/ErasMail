@@ -38,7 +38,7 @@ export const success = {
         setSuccessDone(context, id) {
             context.commit('setSuccessDone', {
                 id: id,
-                currentValue: context.rootState.stats.statistics[id]
+                currentValue: context.rootState.stats.statistics.erasmail[id]
             })
         },
         updateAllSuccess(context) {

@@ -117,12 +117,13 @@
           <div v-for="(success, idx) in successList" v-bind:key="idx" :class="{'is-lock': successData[success.id]<success.minValue}"
                :title="success.todo" class="box m-4 p-1 has-background-green-light is-flex is-justify-content-space-between">
             <span class="icon-text is-flex is-align-items-center"> 
-              <span :class="{'has-text-bronze': success.difficulty == 1, 'has-text-silver': success.difficulty == 2, 'has-text-gold': success.difficulty == 3}"
-                    class="icon is-large">
+              <span
+                  :class="{'has-text-bronze': success.difficulty == 1, 'has-text-silver': success.difficulty == 2, 'has-text-gold': success.difficulty == 3}"
+                  class="icon is-large">
                 <i class="fas fa-lg fa-trophy"></i>
               </span>
               <span>{{ success.todo }}</span>
-            </span>      
+            </span>
             <div class="progress-stats mb-1 is-align-self-flex-end">
               <p class="is-size-7 is-pulled-right mr-1">{{Math.min(success.minValue, successData[success.id])}} / {{success.minValue}}</p>
               <progress class="progress is-success is-smaller" :value="Math.min(success.minValue, successData[success.id])" :max="success.minValue"/>
@@ -151,8 +152,8 @@
             <tr v-for="(data, idx) in leaderboardData" v-bind:key="idx" :class="{'is-selected': idx == currentUserIdx}">
               <th>{{ idx + 1 }}</th>
               <td>{{ data.nickname }}</td>
-              <td>{{ data.deleted_emails_count }}</td>
-              <td>{{ readableCo2(data.saved_co2) }}</td>
+              <td>{{ data.deleted_emails }}</td>
+              <td>{{ readableCo2(data.saved_carbon) }}</td>
               <td>{{ data.score }}</td>
             </tr>
             </tbody>
@@ -192,16 +193,17 @@ export default {
       currentUserId: 0,
       leaderboardData: [],
       connected_count: 0,
-      successData: [],
     }
   },
   created() {
     this.fetchCurrentUser()
     this.fetchUsersStats()
-    this.fetchUserStats()
   },
   computed: {
     ...mapGetters("success", ["successList"]),
+    successData() {
+      return {...this.$store.state.stats.statistics.erasmail, "connected_count": this.connected_count}
+    },
     currentUserIdx() {
       if (this.leaderboardData.length) {
         return this.leaderboardData.findIndex(data => data.id == this.currentUserId)
@@ -210,13 +212,13 @@ export default {
     },
     savedCarbon() {
       if (this.leaderboardData.length) {
-        return this.leaderboardData[this.currentUserIdx].saved_co2
+        return this.leaderboardData[this.currentUserIdx].saved_carbon
       }
       return 0
     },
     deletedEmails() {
       if (this.leaderboardData.length) {
-        return this.leaderboardData[this.currentUserIdx].deleted_emails_count
+        return this.leaderboardData[this.currentUserIdx].deleted_emails
       }
       return 0
     },
@@ -279,32 +281,13 @@ export default {
             console.log(err);
           });
     },
-    fetchUserStats()
-    {
-      getAPI
-          .get(
-              "/api/emails/stats/user", {
-                headers: {
-                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                },
-              }
-          )
-          .then((response) => {
-            let successData = response.data
-            successData['connected_count'] = this.connected_count
-            this.successData = successData
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-    },
     logout() {
       this.$store.dispatch('auth/userLogout')
-        .then(() => {
-          this.$router.push({
-            name: 'landingpage'
+          .then(() => {
+            this.$router.push({
+              name: 'landingpage'
+            })
           })
-        })
     },
     readableCo2(co2) {
       co2 = convert(co2).from('g').toBest({
