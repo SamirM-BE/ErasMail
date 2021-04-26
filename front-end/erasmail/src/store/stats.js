@@ -1,29 +1,6 @@
 import {getAPI} from "@/axios-api";
 import axios from "axios";
 
-const getDefaultState = () => {
-    return {
-        mailbox_size: 0,
-        carbon_eq_at_creation: 0.0,
-        carbon_eq: 0.0,
-        emails_count: 0,
-        emails_seen_count: 0,
-        emails_received_count: 0,
-        months_since_creation: 0.0,
-        saved_co2: 0.0,
-        deleted_emails_count: 0,
-        badges_shared: 0,
-        stats_shared: 0,
-        unsubscribed_newsletters_count: 0,
-        newsletters_deleted_emails_count: 0,
-        deleted_emails_olderF_count: 0,
-        deleted_emails_largerF_count: 0,
-        deleted_emails_useless_count: 0,
-        threads_deleted_emails_count: 0,
-        deleted_attachments_count: 0,
-        connected_count: 0,
-    }
-}
 
 export const stats = {
     namespaced: true,
@@ -35,10 +12,10 @@ export const stats = {
             state.statistics = statistics
         },
         updateStatistic(state, statToUpdate) {
-            state.statistics[statToUpdate.stat] = statToUpdate.value
+            state.statistics.erasmail[statToUpdate.stat] = statToUpdate.value
         },
         destroyStats(state) {
-            Object.assign(state.statistics, getDefaultState())
+            Object.assign(state.statistics, {})
         },
     },
     actions: {
@@ -72,13 +49,16 @@ export const stats = {
                 .catch((err) => {
                     console.log(err);
                 });
+
+
         },
 
         updateStatistics(context, statsToUpdate) {
             for (const id of statsToUpdate['ids']) {
+                //pute type parameter and then statistics[type][id]
                 context.commit('updateStatistic', {
                     stat: id,
-                    value: context.state.statistics[id] + statsToUpdate['value']
+                    value: context.state.statistics.erasmail[id] + statsToUpdate['value']
                 })
             }
         },

@@ -49,17 +49,17 @@ const lineSizeMailbox = {
             },
         },
         title: {
-            text: 'Total saved co2',
+            text: 'CO2',
             align: 'left'
         },
         xaxis: {
-            categories: ["Before ErasMail", "13/03/2021", "Today"],
+            categories: ["Before ErasMail", "Today"],
         },
     },
     series: [
         {
             name: "CO2 grams",
-            data: [0, 632, 951],
+            data: [0, 0],
         },
     ]
 }

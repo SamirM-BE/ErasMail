@@ -62,6 +62,13 @@ export default {
           )
           .then((response) => {
             this.threads = response.data
+
+            //We limit the quantity of threads to show
+            //TODO: Should not be done in this way, use pagination instead
+            let totalThreads = this.threads.children.length
+            if(totalThreads>150){
+              this.threads.children = this.threads.children.slice(0,150)
+            }
           })
           .catch((err) => {
             console.log(err);
@@ -109,7 +116,7 @@ export default {
           .then(() => {
             for (const statisticID of statisticID) {
               for (const success of this.successDetails[statisticID]) {
-                if (this.$store.state.stats.statistics[statisticID] >= success.minValue && !success.done)
+                if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                   this.showSuccess(success.todo)
               }
               this.$store.dispatch('success/setSuccessDone', statisticID)
@@ -131,7 +138,7 @@ export default {
           this.threads.children.splice(this.threadIndex, 1)
           deleted = true
         }
-        let statisticID = emails.onlyAttachments ? ['deleted_attachments_count'] : ['threads_deleted_emails_count']
+        let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature']
         this.updateStatisticsState(statisticID, emails.pks.length)
 
         getAPI

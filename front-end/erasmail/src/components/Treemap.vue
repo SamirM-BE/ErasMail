@@ -16,7 +16,8 @@
                 :height="y(children.y1 - children.y0 + children.parent.y0)+'%'"
                 :style="{ fill: color(index) }">
 
-            <title>{{ children.data.subject }} | {{ `${getBytesToSize(children.value)}` }}</title>
+<!--            <title>{{ children.data.subject }} | {{ `${getBytesToSize(children.value)}` }}</title>-->
+            <title>{{ children.data.subject }} | {{ readableCo2(children.value) }}</title>
           </rect>
 
           <text dy="1em" :key="'t_' + index" :x="(x(children.x0) + 1)+'%'" :y="(y(children.y0) + 1)+'%'"
@@ -26,7 +27,8 @@
 
           <text dy="2.25em" :key="'k_' + index" :x="(x(children.x0) + 1)+'%'" :y="(y(children.y0) + 1)+'%'"
                 style="fill-opacity: 1;" v-if="!isSquareTooSmall(children)">
-            {{ `${getBytesToSize(children.value)}` }}
+<!--            {{ `${getBytesToSize(children.value)}` }}-->
+            {{ readableCo2(children.value) }}
           </text>
         </g>
 
@@ -44,21 +46,12 @@
 </template>
 
 <script>
-import {
-  scaleLinear,
-  scaleOrdinal
-} from 'd3-scale'
-import {
-  schemeCategory10
-} from 'd3-scale-chromatic'
-import {
-  json
-} from 'd3-request'
-import {
-  hierarchy,
-  treemap
-} from 'd3-hierarchy'
-import byteSize from 'byte-size'
+import {scaleLinear, scaleOrdinal} from 'd3-scale'
+import {schemeCategory10} from 'd3-scale-chromatic'
+import {json} from 'd3-request'
+import {hierarchy, treemap} from 'd3-hierarchy'
+
+import convert from "convert-units";
 
 let d3 = {
   scaleLinear: scaleLinear,
@@ -96,9 +89,9 @@ export default {
       console.log('The selected node changed...')
     },
     threads_prop() {
-
       let that = this
       if (that.threads_prop) {
+
         that.jsonData = that.threads_prop
         that.initialize()
         that.accumulate(that.rootNode, that)
@@ -165,7 +158,7 @@ export default {
               d.id = (d.parent ? d.parent.id + '.' : '') + d.data.subject
             })
             .sum(function (d) {
-              return d.size
+              return d.generated_carbon
             })
             .sort(function (a, b) {
               return b.height - a.height || b.value - a.value
@@ -203,8 +196,9 @@ export default {
     selectNode(event) {
       this.selected = event.target.id
     },
-    getBytesToSize(bytes) {
-      return byteSize(bytes)
+    readableCo2(carbon) {
+      let co2 = convert(carbon).from('g').toBest({ exclude: ['mcg', 'mg', 'oz', 'lb', 'mt'] })
+      return `${co2.val.toFixed(2)}${co2.unit}`
     },
     isSquareTooSmall(children) {
       return this.y(children.y1 - children.y0 + children.parent.y0) * this.x(children.x1 - children.x0 + children.parent.x0) < 125

@@ -295,13 +295,13 @@ export default {
     getStatsToUpdate() {
       let stats = []
       if (this.yearBefore > 0)
-        stats.push('deleted_emails_olderF_count')
+        stats.push('deleted_emails_older_filter')
 
       if (this.sizeGreatherThan > 0)
-        stats.push('deleted_emails_largerF_count')
+        stats.push('deleted_emails_larger_filter')
 
       if (this.selectedFilters.length > 0)
-        stats.push('deleted_emails_useless_count')
+        stats.push('deleted_emails_useless_filter')
       return stats
     },
     //Update the state that keeps the statistics to add the number of deleted emails by the user with each feature.
@@ -311,7 +311,7 @@ export default {
           .then(() => {
             for (const statisticID of statisticsIDs) {
               for (const success of this.successDetails[statisticID]) {
-                if (this.$store.state.stats.statistics[statisticID] >= success.minValue && !success.done)
+                if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                   this.showSuccess(success.todo)
               }
               this.$store.dispatch('success/setSuccessDone', statisticID)

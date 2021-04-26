@@ -9,25 +9,24 @@ User = get_user_model()
 
 class EmailStats(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    mailbox_size = models.PositiveIntegerField(null=False)
-    carbon_eq_at_creation = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
-    carbon_eq = models.FloatField(null=False, default=0, validators=[MinValueValidator(0.0)])
+    emailbox_size = models.PositiveIntegerField(null=False, help_text="Emailbox current size (bytes)")
+    emailbox_initial_carbon = models.FloatField(null=False, validators=[MinValueValidator(0.0)], help_text="Carbon equivalent of the emailbox at the first connection ever")
+    emailbox_carbon = models.FloatField(null=False, default=0, validators=[MinValueValidator(0.0)], help_text="Emailbox current carbon equivalent")
     emails_count  =  models.PositiveIntegerField(null=False)
-    emails_seen_count = models.PositiveIntegerField(null=False)
-    emails_received_count = models.PositiveIntegerField(null=False)
-    months_since_creation = models.FloatField(null=False, validators=[MinValueValidator(0.0)])
-    saved_co2 = models.FloatField(default=0, validators=[MinValueValidator(0.0)])
-    # connected_count = models.PositiveIntegerField(default=0, help_text="Number of times the user connected to ErasMail")
-    deleted_emails_count = models.PositiveIntegerField(default=0, help_text="Number of deleted emails")
-    badges_shared = models.PositiveIntegerField(default=0, help_text="The user has shared his badges on social media")
-    stats_shared = models.PositiveIntegerField(default=0, help_text="The user has shared his stats on social media")
-    unsubscribed_newsletters_count = models.PositiveIntegerField(default=0, help_text="Number of newsletters that have been unsubscribed using ErasMail") #TODO: on calcule déjà cette valeur faut juste l'insérer.
-    newsletters_deleted_emails_count = models.PositiveIntegerField(default=0, help_text="Number of newsletters related emails deleted")
-    deleted_emails_olderF_count = models.PositiveIntegerField(default=0, help_text="Number of deleted emails using the older than filter")
-    deleted_emails_largerF_count = models.PositiveIntegerField(default=0, help_text="Number of deleted emails using the larger than filter")
-    deleted_emails_useless_count = models.PositiveIntegerField(default=0, help_text="Number of deleted useless emails")
-    threads_deleted_emails_count = models.PositiveIntegerField(default=0, help_text="Number of threads related emails deleted")
-    deleted_attachments_count = models.PositiveIntegerField(default=0, help_text="Number of deleted attachments")
+    read = models.PositiveIntegerField(null=False)
+    received = models.PositiveIntegerField(null=False)
+    created_since_months = models.FloatField(null=False, validators=[MinValueValidator(0.0)], help_text="Number of months since creation of email account, based on first stored received email")
+    saved_carbon = models.FloatField(default=0, validators=[MinValueValidator(0.0)], help_text="Total saved carbon by the current user")
+    shared_badges = models.PositiveIntegerField(default=0, help_text="The user has shared his badges on social media")
+    shared_stats = models.PositiveIntegerField(default=0, help_text="The user has shared his stats on social media")
+    unsubscribed_newsletters = models.PositiveIntegerField(default=0, help_text="Number of newsletters that have been unsubscribed using ErasMail") #TODO: on calcule déjà cette valeur faut juste l'insérer.
+    deleted_emails = models.PositiveIntegerField(default=0, help_text="Number of deleted emails")
+    deleted_emails_newsletters_feature = models.PositiveIntegerField(default=0, help_text="Number of newsletters related emails deleted")
+    deleted_emails_threads_feature = models.PositiveIntegerField(default=0, help_text="Number of threads related emails deleted")
+    deleted_emails_older_filter = models.PositiveIntegerField(default=0, help_text="Number of deleted emails using the older than filter")
+    deleted_emails_larger_filter = models.PositiveIntegerField(default=0, help_text="Number of deleted emails using the larger than filter")
+    deleted_emails_useless_filter = models.PositiveIntegerField(default=0, help_text="Number of deleted useless emails")
+    deleted_attachments = models.PositiveIntegerField(default=0, help_text="Number of deleted attachments")
 
 
 
@@ -41,22 +40,22 @@ class EmailStats(models.Model):
 
 
     def update_deleted_email(self, emails):
-        self.deleted_emails_count = F('deleted_emails_count') + emails.get('emails_count', 0)
+        self.deleted_emails = F('deleted_emails') + emails.get('emails_count', 0)
         self.emails_count = F('emails_count') - emails.get('emails_count', 0)
-        self.emails_received_count = F('emails_received_count') - emails.get('emails_received_count', 0)
-        self.emails_seen_count = F('emails_seen_count') - emails.get('emails_seen_count', 0)
-        self.mailbox_size = F('mailbox_size') - emails.get('mailbox_size', 0)
-        self.saved_co2 = F('saved_co2') + emails.get('carbon_eq', 0)
-        self.carbon_eq = F('carbon_eq') - emails.get('carbon_eq', 0)
+        self.received = F('received') - emails.get('received', 0)
+        self.read = F('read') - emails.get('read', 0)
+        self.emailbox_size = F('emailbox_size') - emails.get('emailbox_size', 0)
+        self.saved_carbon = F('saved_carbon') + emails.get('emailbox_carbon', 0)
+        self.emailbox_carbon = F('emailbox_carbon') - emails.get('emailbox_carbon', 0)
 
     def update_deleted_attachments(self, attachments_stats):
-        self.saved_co2 = F('saved_co2') + attachments_stats['generated_carbon_tot']
-        self.carbon_eq = F('carbon_eq') - attachments_stats['generated_carbon_tot']
-        self.mailbox_size = F('mailbox_size') - attachments_stats['attachment_size_tot']
+        self.saved_carbon = F('saved_carbon') + attachments_stats['generated_carbon_tot']
+        self.emailbox_carbon = F('emailbox_carbon') - attachments_stats['generated_carbon_tot']
+        self.emailbox_size = F('emailbox_size') - attachments_stats['attachment_size_tot']
 
     def save(self, *args, **kwargs):
-        if not self.carbon_eq_at_creation:
-            self.carbon_eq_at_creation = self.carbon_eq
+        if not self.emailbox_initial_carbon:
+            self.emailbox_initial_carbon = self.emailbox_carbon
         super(EmailStats, self).save(*args, **kwargs)
 
 

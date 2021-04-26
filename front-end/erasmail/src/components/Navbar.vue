@@ -60,7 +60,6 @@
 <script>
 import {mapGetters} from "vuex";
 import {badgesData} from "@/gamification-data";
-
 export default {
   name: "Navbar",
   data() {
@@ -75,7 +74,7 @@ export default {
       return this.$route.name;
     },
     savedCarbon() {
-      return this.$store.state.stats.statistics.saved_co2
+      return this.$store.state.stats.saved_co2 
     },
   },
 }

@@ -24,9 +24,7 @@ from .serializers import (
     EmailHeadersSerializer,
     EmailStatsSerializer,
     NewsletterSerializer,
-
 )
-
 
 User = get_user_model()
 
@@ -231,7 +229,7 @@ class AttachmentView(APIView):
         uids_cnt = 0
         for folder in folder_uids:
             uids_cnt += len(folder_uids[folder]) # get nb of emails to delete
-        EmailStats.objects.update(deleted_attachments_count=F('deleted_attachments_count')+uids_cnt)
+        EmailStats.objects.update(deleted_attachments=F('deleted_attachments')+uids_cnt)
 
         if folder_uids and pks:
             remove_attachments(host, email, app_password, folder_uids)
@@ -343,33 +341,71 @@ class Statistics(APIView):
         user = request.user
 
         if kind == "user":
+            statistics = {}
+            emails_stats = {} # general statistics about emails (e.g. unread emails, received emails, ...)
+            newsletters_stats = {} # general statistics about newsletters (e.g. nb of newsletters, ..)
+            threads_stats = {} # general statistics about threads (e.g. nb of threads, ...)
+            erasmail_stats = {} # statistics about erasmail usage (e.g. nb of deleted emails trough a certain feature, )
+            emailbox_stats = {} # statistics about the mailbox (e.g. size, carbon, ...)
 
-            before_than = int(request.query_params.get("before_than", 0))
-            larger_than = float(request.query_params.get("larger_than", 0))
-
-            # generate statistics based on EmailHeaders: these stats aren't persistents
+            # generate statistics based on EmailHeaders: these stats aren't persistent
             emails_headers = EmailHeaders.objects.filter(receiver=user)
-            email_header_stats = {
-                ** emails_headers.get_stats_unseen_emails(),
-                ** emails_headers.get_thread_stats(),
-                ** emails_headers.get_stats_before_than(before_than),
-                ** emails_headers.get_stats_larger_than(larger_than),
+            # generate statistics based on EmailStats
+            email_stats_data = EmailStatsSerializer(EmailStats.objects.get(user=user)).data
+            emails_stats = {
+                "emails_count" : email_stats_data['emails_count'],
+                "received" : email_stats_data['received'],
+                "read" : email_stats_data['read'],
+                ** emails_headers.get_unseen_emails_stats(),
+                ** emails_headers.get_older_3Y_stats(3), # we hardcode 3 because in the front-end we need only stats about emails older than 3 years
+                ** emails_headers.get_larger_1MB_stats(1000000), # same but larger than 1 MB (1000000 bytes)
             }
 
-            # generate statistics based on Newsletter
+            print("samir:", emails_stats)
+
             newsletters = Newsletter.objects.filter(receiver=user)
-            newsletter_stats = newsletters.get_newsletter_stats()
+            newsletters_stats = {
+                ** newsletters.get_newsletters_stats(),
+            }
 
-            # generate statistics based on EmailStats
-            email_stats = EmailStatsSerializer(
-                EmailStats.objects.get(user=user)).data
+            threads_stats = {
+                ** emails_headers.get_threads_stats(),
+            }
 
-            # merge all statistics
-            response = {**email_stats, **
-                        email_header_stats, **newsletter_stats}
+            erasmail_stats = {
+                "deleted_emails": email_stats_data['deleted_emails'],
+                "deleted_emails_older_filter" : email_stats_data['deleted_emails_older_filter'],
+                "deleted_emails_larger_filter" : email_stats_data['deleted_emails_larger_filter'],
+                "deleted_emails_useless_filter" : email_stats_data['deleted_emails_useless_filter'],
+                "deleted_emails_threads_feature" : email_stats_data['deleted_emails_threads_feature'],
+                "deleted_emails_newsletters_feature" : email_stats_data['deleted_emails_newsletters_feature'],
+                "unsubscribed_newsletters" : email_stats_data['unsubscribed_newsletters'],
+                "deleted_attachments" : email_stats_data['deleted_attachments'],
+                "shared_badges" : email_stats_data['shared_badges'],
+                "shared_stats" : email_stats_data['shared_stats'],
+                "saved_carbon"  : email_stats_data['saved_carbon'],
+            }
+
+            emailbox_stats = {
+                "emailbox_size" : email_stats_data['emailbox_size'],
+                "carbon" : email_stats_data['emailbox_carbon'],
+                "initial_carbon" : email_stats_data['emailbox_initial_carbon'],
+                "created_since_months" : email_stats_data['created_since_months'],
+
+            }
+
+            statistics = {
+                "emails" : emails_stats,
+                "newsletters" : newsletters_stats,
+                "threads" : threads_stats,
+                "erasmail" : erasmail_stats,
+                "emailbox" : emailbox_stats,
+            }
+
+            response = statistics
         elif kind == "users":
             users_stats = EmailStats.objects.all().with_score().order_by('-score')
-            
+
             users_stats_serializer = EmailStatsSerializer(users_stats, many=True).data
             current_user_id = users_stats.get(user=user).pk
 
@@ -384,11 +420,6 @@ class Statistics(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data=response, status=status.HTTP_200_OK)
-
-    # def put(self, request, kind):
-    #     user = request.user
-
-    #     if kind==''
 
 
 class NewsletterListView(APIView):
@@ -421,7 +452,7 @@ class NewsletterListView(APIView):
         for folder in uids_to_delete:
             uids_cnt += len(uids_to_delete[folder]) # get nb of emails to delete
 
-        email_stats.add(newsletters_deleted_emails_count=uids_cnt)
+        email_stats.add(deleted_emails_newsletters_feature=uids_cnt)
         email_stats.save()
 
         move_to_trash(host, user.email, app_password, uids_to_delete)
@@ -439,7 +470,7 @@ class NewsletterListView(APIView):
         pk = request.data["id"]
 
         Newsletter.objects.filter(pk=pk).update(unsubscribed=True)
-        EmailStats.objects.filter(user=user).update(unsubscribed_newsletters_count=F('unsubscribed_newsletters_count')+1)
+        EmailStats.objects.filter(user=user).update(unsubscribed_newsletters=F('unsubscribed_newsletters')+1)
         if unsubscribe_type == "oneclick":
             url = request.data.get("url", "")
             req = requests.post(url, data = {'List-Unsubscribe':'One-Click'}) # confirm data
@@ -458,26 +489,3 @@ class NewsletterListView(APIView):
             print("open browser")
 
         return Response(status.HTTP_400_BAD_REQUEST)
-
-
-        
-
-    # def delete(self, request):
-    #     user = request.user
-    #     host= request.data["host"]
-    #     app_password = request.data["app_password"]
-
-    #     Newsletter.objects.filter(receiver=user, sender_email__in=senders).delete()
-
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-    
-    # @api_view(['POST']) 
-    # def unsubscribe(request):
-
-    #     user = request.user
-       
-    #     return Response(status=status.HTTP_200_OK)
-    #     return Response(status.HTTP_400_BAD_REQUEST)
-

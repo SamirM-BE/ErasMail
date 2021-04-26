@@ -162,7 +162,7 @@ export default {
             //Check if user has unlocked the connected_count success
             let statToUpdate = 'connected_count'
             for (const success of this.successDetails[statToUpdate]) {
-              if (this.$store.state.stats.statistics.connected_count === success.minValue && !success.done) {
+              if (this.$store.state.stats.statistics.connected_count === success.minValue) {
                 this.showSuccess(success.todo)
               }
             }
