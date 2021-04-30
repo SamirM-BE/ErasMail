@@ -190,15 +190,6 @@ export default {
     emailList() {
       return Object.values(this.emails)
     },
-    // deleted_olderF_count() {
-    //   return this.$store.state.stats.deleted_emails_olderF_count
-    // },
-    // deleted_largerF_count() {
-    //   return this.$store.state.stats.deleted_emails_largerF_count
-    // },
-    // deleted_useless_count() {
-    //   return this.$store.state.stats.deleted_emails_useless_count
-    // },
     successDetails() {
       return this.$store.state.success.successDetails
     }

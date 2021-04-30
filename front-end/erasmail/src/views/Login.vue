@@ -37,7 +37,7 @@
           </div>
         </div>
 
-        <div class="field">
+        <div class="field" v-if="askForHost">
           <label for="host" class="label">Host</label>
           <div class="control has-icons-left">
             <span class="icon is-small is-left">
@@ -57,6 +57,7 @@
 </template>
 
 <script>
+import {fetchConfiguration} from '../MailConfig.js'
 
 export default {
   name: "Login",
@@ -66,33 +67,49 @@ export default {
       email: "",
       app_password: "",
       host: "",
+      askForHost: false,
     };
   },
   computed: {
     hideSubmit() {
-      return this.email == "" || this.app_password == "" || this.host == "";
+      if(this.askForHost)
+        return this.email == "" || this.app_password == "" || this.host == "";
+      return this.email == "" || this.app_password == ""
     },
   },
   components: {
   },
   methods: {
     login() {
-      this.$store
-        .dispatch("auth/userLogin", {
-          email: this.email,
-          app_password: this.app_password,
-          host: this.host,
-        })
-        .then(() => {
-          // redirect only when 200 or 201
-          this.$router.push({
-            name: "loading"
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          this.incorrectAuth = true;
-        });
+      const that = this
+      fetchConfiguration(
+          this.email,
+          this.app_password,
+          function(account){
+            that.host = account["imap.host"]
+            that.$store
+                .dispatch("auth/userLogin", {
+                  email: that.email,
+                  app_password: that.app_password,
+                  host: that.host,
+                })
+                .then(() => {
+                  // redirect only when 200 or 201
+                  that.$router.push({
+                    name: "loading"
+                  });
+                })
+                .catch((err) => {
+                  console.log(err);
+                  that.incorrectAuth = true;
+                });
+          },
+          function(){
+            that.askForHost = true
+            console.log("fetch failed")
+          }
+      )
+
     },
   },
 };
