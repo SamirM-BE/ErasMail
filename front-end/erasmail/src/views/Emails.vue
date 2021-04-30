@@ -1,59 +1,77 @@
 <template>
   <AwarenessMessage :co2="generated_carbon" :forecastCarbon="carbon_yforecast"
-                    :forecastMsg="`Keeping these emails for another year will have an additional impact equivalent to `"
+                    :forecastMsg="`Keeping these emails for one more additional year will generate as much CO2 as `"
                     :itemCount="emailCount"
-                    :itemName="featureName"/>
-  <div class="toolbox mx-4">
-    <hr>
-    
-    <Dropdown :currentValue="selectedFolder" :defaultText="'Inbox'" :toText="folderToText" :valueList="folderList"
-      @on-click="selectFolder" />
+                    :itemName="featureName"/> <!-- manufacturing of 1 more paper cup(s) -->
 
-    <button class="button is-danger is-pulled-right" :disabled="!checkedEmails.length" @click="remove()">Delete emails</button>
-
-    <div class="mt-2">
-      <Dropdown :currentValue="yearBefore" :defaultText="'Any date'" :toText="yearToText" :valueList="yearList"
-                @on-click="selectYear"/>
-      <Dropdown :currentValue="sizeGreatherThan" :defaultText="'Any size'" :toText="sizeToText" :valueList="sizeList"
-                class="mx-3" @on-click="selectSize"></Dropdown>
-
-      <div :class="{'is-active':showFilters}" class="dropdown">
-        <div class="dropdown-trigger" @click="showFilters = !showFilters">
-          <button aria-controls="dropdown-menu" aria-haspopup="true" class="button">
-            <span>Smart filters</span>
-            <span class="icon is-small">
-              <i aria-hidden="true" class="fas fa-angle-down"></i>
-            </span>
-          </button>
-        </div>
-        <div id="dropdown-menu" class="dropdown-menu" role="menu">
-          <div class="dropdown-content">
-            <form>
-              <div v-for="(filterName, idx) in filterNames" :key="idx" class="field dropdown-item">
-                <div class="control">
-                  <label class="checkbox">
-                    <input v-model="selectedFilters" :value="idx" type="checkbox">
-                    {{ filterName }}
-                  </label>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div class=" button mx-3">
-        <label class="checkbox">
-          <input v-model="unread" type="checkbox">
-          Only unread emails
-        </label>
-      </div>
-      
-
-    </div>
-    <hr>
-  </div>
   <div class="container">
-    <EmailForm :emails="emailList" :reset="reset" class="mx-4" @checked-emails="updateCheckedEmails"/>
+    <div class="columns">
+      <!-- Filters -->
+      <div class="column is-2 filters">
+        <div class="filter-item">
+          <p><strong>Folder:</strong></p>
+          <Dropdown :currentValue="selectedFolder" :defaultText="'Inbox'" :toText="folderToText" :valueList="folderList"
+            @on-click="selectFolder" />
+        </div>
+
+        <div class="filter-item mt-3">
+          <p><strong>Older than:</strong></p>
+          <Dropdown :currentValue="yearBefore" :defaultText="'Any date'" :toText="yearToText" :valueList="yearList"
+            @on-click="selectYear"/>
+        </div>
+
+        <div class="filter-item mt-3">
+          <p><strong>Greater than:</strong></p>
+          <Dropdown :currentValue="sizeGreaterThan" :defaultText="'Any size'" :toText="sizeToText" :valueList="sizeList"
+            @on-click="selectSize"></Dropdown>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="filter-item button is-fullwidth has-background-success-light">
+          <label class="checkbox">
+            <input v-model="unread" type="checkbox">
+            Only unread emails
+          </label>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="filter-item">
+          <p><strong>Useless emails:</strong></p>
+          <form class="mt-2">
+            <div v-for="(filterName, idx) in filterNames" :key="idx" class="field">
+              <div class="control">
+                <label class="checkbox">
+                  <input v-model="selectedFilters" :value="idx" type="checkbox">
+                  {{ filterName }}
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Emails -->
+      <div class="column">
+        <div class="toolbox mx-2">
+          <hr class="mb-1">
+          <div class="is-flex is-justify-content-space-between">
+            <div>
+              <p><strong>Order by:</strong></p>
+              <Dropdown :currentValue="orderedBy" :valueList="Object.keys(orderFilters)" :toText="key => orderFilters[key]"
+                @on-click="selectOrder"></Dropdown>
+            </div>
+
+            <button class="button is-danger is-align-self-flex-end" :disabled="!checkedEmails.length" @click="deleteEmails()">Delete emails</button>
+          </div>
+          <hr class="mt-2">
+        </div>
+
+        <!-- List of emails -->
+        <EmailForm class="mx-2" :emails="emailList" :reset="reset" @checked-emails="updateCheckedEmails" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -81,7 +99,19 @@ export default {
       yearBefore: 0,
 
       sizeList: [0, 1, 2, 5], // in MB
-      sizeGreatherThan: 0,
+      sizeGreaterThan: 0,
+
+      orderedBy: '-received_at',
+      orderFilters: {
+        '-received_at':'Date recent to old',
+        'received_at':'Date old to recent',
+        '-size':'Size descending',
+        'size':'Size ascending',
+        '-generated_carbon':'Generated carbon descending',
+        'generated_carbon':'Generated carbon ascending',
+        '-carbon_yforecast':'Carbon forecast descending',
+        'carbon_yforecast':'Carbon forecast ascending',
+      },
 
       unread: false,
 
@@ -110,18 +140,24 @@ export default {
       reset: false,
 
       initializationDone: false, // to check if all variables used for the backend request are correctly initialized or not
+      ready: true, // whether ready to fetch new data from the backend
     }
   },
   created() {
     this.unread = this.$route.query.unseen === 'true'
 
+    let queryOrderedBy = this.$route.query.ordered_by
+    if (Object.keys(this.orderFilters).includes(queryOrderedBy)) {
+      this.orderedBy = queryOrderedBy
+    }
+
     let queryYearBefore = parseInt(this.$route.query.before_than)
     if (this.yearList.includes(queryYearBefore)) {
       this.yearBefore = queryYearBefore
     }
-    let querySizeGreatherThan = parseInt(this.$route.query.greater_than)
-    if (this.sizeList.includes(querySizeGreatherThan)) {
-      this.sizeGreatherThan = querySizeGreatherThan
+    let querysizeGreaterThan = parseInt(this.$route.query.greater_than)
+    if (this.sizeList.includes(querysizeGreaterThan)) {
+      this.sizeGreaterThan = querysizeGreaterThan
     }
 
     let querySelectedFilters = this.$route.query['selected_filters[]']
@@ -131,7 +167,7 @@ export default {
         querySelectedFilters = [querySelectedFilters]
       }
       let allowedFilters = Object.keys(this.filterNames)
-      // remove unvalide filters 
+      // delete unvalide filters 
       querySelectedFilters = querySelectedFilters.filter(filter => allowedFilters.includes(filter));
       this.selectedFilters = querySelectedFilters
     }
@@ -160,9 +196,15 @@ export default {
   },
   mounted() {
     window.onscroll = () => {
-      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight === document.documentElement.offsetHeight
-      if (bottomOfWindow) {
-        this.fetchNextEmails(false)
+      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
+      if (bottomOfWindow && this.ready) {
+        this.ready = false
+        let response = this.fetchNextEmails(false)
+        if (response) {
+          response.then(() => {
+            this.ready = true
+          })
+        }
       }
     }
   },
@@ -181,10 +223,10 @@ export default {
       msg += 'email' + (this.emailCount > 1 ? 's' : '')
       if (this.yearBefore)
         msg += ` older than ${this.yearBefore} year` + (this.yearBefore > 1 ? 's' : '')
-      if (this.yearBefore && this.sizeGreatherThan)
+      if (this.yearBefore && this.sizeGreaterThan)
         msg += ' and'
-      if (this.sizeGreatherThan)
-        msg += ` greather than ${this.sizeGreatherThan} MB`
+      if (this.sizeGreaterThan)
+        msg += ` greater than ${this.sizeGreaterThan} MB`
       return msg
     },
     emailList() {
@@ -195,6 +237,10 @@ export default {
     }
   },
   methods: {
+    selectOrder(order) {
+      this.orderedBy = order
+      this.refreshURL()
+    },
     selectFolder(folder) {
       this.selectedFolder = folder
       this.refreshURL()
@@ -207,18 +253,18 @@ export default {
       this.refreshURL()
     },
     yearToText(year) {
-      let txt = `Older than ${year} year`
+      let txt = `${year} year`
       if (year > 1) {
         txt += 's'
       }
       return txt
     },
     selectSize(size) {
-      this.sizeGreatherThan = size
+      this.sizeGreaterThan = size
       this.refreshURL()
     },
     sizeToText(size) {
-      return `Greather than ${size} MB`
+      return `${size} MB`
     },
     updateCheckedEmails(newCheckedEmails) {
       this.checkedEmails = newCheckedEmails
@@ -232,7 +278,7 @@ export default {
         // thus don't query the backend
         return
       }
-      getAPI
+      return getAPI
           .get(
               `/api/emails/`, {
                 headers: {
@@ -242,14 +288,15 @@ export default {
                   seen: !this.unread,
                   selected_filters: this.selectedFilters,
                   before_than: this.yearBefore,
-                  greater_than: this.sizeGreatherThan,
+                  greater_than: this.sizeGreaterThan,
                   folder: this.selectedFolder,
                   page: this.nextPageNumber,
+                  ordered_by: this.orderedBy,
                 }
               }
           )
           .then((response) => {
-            console.log(response.data)
+            if(response.data.next) console.log('next page number (first page is 1)', new URL(response.data.next).searchParams.get('page'))
             this.emailCount = response.data.count
             this.generated_carbon = response.data.generated_carbon
             this.carbon_yforecast = response.data.carbon_yforecast
@@ -274,7 +321,8 @@ export default {
         query: {
           unseen: this.unread,
           before_than: this.yearBefore,
-          greater_than: this.sizeGreatherThan,
+          greater_than: this.sizeGreaterThan,
+          ordered_by: this.orderedBy,
           'selected_filters[]': this.selectedFilters,
         }
       })
@@ -291,7 +339,7 @@ export default {
       if (this.yearBefore > 0)
         stats.push('deleted_emails_older_filter')
 
-      if (this.sizeGreatherThan > 0)
+      if (this.sizeGreaterThan > 0)
         stats.push('deleted_emails_larger_filter')
 
       if (this.selectedFilters.length > 0)
@@ -304,6 +352,8 @@ export default {
           .dispatch("stats/updateStatistics", {ids: statisticsIDs, value: value})
           .then(() => {
             for (const statisticID of statisticsIDs) {
+              // if no success is linked to statisticID then skip it
+              if(!this.successDetails[statisticID]) continue
               for (const success of this.successDetails[statisticID]) {
                 if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                   this.showSuccess(success.todo)
@@ -315,16 +365,18 @@ export default {
             console.log(err)
           })
     },
-    remove() {
+    deleteEmails() {
       const emailKeys = Object.keys(this.emails)
 
       let uids = {}
       let pks = []
+      let savedCarbon = 0
       for (const checkedEmail of this.checkedEmails) {
         let index = emailKeys[checkedEmail]
         let email = this.emails[index]
 
         pks.push(email.id)
+        savedCarbon += email.generated_carbon
 
         let selectedUids = uids[email.folder] || []
         selectedUids.push(email.uid)
@@ -335,6 +387,7 @@ export default {
 
       let statsIDs = this.getStatsToUpdate()
       this.updateStatisticsState(statsIDs, pks.length)
+      this.updateStatisticsState(['saved_carbon'], savedCarbon)
 
       this.reset = !this.reset
       getAPI
@@ -362,22 +415,12 @@ export default {
 </script>
 
 <style scoped>
-#options-button {
-  height: 100%;
-  border-radius: 15%;
-}
-
-#options-button:hover {
-  background-color: rgb(247, 245, 245);
-}
-
 .toolbox{
   position: -webkit-sticky; /* Safari */
   position: sticky;
   z-index: 2;
-  background-color: white;
-  top: 3rem;
+  top: 3.25rem;
+  background-color: rgb(255, 255, 255);
 }
-
 
 </style>

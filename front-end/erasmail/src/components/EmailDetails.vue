@@ -1,6 +1,5 @@
 <template>
     <div class="email-detail px-2" @mouseover="hover = true" @mouseleave="hover = false">
-        <span v-if="!email.seen" title="badge" class="badge is-danger is-top-right"></span>
         <strong>{{email.subject}}</strong>
         <p class="is-pulled-right">{{readableDate}}</p>
 
@@ -35,12 +34,20 @@
             </li>
         </ul>
 
+        <span class="icon is-pulled-right has-text-black">
+            <!-- unread email -->
+            <i v-if="!email.seen" class="far fa-envelope"></i>
+            <!-- read email -->
+            <i v-else class="far fa-envelope-open"></i>
+        </span>
+
         <div class="icon-text">
             <span class="icon">
                 <i class="fas fa-weight-hanging fa-xs"></i>
             </span>
             <span class="is-size-7">{{readableSize(email.size)}}</span>
         </div>
+
     </div>
 </template>
 
@@ -151,8 +158,6 @@ export default {
 </script>
 
 <style scoped>
-@import "./../../node_modules/@creativebulma/bulma-badge/dist/bulma-badge.min.css";
-
 .tag{
     float: right;
 }

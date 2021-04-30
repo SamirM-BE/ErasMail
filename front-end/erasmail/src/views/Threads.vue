@@ -116,6 +116,8 @@ export default {
           .dispatch("stats/updateStatistics", {ids: statisticID, value: value})
           .then(() => {
             for (const statisticID of statisticID) {
+              // if no success is linked to statisticID then skip it
+              if(!this.successDetails[statisticID]) continue
               for (const success of this.successDetails[statisticID]) {
                 if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                   this.showSuccess(success.todo)
@@ -130,16 +132,19 @@ export default {
     deleteEmailsOrAttachments(emails) {
       if (emails.count) {
         let url = '/api/emails/'
-        if (emails.onlyAttachments) {
-          url += 'attachments'
-        }
+        if (emails.onlyAttachments) url += 'attachments'
+
+        let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature']
+        const generatedCarbonInitial = this.threads.children[this.threadIndex].generated_carbon
+
         let deleted = false
         if (!emails.onlyAttachments && this.threads.children[this.threadIndex].children.length === emails.count) {
           // if all emails must me deleted then remove the whole thread
           this.threads.children.splice(this.threadIndex, 1)
+          this.updateStatisticsState(['saved_carbon'], generatedCarbonInitial)
           deleted = true
         }
-        let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature']
+
         this.updateStatisticsState(statisticID, emails.pks.length)
 
         getAPI
@@ -171,6 +176,7 @@ export default {
               if (response) {
                 let threadUpdated = response.data
                 this.threads.children[this.threadIndex] = threadUpdated
+                this.updateStatisticsState(['saved_carbon'], generatedCarbonInitial - threadUpdated.generated_carbon)
               }
             })
       }

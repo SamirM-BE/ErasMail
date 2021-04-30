@@ -37,7 +37,7 @@
 
         <div v-if="loggedIn" class="navbar-item badges">
           <div class="container is-flex is-justify-content-space-around py-1 is-clickable" @click="$router.push({name: 'user'})">
-            <figure v-for="(badge, idx) in badges" v-bind:key="idx" class="image is-32x32" :class="{'is-lock': badge.savedCarbon > savedCarbon}">
+            <figure v-for="(badge, idx) in badges" v-bind:key="idx" class="image is-32x32" :class="{'is-lock': badge.minValue > savedCarbon}">
               <img class="is-rounded" :src="require(`../assets/badges/sunflower-36/Sunflower${idx+1}.png`)">
             </figure>
           </div>
@@ -62,13 +62,13 @@
 
 <script>
 import {mapGetters} from "vuex";
-import {badgesData} from "@/gamification-data";
+import badgesData from "@/data/badges-data.json";
 export default {
   name: "Navbar",
   data() {
     return {
       showNav: false,
-      badges: badgesData,
+      badges: badgesData.data,
     };
   },
   computed: {
@@ -77,7 +77,11 @@ export default {
       return this.$route.name;
     },
     savedCarbon() {
-      return this.$store.state.stats.statistics.erasmail.saved_carbon
+      let statistics = this.$store.state.stats.statistics
+      if(statistics.erasmail) {
+        return statistics.erasmail.saved_carbon
+      }
+      return 0
     },
   },
   methods: {
@@ -89,9 +93,6 @@ export default {
           })
         })
     },
-    hello() {
-      console.log('hello')
-    }
   }
 }
 </script>

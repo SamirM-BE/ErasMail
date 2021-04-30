@@ -7,7 +7,7 @@
                 <p class="heading is-size-7" v-if="cmp==='or'">or</p>
                 <div v-else>
                     <div class="icon">
-                        <img :src="require(`../assets/${cmp.name}.svg`)"
+                        <img :src="require(`../assets/comparisons/${cmp.name}.svg`)"
                             alt="an image showing the comparison of the pollution generated"
                             :title="`This thread pollutes as much as ${cmp.msg}`">
                     </div>

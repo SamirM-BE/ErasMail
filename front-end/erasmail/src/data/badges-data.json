@@ -1,0 +1,26 @@
+{
+    "data":[
+        {
+            "minValue": 0
+        },
+        {
+            "minValue": 10
+        },
+        {
+            "minValue": 50
+        },
+        {
+            "minValue": 100 
+        },
+        {
+            "minValue": 300 
+        },
+        {
+            "minValue": 500 
+        },
+        {
+            "minValue": 1000
+        }
+    ],
+    "_comment": "minValue expressed in grams"
+}

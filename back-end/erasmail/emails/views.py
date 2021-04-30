@@ -126,6 +126,7 @@ class EmailView(APIView):
         seen = request.query_params.get("seen") == "true"
         selected_filters = request.query_params.getlist("selected_filters[]")
 
+        ordered_by = request.query_params.get("ordered_by")
         folder = request.query_params.get("folder")
 
         user = request.user
@@ -142,19 +143,12 @@ class EmailView(APIView):
         if folder:
             emails_headers = emails_headers.filter(folder__iexact=folder)
         if selected_filters:
-            # sender_emails = [
-            #     # emails to yourself
-            #     # 'amazon',
-            #     # 'aliexpress',
-            #     # 'zoom',
-            #     # 'uber',
-            # ]
             try:
                 emails_headers = emails_headers.apply_filters(selected_filters)
             except AttributeError:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        emails_headers = emails_headers.order_by('-received_at')
+        emails_headers = emails_headers.order_by(ordered_by)
 
         carbon_data = emails_headers.get_carbon_stats()
 
@@ -357,8 +351,9 @@ class Statistics(APIView):
                 "received" : email_stats_data['received'],
                 "read" : email_stats_data['read'],
                 ** emails_headers.get_unseen_emails_stats(),
-                ** emails_headers.get_older_3Y_stats(3), # we hardcode 3 because in the front-end we need only stats about emails older than 3 years
-                ** emails_headers.get_larger_1MB_stats(1000000), # same but larger than 1 MB (1000000 bytes)
+                ** emails_headers.get_older_3Y_stats(),
+                ** emails_headers.get_larger_1MB_stats(),
+                ** emails_headers.get_useless_stats(),
             }
 
             print("samir:", emails_stats)
@@ -389,6 +384,7 @@ class Statistics(APIView):
             emailbox_stats = {
                 "emailbox_size" : email_stats_data['emailbox_size'],
                 "carbon" : email_stats_data['emailbox_carbon'],
+                "carbon_forecast" : email_stats_data['emailbox_carbon_forecast'],
                 "initial_carbon" : email_stats_data['emailbox_initial_carbon'],
                 "created_since_months" : email_stats_data['created_since_months'],
 

@@ -7,8 +7,8 @@
                 <strong>{{ readableCo2 }}</strong> of CO<sub>2</sub> so far...
             </h3>
             <h4 v-if="pollutionComparison.comparison" class="is-size-4 has-text-right is-italic">
-                The environmental impact of your conversation<span v-if="itemCount > 1">s</span> on the
-                planet is about the same as if <strong>{{pollutionComparison.comparison.msg}}</strong>
+                The environmental impact of your email<span v-if="itemCount > 1">s</span> on the
+                planet is about the same as <strong>{{pollutionComparison.comparison.msg}}</strong>
             </h4>
             <br>
             <p v-if="forecastPollutionComparison.comparison" class="is-italic">{{ forecastMsg }} {{forecastPollutionComparison.comparison.msg}}</p>

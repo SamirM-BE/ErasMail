@@ -1,19 +1,19 @@
 {
   "connected_count": [
     {
-      "todo": "Connect to ErasMail two times",
+      "todo": "Connect to ErasMail 2 times",
       "minValue": 2,
       "difficulty": 1,
       "done": false
     },
     {
-      "todo": "Connect to ErasMail five times",
+      "todo": "Connect to ErasMail 5 times",
       "minValue": 5,
       "difficulty": 2,
       "done": false
     },
     {
-      "todo": "Connect to ErasMail ten times",
+      "todo": "Connect to ErasMail 10 times",
       "minValue": 10,
       "difficulty": 3,
       "done": false

@@ -1,7 +1,7 @@
 <template>
     <form>
         <div class="field" v-for="(email, index) in emails" :key="index">
-            <div class="box control px-0 py-1">
+            <div class="box control px-0 py-1" :class="{'has-background-white-ter':!email.seen}">
                 <input type="checkbox" class="m-5" :value="index" :id="index" v-model="checkedEmails">
                 <label :for="index" class="checkbox">
                     <EmailDetails class="has-border-left" :email="email" :attachmentStyles="attachmentStylesList[index]">

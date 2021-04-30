@@ -48,7 +48,7 @@
         </div>
 
         <hr />
-        <button class="button has-text-white has-background-primary-dark is-fullwidth" :disabled="hideSubmit">
+        <button class="button has-text-white has-background-primary-dark is-fullwidth" :class="{'is-loading': isLookingHost}" :disabled="hideSubmit">
           Log in
         </button>
       </form>
@@ -57,7 +57,7 @@
 </template>
 
 <script>
-import {fetchConfiguration} from '../MailConfig.js'
+import {fetchConfiguration} from '@/utils/MailConfig.js'
 
 export default {
   name: "Login",
@@ -68,6 +68,7 @@ export default {
       app_password: "",
       host: "",
       askForHost: false,
+      isLookingHost: false,
     };
   },
   computed: {
@@ -81,6 +82,7 @@ export default {
   },
   methods: {
     login() {
+      this.isLookingHost = true
       const that = this
       fetchConfiguration(
           this.email,
@@ -101,10 +103,15 @@ export default {
                 })
                 .catch((err) => {
                   console.log(err);
+                  
                   that.incorrectAuth = true;
+                })
+                .finally(() =>{
+                  that.isLookingHost = false
                 });
           },
           function(){
+            that.isLookingHost = false
             that.askForHost = true
             console.log("fetch failed")
           }

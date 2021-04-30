@@ -38,10 +38,22 @@
 export default {
   name: "FlippingCard",
   props: {
-    frontTitle: String,
-    frontData: String,
-    backTitle: String,
-    backData: String
+    frontTitle: {
+      type: String,
+      default: '',
+    },
+    frontData: {
+      type: String,
+      default: '',
+    },
+    backTitle: {
+      type: String,
+      default: '',
+    },
+    backData: {
+      type: String,
+      default: '',
+    },
   }
 };
 </script>

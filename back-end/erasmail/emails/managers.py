@@ -192,7 +192,8 @@ class EmailHeadersQuerySet(models.QuerySet):
             carbon_yforecast=Coalesce(Sum('carbon_yforecast'), 0),
         )
 
-    def get_older_3Y_stats(self, year):
+    def get_older_3Y_stats(self):
+        year = 3 # we hardcode 3 because in the front-end we need only stats about emails older than 3 years
         return self.aggregate(
             emails_older_3Y_count=Count(
                 'pk',
@@ -203,19 +204,31 @@ class EmailHeadersQuerySet(models.QuerySet):
                 Sum('generated_carbon',
                     filter=Q(received_at__lte=timezone.now() -  timedelta(days=int(year*365.25)))
                     ), 0),
-            emails_unseen_before_co2=Coalesce(
-                Sum('generated_carbon',
-                    filter=Q(seen=False, received_at__lte=timezone.now() - timedelta(days=int(year*365.25)))
+            emails_older_3Y_carbon_yforecast=Coalesce(
+                Sum('carbon_yforecast',
+                    filter=Q(received_at__lte=timezone.now() -  timedelta(days=int(year*365.25)))
                     ), 0),
         )
     
-    def get_larger_1MB_stats(self, size):
+    def get_larger_1MB_stats(self):
+        size = 1000000 # we hardcode 1000000 because in the front-end we need only stats about emails larger than 1 MB (1000000 bytes)
         return self.aggregate(
             emails_larger_1MB_count=Count('pk',
                                       filter=Q(size__gte=size)),
             emails_larger_1MB_carbon=Coalesce(Sum("generated_carbon",
                                            filter=Q(size__gte=size)), 0),
+            emails_larger_1MB_carbon_yforecast=Coalesce(Sum("carbon_yforecast",
+                                           filter=Q(size__gte=size)), 0),
         )
+
+    def get_useless_stats(self):
+        return self.apply_filters(
+            ['reminder', 'welcome', 'invitation', 'meeting', 'verification', 'update', 'confirmation', 'social', 'no_reply']
+            ).aggregate(
+                emails_useless_count=Count('pk'),
+                emails_useless_carbon=Coalesce(Sum("generated_carbon"), 0),
+                emails_useless_carbon_yforecast=Coalesce(Sum("carbon_yforecast"), 0),
+            )
 
     def get_unseen_emails_stats(self):
         return self.aggregate(
@@ -242,6 +255,7 @@ class EmailHeadersQuerySet(models.QuerySet):
         return self.aggregate(
             emailbox_size=Coalesce(Sum('size'),0),
             emailbox_carbon=Coalesce(Sum('generated_carbon'),0),
+            emailbox_carbon_forecast=Coalesce(Sum('carbon_yforecast'),0),
             emails_count=Count('pk'),
             read=Count('pk', filter=Q(seen=True)),
             received=Count('pk', filter=Q(owner__email=F('receiver_email'))),
@@ -328,6 +342,7 @@ class NewsletterQuerySet(models.QuerySet):
             ),
             total=Count("pk"),
             carbon=Coalesce(Sum("generated_carbon"), 0),
+            carbon_yearly_forecast=Coalesce(Sum("forecasted_carbon"), 0),
             emails_count=Coalesce(Sum("emails_cnt"), 0),
             subscribed=Count("pk", filter=Q(unsubscribed=False)),
         )

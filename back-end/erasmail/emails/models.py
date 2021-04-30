@@ -12,6 +12,7 @@ class EmailStats(models.Model):
     emailbox_size = models.PositiveIntegerField(null=False, help_text="Emailbox current size (bytes)")
     emailbox_initial_carbon = models.FloatField(null=False, validators=[MinValueValidator(0.0)], help_text="Carbon equivalent of the emailbox at the first connection ever")
     emailbox_carbon = models.FloatField(null=False, default=0, validators=[MinValueValidator(0.0)], help_text="Emailbox current carbon equivalent")
+    emailbox_carbon_forecast = models.FloatField(null=False, default=0, validators=[MinValueValidator(0.0)], help_text="Forecast of the emailbox yearly pollution")
     emails_count  =  models.PositiveIntegerField(null=False)
     read = models.PositiveIntegerField(null=False)
     received = models.PositiveIntegerField(null=False)

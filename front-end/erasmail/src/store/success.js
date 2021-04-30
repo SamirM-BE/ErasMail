@@ -1,4 +1,4 @@
-import successDetails from '../success-data.json'
+import successDetails from '@/data/success-data.json'
 
 const getDefaultState = () => {
     return {

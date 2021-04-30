@@ -1,7 +1,8 @@
 <template>
-    <div class="dropdown" :class="{'is-active': showDropdown}">
-        <div class="dropdown-trigger" @click="showDropdown = !showDropdown">
-            <button class="button" aria-haspopup="true" aria-controls="dropdown">
+    <div class="dropdown is-fullwidth" :class="{'is-active': showDropdown}">
+        <div class="dropdown-trigger is-fullwidth" @click="showDropdown = !showDropdown">
+            <button class="button is-fullwidth has-background-success-light is-flex is-justify-content-space-between" aria-haspopup="true"
+                aria-controls="dropdown">
                 <span v-if="currentValue==defaultValue">{{defaultText}}</span>
                 <span v-else>{{toText(currentValue)}}</span>
                 <span class="icon is-small">
@@ -30,7 +31,7 @@ export default {
         },
         toText: {
             type: Function,
-            required: true
+            default: x => x, // by defaut the identity function 
         },
         defaultValue: {
             type: [String, Number],
@@ -69,6 +70,8 @@ export default {
 }
 </script>
 
-<style>
-
+<style scoped>
+.is-fullwidth{
+    width: 100%;
+}
 </style>

@@ -50,55 +50,56 @@
 
       <section class="user-top message is-link m-4">
         <div class="message-body py-3 is-flex is-justify-content-space-between">
-          <!-- To put congratulation at the middle TODO improve it -->
-          <div></div>
+          <div class="user-data is-flex-basis-0 is-flex-grow-1">
+            <div class="has-text-black">
+              <p><strong>Email:</strong> {{ currentEmail }}</p>
+              <p><strong>Nickname:</strong> {{ currentNickname }}</p>
+            </div>
+            <div id="change-nickname">
+              <button v-if="!showSettings" class="button is-rounded is-small is-link is-light has-text-link-dark p-0"
+                @click="showSettings=!showSettings">
+                <u>Change nickname</u>
+              </button>
+              <div v-else class="nickname-form mt-1">
+                <div class="field">
+                  <p class="control">
+                    <input v-model="newNickname" class="input is-small" placeholder="New nickname" type="text"
+                      @keyup.enter="changeNickname()">
+                  </p>
+                </div>
+                <div class="field is-grouped">
+                  <div class="control">
+                    <button class="button is-small is-success is-light is-outlined" @click="changeNickname()">
+                      Save
+                    </button>
+                  </div>
+                  <div class="control">
+                    <button class="button is-small is-danger is-light is-outlined" @click="showSettings=!showSettings">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="congratulation has-text-centered">
-            <h3 class="is-size-3">Congratulations you deleted {{ deletedEmails }} e-mails</h3>
+            <h3 class="is-size-3">Congratulations you deleted {{ deletedEmails }} emails</h3>
             <h3 class="is-size-3"> and saved more than {{ readableCo2(savedCarbon) }} of CO<sub>2</sub> !</h3>
             <h4 v-if="pollutionComparison.comparison" class="is-size-4">This is equivalent to
               <strong>{{ pollutionComparison.comparison.msg }}</strong></h4>
           </div>
 
-          <div class="user-data">
-            <div class="columns is-multiline">
-              <div class="column is-narrow">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="https://bulma.io/images/placeholders/128x128.png">
-                </figure>
-              </div>
-              <div class="column has-text-black pb-0">
-                <p><strong>Email:</strong></p>
-                <p>{{ currentEmail }}</p>
-                <p><strong>Nickname:</strong></p>
-                <p>{{ currentNickname }}</p>
-              </div>
-            </div>
-            <button v-if="!showSettings" class="button is-small is-text has-text-black px-0"
-              @click="showSettings=!showSettings">Change
-              nickname
-            </button>
-            <div v-else class="field is-grouped">
-              <p class="control">
-                <input v-model="newNickname" class="input" placeholder="New nickname" type="text">
-              </p>
-              <p class="control">
-                <button class="button is-success is-light is-outlined" @click="changeNickname()">
-                  Save
-                </button>
-                <!-- save if enter is pressed -->
-                <!-- button to cancel it -->
-              </p>
-            </div>
-          </div>
+          <!-- help to center the congratulation message -->
+          <div class="is-flex-basis-0 is-flex-grow-1"/>
         </div>
       </section>
 
       <!-- BADGES -->
       <section v-if="selectedView == 'Profile'" class="section badges-section">
         <div class="container grid-badges-container has-background-success-light">
-          <div v-for="(badge, idx) in badges" v-bind:key="idx" :class="{'is-lock': !badge.done}"
-               :title="badge.savedCarbon ? `Save ${readableCo2(badge.savedCarbon)} of CO2`: 'Connect for the first time to ErasMail'">
+          <div v-for="(badge, idx) in badges" v-bind:key="idx" :class="{'is-lock': badge.minValue > savedCarbon}"
+               :title="badge.minValue ? `Save ${readableCo2(badge.minValue)} of CO2`: 'Connect for the first time to ErasMail'">
             <figure class="image p-3 has-background-green-light">
               <img :src="require(`../assets/badges/sunflower-600/Sunflower${idx+1}.png`)">
             </figure>
@@ -106,12 +107,10 @@
         </div>
         <h4 class="is-size-4 has-text-centered mt-4">
           <div v-if="nextBadgeSavedCarbon">
-            Still {{ readableCo2(nextBadgeSavedCarbon - savedCarbon) }} of CO<sub>2</sub> to save to unlock the next
-            badge
+            <p>Save {{ readableCo2(nextBadgeSavedCarbon - savedCarbon) }} of CO<sub>2</sub> to unlock the next badge</p>
+            <progress class="progress progress-message is-link is-small" :value="savedCarbon" :max="nextBadgeSavedCarbon"/>
           </div>
-          <div v-else>
-            You have unlocked all badges
-          </div>
+          <p v-else>You have unlocked all badges</p>
         </h4>
       </section>
 
@@ -135,7 +134,8 @@
           </div>
         </div>
         <h4 class="is-size-4 has-text-centered mt-4">
-          Still {{ lockedSuccessCount }} achievements to unlock
+          <p>{{ lockedSuccessCount }} success to unlock</p>
+          <progress class="progress progress-message is-link is-small" :value="successList.length - lockedSuccessCount" :max="successList.length"/>
         </h4>
       </section>
 
@@ -148,7 +148,7 @@
               <th>Rank</th>
               <th>Nickname</th>
               <th>Deleted emails</th>
-              <th>CO<sub>2</sub> saved</th>
+              <th>Saved CO<sub>2</sub></th>
               <th>Score</th>
             </tr>
             </thead>
@@ -163,9 +163,6 @@
             </tbody>
           </table>
         </div>
-        <h4 class="is-size-4 has-text-centered mt-4">
-          Remove 2 emails to move up one place in the ranking (TODO)
-        </h4>
       </section>
     </div>
   </div>
@@ -175,7 +172,7 @@
 
 <script>
 import {getAPI} from "../axios-api";
-import {badgesData} from "@/gamification-data";
+import badgesData from "@/data/badges-data.json";
 import {getOptimalComparison} from "../utils/pollution";
 import {mapGetters} from "vuex";
 
@@ -192,7 +189,7 @@ export default {
       currentNickname: "",
       newNickname: "",
 
-      badges: badgesData,
+      badges: badgesData.data,
 
       currentUserId: 0,
       leaderboardData: [],
@@ -215,8 +212,10 @@ export default {
       return -1
     },
     savedCarbon() {
-      if (this.leaderboardData.length) {
-        return this.leaderboardData[this.currentUserIdx].saved_carbon
+      let statistics = this.$store.state.stats.statistics
+      if(statistics.erasmail) {
+        console.log('statistics.erasmail.saved_carbon', statistics.erasmail.saved_carbon)
+        return statistics.erasmail.saved_carbon
       }
       return 0
     },
@@ -235,8 +234,8 @@ export default {
     },
     nextBadgeSavedCarbon() {
       for (const badge of this.badges) {
-        if (!badge.done) {
-          return badge.savedCarbon
+        if (badge.minValue > this.savedCarbon) {
+          return badge.minValue
         }
       }
       return 0
@@ -273,13 +272,6 @@ export default {
           .then((response) => {
             this.leaderboardData = response.data.users_stats
             this.currentUserId = response.data.current_user_id
-
-            // update the badges obtained
-            for (const badge of this.badges) {
-              if (badge.savedCarbon <= this.savedCarbon) {
-                badge.done = true
-              }
-            }
           })
           .catch((err) => {
             console.log(err);
@@ -369,6 +361,10 @@ li a:hover {
   background-color: hsl(142, 52%, 85%);
 }
 
+.is-flex-basis-0{
+  flex-basis: 0;
+}
+
 .grid-badges-container {
   display: grid;
   width: 100%;
@@ -382,12 +378,21 @@ li a:hover {
   border-radius: 0.75rem;
 }
 
+.nickname-form .input{
+  width: 50%;
+}
+
 .nickname {
   width: 60%;
 }
 
-.progress-stats{
+.progress-stats {
   width: 5%;
+}
+
+.progress-message {
+  margin: auto;
+  width: 50%;
 }
 
 .section .container {

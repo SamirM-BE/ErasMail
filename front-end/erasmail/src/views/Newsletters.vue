@@ -1,13 +1,13 @@
 <template>
   <AwarenessMessage :co2="totalCarbon" :forecastCarbon="totalForecastedCarbon"
-                    :forecastMsg="`Keeping these newsletters for another year will have an additional impact equivalent to `"
+                    :forecastMsg="`Keeping these newsletters for one more additional year will generate as much CO2 as `"
                     :itemCount="newslettersCount"
                     :itemName="'newsletters'"/>
   <!--  <div class="notification is-success">-->
   <!--    <button class="delete"></button>-->
   <!--    Unlocked Success : Connect to ErasMail two different days !-->
   <!--  </div>-->
-  <div class="container newsletters">
+  <div class="container newsletters mb-4">
     <div v-for="(newsletter, index) in newsletters" :key="index" class="field">
       {{ isUnsubscribed(index) }}
       <transition name="fade">
@@ -48,7 +48,7 @@
                 </span>
                 <span>{{ Math.round(newsletter.avg_daily_emails * 365.25) }}</span>
               </span>
-              <p class="has-text-weight-bold">Last email received : {{ newsletter.received_at }}</p>
+              <p class="has-text-weight-bold">Last received email: {{ newsletter.received_at }}</p>
             </div>
             <div class="buttontop">
               <button v-if="!newsletter.unsubscribed" class="button is-small  is-info p-1"
@@ -99,7 +99,6 @@
 import {getAPI} from "@/axios-api";
 import AwarenessMessage from "../components/AwarenessMessage";
 import {useToast} from "vue-toastification";
-// import {successDetails} from "@/gamification-data";
 
 export default {
   name: "Newsletters",
@@ -214,6 +213,7 @@ export default {
 
       let statisticID = 'deleted_emails_newsletters_feature'
       this.updateStatisticsState(statisticID, newsletter.emails_cnt)
+      this.updateStatisticsState(['saved_carbon'], newsletter.generated_carbon)
 
       this.newsletters[clickedNewsletter].emails_cnt = 0
       this.newsletters[clickedNewsletter].seen_emails_cnt = 0
@@ -253,6 +253,8 @@ export default {
     updateStatisticsState(statisticID, value) {
       this.$store.dispatch("stats/updateStatistics", {ids: [statisticID], value: value})
           .then(() => {
+            // if no success is linked to statisticID then skip it
+            if(!this.successDetails[statisticID]) return
             for (const success of this.successDetails[statisticID]) {
               if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                 this.showSuccess(success.todo)
