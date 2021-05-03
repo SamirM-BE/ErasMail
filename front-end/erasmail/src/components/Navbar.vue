@@ -51,7 +51,7 @@
 
         
         <div class="navbar-item">
-          <router-link v-if="!loggedIn && currentRouteName !== 'login'" :to="{ name: 'login' }" class="button is-primary" exact>Login</router-link>
+          <!-- <router-link v-if="!loggedIn && currentRouteName !== 'login'" :to="{ name: 'login' }" class="button is-primary" exact>Login</router-link> -->
           <button v-if="loggedIn" class="button is-danger"  @click="logout()">Logout</button>
         </div>
         

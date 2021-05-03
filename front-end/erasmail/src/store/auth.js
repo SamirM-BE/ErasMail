@@ -3,6 +3,7 @@ import {axiosBase, getAPI} from '../axios-api'
 export const auth = {
     namespaced: true,
     state: {
+        email: null,
         accessToken: null,
         refreshToken: null,
         app_password: null,
@@ -29,7 +30,11 @@ export const auth = {
         updateAccess(state, access) {
             state.accessToken = access
         },
+        updateEmail(state, email) {
+            state.email = email
+        },
         destroyAuth(state) {
+            state.email =  null
             state.accessToken = null
             state.refreshToken = null
             state.app_password = null
@@ -37,6 +42,9 @@ export const auth = {
         }
     },
     actions: {
+        updateEmail(context, email) {
+            return context.commit('updateEmail', email)
+        },
         // run the below action to get a new access token on expiration
         refreshToken(context) {
             return axiosBase.post('api/token-refresh/', {

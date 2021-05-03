@@ -16,6 +16,7 @@
     "bulma-pageloader": "^0.3.0",
     "bulma-pricingtable": "^0.2.0",
     "bulma-social": "^2.0.0",
+    "bulma-steps-component": "^0.5.3",
     "byte-size": "^7.0.0",
     "convert-units": "^2.3.4",
     "core-js": "^3.6.5",

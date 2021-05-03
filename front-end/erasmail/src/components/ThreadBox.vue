@@ -19,6 +19,13 @@
       </div>
     </section>
 
+    <span class="icon-text has-text-link" title="Number of emails from this conversation">
+      <span class="icon">
+        <i class="fas fa-envelope"></i>
+      </span>
+      {{emailCount}}
+    </span>
+
     <ThreeBestComparison :show="hover" :co2="co2"
       title="The carbon footprint of this conversation is the same as:" />
 
@@ -47,6 +54,10 @@ export default {
   props: {
     subject: {
       type: String,
+      required: true
+    },
+    emailCount: {
+      type: Number,
       required: true
     },
     co2: {

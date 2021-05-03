@@ -12,7 +12,9 @@
         <ThreadBox v-for="(thread, idx) in threadsSorted" v-bind:key="idx" :co2="thread.generated_carbon"
                    :created_at="new Date(thread.children[0].received_at)"
                    :size="thread.size"
-                   :subject="thread.subject" class="thread-box"
+                   :subject="thread.subject"
+                   :emailCount="thread.children.length"
+                   class="thread-box"
                    @click="showModal(thread.subject, thread.children, idx)"></ThreadBox>
       </div>
     </div>

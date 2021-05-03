@@ -182,10 +182,9 @@ export default {
     getNewsletterOpenRate(newsletter) {
       if (newsletter.emails_count !== 0 && newsletter.seen_emails_cnt !== 0) {
         let open_rate = newsletter.seen_emails_cnt / newsletter.emails_cnt * 100
-        open_rate = open_rate.toPrecision(2)
-        return open_rate
-      } else
-        return 0
+        return Math.round(open_rate)
+      }
+      return 0
     },
     parseMailTo(s) {
       var r = {};
