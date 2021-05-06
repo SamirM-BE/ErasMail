@@ -82,9 +82,9 @@ celerybeat-schedule
 
 # dotenv
 .env
-/.env.prod
-/.env.dev
-/.env.prod.db
+.env.prod
+.env.dev
+.env.prod.db
 
 # virtualenv
 .venv
