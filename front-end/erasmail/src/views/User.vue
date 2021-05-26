@@ -57,14 +57,14 @@
             </div>
             <div id="change-nickname">
               <button v-if="!showSettings" class="button is-rounded is-small is-link is-light has-text-link-dark p-0"
-                @click="showSettings=!showSettings">
+                      @click="showSettings=!showSettings">
                 <u>Change nickname</u>
               </button>
               <div v-else class="nickname-form mt-1">
                 <div class="field">
                   <p class="control">
                     <input v-model="newNickname" class="input is-small" placeholder="New nickname" type="text"
-                      @keyup.enter="changeNickname()">
+                           @keyup.enter="changeNickname()">
                   </p>
                 </div>
                 <div class="field is-grouped">
@@ -95,6 +95,7 @@
         </div>
       </section>
 
+
       <!-- BADGES -->
       <section v-if="selectedView == 'Profile'" class="section badges-section">
         <div class="container grid-badges-container has-background-success-light">
@@ -108,17 +109,36 @@
         <h4 class="is-size-4 has-text-centered mt-4">
           <div v-if="nextBadgeSavedCarbon">
             <p>Save {{ readableCo2(nextBadgeSavedCarbon - savedCarbon) }} of CO<sub>2</sub> to unlock the next badge</p>
-            <progress class="progress progress-message is-link is-small" :value="savedCarbon" :max="nextBadgeSavedCarbon"/>
+            <progress :max="nextBadgeSavedCarbon" :value="savedCarbon"
+                      class="progress progress-message is-link is-small"/>
           </div>
           <p v-else>You have unlocked all badges</p>
         </h4>
+        <div class="social-sharing is-flex is-justify-content-center">
+          <button class="button is-small m-3 is-facebook"
+                  @click="openWindowSharing(facebookLink, 'facebook', 'badge')">
+                <span class="icon">
+                  <i class="fab fa-facebook"></i>
+                </span>
+            <span>Share on Facebook</span>
+          </button>
+          <button class="button is-small m-3 is-twitter"
+                  @click="openWindowSharing(twitterLink, 'twitter', 'badge')">
+                <span class="icon">
+                  <i class="fab fa-twitter"></i>
+                </span>
+            <span>Share on Twitter</span>
+          </button>
+        </div>
       </section>
 
       <!-- SUCCESS -->
       <section v-else-if="selectedView == 'Success'" class="section success-section">
         <div class="container success-container has-background-success-light">
-          <div v-for="(success, idx) in successList" v-bind:key="idx" :class="{'is-lock': successData[success.id]<success.minValue}"
-               :title="success.todo" class="box m-4 p-1 has-background-green-light is-flex is-justify-content-space-between">
+          <div v-for="(success, idx) in successList" v-bind:key="idx"
+               :class="{'is-lock': successData[success.id]<success.minValue}"
+               :title="success.todo"
+               class="box m-4 p-1 has-background-green-light is-flex is-justify-content-space-between">
             <span class="icon-text is-flex is-align-items-center"> 
               <span
                   :class="{'has-text-bronze': success.difficulty == 1, 'has-text-silver': success.difficulty == 2, 'has-text-gold': success.difficulty == 3}"
@@ -128,15 +148,34 @@
               <span>{{ success.todo }}</span>
             </span>
             <div class="progress-stats mb-1 is-align-self-flex-end">
-              <p class="is-size-7 is-pulled-right mr-1">{{Math.min(success.minValue, successData[success.id])}} / {{success.minValue}}</p>
-              <progress class="progress is-success is-smaller" :value="Math.min(success.minValue, successData[success.id])" :max="success.minValue"/>
+              <p class="is-size-7 is-pulled-right mr-1">{{ Math.min(success.minValue, successData[success.id]) }} /
+                {{ success.minValue }}</p>
+              <progress :max="success.minValue"
+                        :value="Math.min(success.minValue, successData[success.id])" class="progress is-success is-smaller"/>
             </div>
           </div>
         </div>
         <h4 class="is-size-4 has-text-centered mt-4">
           <p>{{ lockedSuccessCount }} success to unlock</p>
-          <progress class="progress progress-message is-link is-small" :value="successList.length - lockedSuccessCount" :max="successList.length"/>
+          <progress :max="successList.length" :value="successList.length - lockedSuccessCount"
+                    class="progress progress-message is-link is-small"/>
         </h4>
+        <div class="social-sharing is-flex is-justify-content-center">
+          <button class="button is-small m-3 is-facebook"
+                  @click="openWindowSharing(facebookLink, 'facebook', 'success')">
+                <span class="icon">
+                  <i class="fab fa-facebook"></i>
+                </span>
+            <span>Share on Facebook</span>
+          </button>
+          <button class="button is-small m-3 is-twitter"
+                  @click="openWindowSharing(twitterLink, 'twitter', 'success')">
+                <span class="icon">
+                  <i class="fab fa-twitter"></i>
+                </span>
+            <span>Share on Twitter</span>
+          </button>
+        </div>
       </section>
 
       <!-- LEADERBOARD -->
@@ -162,6 +201,25 @@
             </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section class="section leaderbord-social">
+        <div class="social-sharing is-flex is-justify-content-center">
+          <button class="button is-small m-3 is-facebook"
+                  @click="openWindowSharing(facebookLink, 'facebook', 'leaderboard')">
+                <span class="icon">
+                  <i class="fab fa-facebook"></i>
+                </span>
+            <span>Share on Facebook</span>
+          </button>
+          <button class="button is-small m-3 is-twitter"
+                  @click="openWindowSharing(twitterLink, 'twitter', 'leaderboard')">
+                <span class="icon">
+                  <i class="fab fa-twitter"></i>
+                </span>
+            <span>Share on Twitter</span>
+          </button>
         </div>
       </section>
     </div>
@@ -191,9 +249,16 @@ export default {
 
       badges: badgesData.data,
 
+      unlockedBadgesCount: 0,
+      unlockedSuccessCount: 0,
+      leaderboardRank : 0,
+
       currentUserId: 0,
       leaderboardData: [],
       connected_count: 0,
+
+      facebookLink: 'https://www.facebook.com/sharer/sharer.php?u=@u&title=@t&description=@d&quote=@q&hashtag=@h',
+      twitterLink: 'https://twitter.com/intent/tweet?text=@t&url=@u&hashtags=@h@tu',
     }
   },
   created() {
@@ -213,7 +278,7 @@ export default {
     },
     savedCarbon() {
       let statistics = this.$store.state.stats.statistics
-      if(statistics.erasmail) {
+      if (statistics.erasmail) {
         console.log('statistics.erasmail.saved_carbon', statistics.erasmail.saved_carbon)
         return statistics.erasmail.saved_carbon
       }
@@ -230,7 +295,7 @@ export default {
     },
     lockedSuccessCount() {
       // return the number of success to unlock
-      return this.successList.reduce((a, b) => a + (this.successData[b.id]<b.minValue  || 0), 0)
+      return this.successList.reduce((a, b) => a + (this.successData[b.id] < b.minValue || 0), 0)
     },
     nextBadgeSavedCarbon() {
       for (const badge of this.badges) {
@@ -239,7 +304,7 @@ export default {
         }
       }
       return 0
-    }
+    },
   },
   methods: {
     fetchCurrentUser() {
@@ -314,12 +379,62 @@ export default {
             // TODO : si plus grand que 20 char alors erreur le gerer
             console.log(err);
           });
-    }
+    },
+    countUnlockedBadges() {
+      let unlockedBadges = 0
+      for (const badge of this.badges) {
+        if (badge.minValue <= this.savedCarbon) {
+          unlockedBadges++
+        }
+      }
+      this.unlockedBadgesCount = unlockedBadges
+
+      this.unlockedSuccessCount = this.successList.length - this.lockedSuccessCount
+      this.leaderboardRank = this.currentUserIdx+1
+
+    },
+    openWindowSharing(mediaLink, media, gamificationType) {
+      this.countUnlockedBadges()
+      let promotionalText = ""
+      if(gamificationType=="badge"){
+        promotionalText =
+            `I unlocked ${this.unlockedBadgesCount} badge${this.unlockedBadgesCount>1? 's':''} by saving ${Math.round(this.savedCarbon)}g of CO2 using ErasMail ! \n
+            Storing emails has an environmental cost, behind these emails there are servers using electricity. You too can contribute to make the planet a little greener!`
+      }
+      else if(gamificationType=="success") {
+        promotionalText =
+            `I unlocked ${this.unlockedBadgesCount} success on ErasMail by cleaning my mailbox ! \n
+            Storing emails has an environmental cost, behind these emails there are servers using electricity. You too can contribute to make the planet a little greener!`
+      }
+      else if(gamificationType=="leaderboard"){
+        promotionalText =
+            `I'm ${this.leaderboardRank}th in the leaderbord, try to beat me by cleaning your mailbox with ErasMail ! \n
+            Storing emails has an environmental cost, behind these emails there are servers using electricity. You too can contribute to make the planet a little greener!`
+      }
+
+      //Twitter sharing shouldn't include empty parameter
+      if (media === 'twitter') {
+        mediaLink = mediaLink.replace('&hashtags=@h', '')
+        mediaLink = mediaLink.replace('@tu', '')
+      }
+      mediaLink = mediaLink.replace(/@tu/g, '&via=' + encodeURIComponent(''))
+          .replace(/@u/g, encodeURIComponent('https://www.erasmail.com'))
+          .replace(/@q/g, encodeURIComponent(promotionalText))
+          .replace(/@d/g, encodeURIComponent(''))
+          .replace(/@t/g, encodeURIComponent(promotionalText))
+          .replace(/@h/g, '')
+          .replace(/@m/g, encodeURIComponent(media))
+      window.open(mediaLink, "_blank", `width=${window.screen.width / 2},height=${window.screen.height / 2}`)
+    },
   }
 }
 </script>
 
+
 <style scoped>
+@import "./../../node_modules/bulma-social/css/single/facebook/facebook.min.css";
+@import "./../../node_modules/bulma-social/css/single/twitter/twitter.min.css";
+
 .sidebar {
   background: hsl(171, 100%, 22%);
   min-height: calc(100vh - 2.5rem)
@@ -341,7 +456,7 @@ li a:hover {
   opacity: 0.4;
 }
 
-.is-smaller{
+.is-smaller {
   height: 0.4rem;
 }
 
@@ -361,7 +476,7 @@ li a:hover {
   background-color: hsl(142, 52%, 85%);
 }
 
-.is-flex-basis-0{
+.is-flex-basis-0 {
   flex-basis: 0;
 }
 
@@ -378,7 +493,7 @@ li a:hover {
   border-radius: 0.75rem;
 }
 
-.nickname-form .input{
+.nickname-form .input {
   width: 50%;
 }
 
