@@ -3,8 +3,8 @@
        role="navigation">
     <!-- LOGO ErasMail -->
     <div class="navbar-brand">
-      <router-link :to="{ name: 'landingpage' }" class="navbar-item" exact><strong>ErasMail</strong></router-link>
-
+      <router-link v-if="loggedIn" :to="{ name: 'home' }" class="navbar-item" exact><strong>ErasMail</strong></router-link>
+      <router-link v-else :to="{ name: 'landingpage' }" class="navbar-item" exact><strong>ErasMail</strong></router-link>
       <a :class="{ 'is-active': showNav }" aria-expanded="false" aria-label="menu" class="navbar-burger"
          data-target="navbar" role="button" @click="showNav = !showNav">
         <span aria-hidden="true"></span>
@@ -17,7 +17,7 @@
     <div id="navbar" class="navbar-menu" :class="{ 'is-active': showNav }">
       <!-- Left side -->
       <div class="navbar-start">
-        <router-link v-if="loggedIn" :to="{ name: 'home' }" class="navbar-item">Menu</router-link>
+        <router-link v-if="!loggedIn && currentRouteName !== 'home'" :to="{ name: 'home' }" class="navbar-item">Menu</router-link>
         
         <div class="navbar-item has-dropdown is-hoverable is-hidden">
           <a class="navbar-link"> More </a>

@@ -15,6 +15,10 @@ const routes = [
     path: '/',
     name: 'landingpage',
     component: LandingPage,
+    beforeEnter: (to, from, next) => {
+      if (!store.getters['auth/loggedIn']) next()
+      else next({ name: 'home' })
+    }
   },
   {
     path: '/home',
