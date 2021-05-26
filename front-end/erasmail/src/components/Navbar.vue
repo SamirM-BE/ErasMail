@@ -17,7 +17,7 @@
     <div id="navbar" class="navbar-menu" :class="{ 'is-active': showNav }">
       <!-- Left side -->
       <div class="navbar-start">
-        <router-link v-if="!loggedIn && currentRouteName !== 'home'" :to="{ name: 'home' }" class="navbar-item">Menu</router-link>
+        <router-link v-if="!loggedIn && currentRouteName !== 'home' && currentRouteName !== 'landingpage' && currentRouteName !== 'login'" :to="{ name: 'home' }" class="navbar-item">Menu</router-link>
         
         <div class="navbar-item has-dropdown is-hoverable is-hidden">
           <a class="navbar-link"> More </a>

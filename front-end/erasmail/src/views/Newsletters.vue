@@ -11,14 +11,16 @@
     <div v-for="(newsletter, index) in newsletters" :key="index" class="field">
       {{ isUnsubscribed(index) }}
       <transition name="fade">
-        <div v-if="newsletter && (!newsletter.unsubscribed || newsletter.emails_cnt !== 0)" class="box control px-0">
-          <div class="newsletter-detail px-2 is-flex is-justify-content-space-between">
+        <div v-if="newsletter && (!newsletter.unsubscribed || newsletter.emails_cnt !== 0)" class="box control px-0"
+        >
+          <div class="newsletter-detail px-2 is-flex is-justify-content-space-between" @mouseleave="hover = -1"
+               @mouseover="hover = index">
             <div class="leftpart">
               <div class="icon-text">
                   <span class="icon">
                       <i class="far fa-address-card fa-sm"></i>
                   </span>
-
+                <!--                generated_carbon forecasted_carbon-->
                 <span class="is-size-6">{{ newsletter.sender_name }}
                     <span v-if="newsletter.sender_name" class="is-size-6-2">
                       ({{ newsletter.sender_email }})
@@ -40,7 +42,6 @@
                 </span>
                 <span>{{ getNewsletterOpenRate(newsletter) }}%</span>
               </span>
-
               <span class="icon-text has-text-danger pl-5"
                     title="Forecast of the number of emails you will receive this year based on the number of emails you have already received.">
                 <span class="icon">
@@ -49,7 +50,10 @@
                 <span>{{ Math.round(newsletter.avg_daily_emails * 365.25) }}</span>
               </span>
               <p class="has-text-weight-bold">Last received email: {{ newsletter.received_at }}</p>
+              <ThreeBestComparison :co2="newsletter.generated_carbon" :show="hover===index"
+                                   title="The carbon footprint of this conversation is the same as:"/>
             </div>
+
             <div class="buttontop">
               <button v-if="!newsletter.unsubscribed" class="button is-small  is-info p-1"
                       @click="unsubscribe(index)">Unsubscribe
@@ -82,7 +86,13 @@
 
 
             </div>
+
+            <!--            <p v-show="hover && newsletter.forecasted_carbon" class="is-italic is-size-7">-->
+            <!--              Keeping this conversation for one more additional year will generate as much CO2 as {{newsletter.forecasted_carbon}}-->
+            <!--            </p>-->
+
           </div>
+
 
         </div>
 
@@ -98,18 +108,21 @@
 <script>
 import {getAPI} from "@/axios-api";
 import AwarenessMessage from "../components/AwarenessMessage";
+import ThreeBestComparison from "../components/ThreeBestComparison";
 import {useToast} from "vue-toastification";
 
 export default {
   name: "Newsletters",
   components: {
-    AwarenessMessage
+    AwarenessMessage,
+    ThreeBestComparison,
   },
   data() {
     return {
       newsletters: {},
       showDeleteButton: [],
       show: true,
+      hover: false,
     };
   },
   created() {
@@ -129,13 +142,13 @@ export default {
       return this.$store.state.success.successDetails
     },
     totalCarbon() {
-      if(this.newsletters){
+      if (this.newsletters) {
         return Object.values(this.newsletters).reduce((a, b) => a + (b['generated_carbon'] || 0), 0);
       }
       return 0
     },
     totalForecastedCarbon() {
-      if(this.newsletters){
+      if (this.newsletters) {
         return Object.values(this.newsletters).reduce((a, b) => a + (b['forecasted_carbon'] || 0), 0);
       }
       return 0
@@ -253,7 +266,7 @@ export default {
       this.$store.dispatch("stats/updateStatistics", {ids: [statisticID], value: value})
           .then(() => {
             // if no success is linked to statisticID then skip it
-            if(!this.successDetails[statisticID]) return
+            if (!this.successDetails[statisticID]) return
             for (const success of this.successDetails[statisticID]) {
               if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
                 this.showSuccess(success.todo)
@@ -337,6 +350,14 @@ input {
   border: solid;
   border-width: thin;
 
+}
+
+.box {
+  min-height: 50%;
+}
+
+.box:hover {
+  background-color: rgb(247, 245, 245);
 }
 
 .is-size-6-2 {
