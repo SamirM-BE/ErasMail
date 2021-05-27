@@ -50,7 +50,7 @@
         <FlippingCard
             :backData="'Delete your emails !'"
             :frontData="'Find useless emails based on more than a dozen of filters.'"
-            :frontTitle="'Smart clean'"
+            :frontTitle="'Avanced filters'"
             @click="routePage('emails')"/>
 
       </div>

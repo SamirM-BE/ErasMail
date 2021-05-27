@@ -344,6 +344,8 @@ export default {
 
       if (this.selectedFilters.length > 0)
         stats.push('deleted_emails_useless_filter')
+
+      stats.push('deleted_emails')
       return stats
     },
     //Update the state that keeps the statistics to add the number of deleted emails by the user with each feature.

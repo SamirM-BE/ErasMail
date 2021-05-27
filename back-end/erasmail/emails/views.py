@@ -387,7 +387,6 @@ class Statistics(APIView):
                 "carbon_forecast" : email_stats_data['emailbox_carbon_forecast'],
                 "initial_carbon" : email_stats_data['emailbox_initial_carbon'],
                 "created_since_months" : email_stats_data['created_since_months'],
-
             }
 
             statistics = {

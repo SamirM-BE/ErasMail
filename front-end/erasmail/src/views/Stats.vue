@@ -53,17 +53,18 @@
             <div class="pricing-plan potential is-warning">
               <div class="plan-header">Potential impact</div>
               <div class="title is-4 has-text-centered has-text-warning-dark">
-                You wasted {{readableCo2(erasmailStats.emailbox.carbon)}} of CO<sub>2</sub> on emails you probably won't open again
+                You wasted {{ readableCo2(erasmailStats.emailbox.carbon) }} of CO<sub>2</sub> on emails you probably
+                won't open again
               </div>
               <div class="subtitle is-5 is-italic has-text-centered has-text-warning-dark">
-                {{getCO2equivalent(erasmailStats.emailbox.carbon)}}
+                {{ getCO2equivalent(erasmailStats.emailbox.carbon) }}
               </div>
               <div class="plan-items">
                 <div class="plan-item has-background-warning-light">
-                  {{readableCo2(erasmailStats.emailbox.carbon_forecast)}} of CO<sub>2</sub> potential savable
+                  {{ readableCo2(erasmailStats.emailbox.carbon_forecast) }} of CO<sub>2</sub> potential savable
                 </div>
                 <div class="plan-item has-background-warning-light">
-                  {{erasmailStats.emails.emails_count}} potential unnecessary emails
+                  {{ erasmailStats.emails.emails_count }} potential unnecessary emails
                 </div>
               </div>
               <div class="plan-footer">
@@ -98,7 +99,8 @@
                 {{ getCO2equivalent(erasmailStats.emailbox.carbon) }}
               </p>
               <div class="content">
-                This is {{ getStrEcoComparison(erasmailStats.emailbox.emailbox_size, websiteStats.avg_mailbox_size) }} than
+                This is {{ getStrEcoComparison(erasmailStats.emailbox.emailbox_size, websiteStats.avg_mailbox_size) }}
+                than
                 the
                 average user.
               </div>
@@ -132,7 +134,8 @@
           </div>
           <div class="tile is-parent">
             <article class="tile is-child notification is-danger is-light ">
-              <p class="title">You have {{ erasmailStats.emails.emails_count - erasmailStats.emails.read }} unread emails.</p>
+              <p class="title">You have {{ erasmailStats.emails.emails_count - erasmailStats.emails.read }} unread
+                emails.</p>
               <p class="subtitle">
                 {{ getCO2equivalent(erasmailStats.emails.emails_unseen_co2) }}
               </p>
@@ -194,7 +197,8 @@
       </div>
       <div class="tile is-parent">
         <article class="tile is-child notification has-background-success-light	">
-          <p class="title is-size-4	">{{ erasmailStats.erasmail.deleted_emails_larger_filter }} deleted emails using the
+          <p class="title is-size-4	">{{ erasmailStats.erasmail.deleted_emails_larger_filter }} deleted emails using
+            the
             "larger
             than" filter. </p>
           <!--          <p class="subtitle">Subtitle</p>-->
@@ -202,7 +206,8 @@
       </div>
       <div class="tile is-parent">
         <article class="tile is-child notification has-background-success-light	">
-          <p class="title is-size-4	">{{ erasmailStats.erasmail.deleted_emails_useless_filter }} deleted emails using the
+          <p class="title is-size-4	">{{ erasmailStats.erasmail.deleted_emails_useless_filter }} deleted emails using
+            the
             "useless"
             filter. </p>
           <!--          <p class="subtitle">Subtitle</p>-->
@@ -212,7 +217,8 @@
     <div class="tile is-ancestor">
       <div class="tile is-parent">
         <article class="tile is-child notification has-background-success-light	">
-          <p class="title is-size-4	">{{ erasmailStats.erasmail.deleted_emails_threads_feature }} deleted emails related to
+          <p class="title is-size-4	">{{ erasmailStats.erasmail.deleted_emails_threads_feature }} deleted emails
+            related to
             threads.</p>
           <!--          <p class="subtitle">Subtitle</p>-->
         </article>
@@ -225,7 +231,8 @@
       </div>
       <div class="tile is-parent">
         <article class="tile is-child notification has-background-success-light	">
-          <p class="title is-size-4	">You connected {{ $store.state.stats.statistics.connected_count }} times to ErasMail.</p>
+          <p class="title is-size-4	">You connected {{ $store.state.stats.statistics.connected_count }} times to
+            ErasMail.</p>
           <!--          <p class="subtitle">Subtitle</p>-->
         </article>
       </div>
@@ -275,9 +282,14 @@ export default {
   computed: {
     ...mapGetters(["auth"]),
     unsubNewslettersPercentage() {
-
       return (this.erasmailStats.erasmail.unsubscribed_newsletters / this.erasmailStats.newsletters.total) * 100
     },
+    deletedEmailsPercentage() {
+      return (this.erasmailStats.erasmail.deleted_emails / this.erasmailStats.emails.emails_count) * 100
+    },
+    savedCarbonPercentage() {
+      return (this.erasmailStats.erasmail.saved_carbon / this.erasmailStats.emailbox.carbon_forecast) * 100
+    }
 
   },
   components: {
@@ -297,14 +309,13 @@ export default {
               Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
             },
           }
-        )
-        .then((response) => {
-          console.log(response.data)
-          this.erasmailStats = response.data
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      )
+          .then((response) => {
+            this.erasmailStats = response.data
+          })
+          .catch((err) => {
+            console.log(err);
+          });
     },
     fetchWebsiteStats() {
       getAPI.get(
@@ -313,14 +324,14 @@ export default {
               Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
             },
           }
-        )
-        .then((response) => {
-          this.websiteStats = response.data
+      )
+          .then((response) => {
+            this.websiteStats = response.data
 
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
     },
     updateChartsData() {
       //Newsletters
@@ -328,16 +339,22 @@ export default {
         this.radialBarPotentialImpact.labels.push("Newsletters")
         this.radialBarPotentialImpact.series.push(Math.round(this.unsubNewslettersPercentage))
       }
-
+      console.log("AAAAAAAAAAAAAAAAAAAAAAAA")
+      console.log(this.erasmailStats.emails.emails_count)
+      console.log(this.erasmailStats.erasmail.deleted_emails)
       //Emails
-      radialBarPotentialImpact.labels.push("Emails")
-      radialBarPotentialImpact.series.push(44)
-
+      if (this.erasmailStats.emails.emails_count !== 0 && this.erasmailStats.erasmail.deleted_emails !== 0) {
+        radialBarPotentialImpact.labels.push("Emails")
+        this.radialBarPotentialImpact.series.push(Math.round(this.deletedEmailsPercentage))
+      }
       //CO2
-      radialBarPotentialImpact.labels.push("CO2")
-      radialBarPotentialImpact.series.push(55)
-      this.lineSizeMailbox.series[0].data[0] = Math.round(this.erasmailStats.emailbox.initial_carbon)
-      this.lineSizeMailbox.series[0].data[1] = Math.round(this.erasmailStats.emailbox.carbon)
+      if (this.erasmailStats.emailbox.carbon !== 0 && this.erasmailStats.erasmail.saved_carbon !== 0) {
+        radialBarPotentialImpact.labels.push("CO2")
+        this.radialBarPotentialImpact.series.push(Math.round(this.savedCarbonPercentage))
+      }
+
+      // this.lineSizeMailbox.series[0].data[0] = Math.round(this.erasmailStats.emailbox.initial_carbon)
+      // this.lineSizeMailbox.series[0].data[1] = Math.round(this.erasmailStats.emailbox.carbon)
     },
     openWindowSharing(mediaLink, media) {
 
