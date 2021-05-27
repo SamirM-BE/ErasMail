@@ -8,7 +8,9 @@ export const auth = {
         refreshToken: null,
         app_password: null,
         host: null,
-        total: null, //total emails
+        total: null, //total emails,
+        smtpHost: null,
+        smtpPort: null
     },
     getters: {
         loggedIn(state) {
@@ -22,13 +24,17 @@ export const auth = {
             refresh,
             app_password,
             host,
-            total
+            total,
+            smtpHost,
+            smtpPort
         }) {
             state.accessToken = access
             state.refreshToken = refresh
             state.app_password = app_password
             state.host = host
             state.total = total
+            state.smtpHost = smtpHost
+            state.smtpPort = smtpPort
         },
         updateAccess(state, access) {
             state.accessToken = access
@@ -43,6 +49,8 @@ export const auth = {
             state.app_password = null
             state.host = null
             state.total = null
+            state.smtpHost = null
+            state.smtpPort = null
         }
     },
     actions: {
@@ -133,7 +141,9 @@ export const auth = {
                         refresh: response.data.token['refresh'],
                         total: response.data.total,
                         app_password: usercredentials.app_password,
-                        host: usercredentials.host
+                        host: usercredentials.host,
+                        smtpHost: usercredentials.smtpHost,
+                        smtpPort: usercredentials.smtpPort
                     })
                 })
         }

@@ -186,7 +186,14 @@ export default {
     },
     getWaitingTime() {
       let emailsCount = this.$store.state.auth.total
-      let emailRate = 10 // 10emails/second
+      let emailRate = 0
+      if (emailsCount<5000)
+        emailRate = 10
+      else if (emailsCount<10000)
+        emailRate = 15
+      else
+        emailRate = 20
+       // 10emails/second
       let waitingTime = emailsCount/emailRate //seconds
       return Math.ceil(waitingTime/60) //minutes
     },

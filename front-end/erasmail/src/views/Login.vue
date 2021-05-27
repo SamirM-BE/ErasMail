@@ -208,6 +208,8 @@ export default {
                   email: that.email,
                   app_password: that.app_password,
                   host: that.host,
+                  smtpHost: account["msa.smtp.host"],
+                  smtpPort:account["msa.smtp.port"]
                 })
                 .then(() => {
                   // redirect only when 200 or 201

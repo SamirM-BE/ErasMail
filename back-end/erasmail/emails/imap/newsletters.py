@@ -3,12 +3,12 @@ from imapclient import IMAPClient, imapclient
 from email.mime.multipart import MIMEMultipart
 import smtplib
 
-def send_email(sender, smtp_host, password, to, subject):
+def send_email(sender, smtp_host, smtp_port, password, to, subject):
     msg = MIMEMultipart()
     msg['From'] = sender
 
     # create server
-    server = smtplib.SMTP(host=smtp_host, port=587) #TODO: port not good, only good for gmail and outlook
+    server = smtplib.SMTP(host=smtp_host, port=smtp_port) #TODO: port not good, only good for gmail and outlook
     server.ehlo()
     server.starttls()
 

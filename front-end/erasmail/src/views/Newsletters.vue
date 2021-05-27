@@ -306,6 +306,8 @@ export default {
         request_data["subject"] = mailtoParams['subject']
         request_data["host"] = this.$store.state.auth.host
         request_data["app_password"] = this.$store.state.auth.app_password
+        request_data["smtp_host"] = this.$store.state.auth.smtpHost
+        request_data["smtp_port"] = this.$store.state.auth.smtpPort
 
       }
       //MANUAL
