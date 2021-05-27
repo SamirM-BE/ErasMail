@@ -10,7 +10,7 @@
             various available filters.</h3>
         </div>
 
-        <div class="field is-grouped pt-6 mb-0">
+        <div class="field is-grouped pt-6 mb-0" v-if="!loggedIn">
           <p class="control has-icons-left has-icons-right">
             <input class="input is-expanded" :class="{'is-danger': !validated}" type="email" placeholder="enter@your.email"
               v-model="email" @keyup.enter="login()">
@@ -210,9 +210,13 @@
 
 <script>
 import Footer from "../components/Footer";
+import {mapGetters} from "vuex";
 
 export default {
   name: "LandingPage",
+  computed: {
+    ...mapGetters("auth", ["loggedIn"]),
+  },
   components: {
     Footer,
   },

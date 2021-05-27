@@ -202,26 +202,27 @@
             </tbody>
           </table>
         </div>
-      </section>
-
-      <section class="section leaderbord-social">
-        <div class="social-sharing is-flex is-justify-content-center">
-          <button class="button is-small m-3 is-facebook"
-                  @click="openWindowSharing(facebookLink, 'facebook', 'leaderboard')">
+        <section class="section leaderbord-social">
+          <div class="social-sharing is-flex is-justify-content-center">
+            <button class="button is-small m-3 is-facebook"
+                    @click="openWindowSharing(facebookLink, 'facebook', 'leaderboard')">
                 <span class="icon">
                   <i class="fab fa-facebook"></i>
                 </span>
-            <span>Share on Facebook</span>
-          </button>
-          <button class="button is-small m-3 is-twitter"
-                  @click="openWindowSharing(twitterLink, 'twitter', 'leaderboard')">
+              <span>Share on Facebook</span>
+            </button>
+            <button class="button is-small m-3 is-twitter"
+                    @click="openWindowSharing(twitterLink, 'twitter', 'leaderboard')">
                 <span class="icon">
                   <i class="fab fa-twitter"></i>
                 </span>
-            <span>Share on Twitter</span>
-          </button>
-        </div>
+              <span>Share on Twitter</span>
+            </button>
+          </div>
+        </section>
       </section>
+
+
     </div>
   </div>
 
@@ -403,7 +404,7 @@ export default {
       }
       else if(gamificationType=="success") {
         promotionalText =
-            `I unlocked ${this.unlockedBadgesCount} success on ErasMail by cleaning my mailbox ! \n
+            `I unlocked ${this.unlockedSuccessCount} success on ErasMail by cleaning my mailbox ! \n
             Storing emails has an environmental cost, behind these emails there are servers using electricity. You too can contribute to make the planet a little greener!`
       }
       else if(gamificationType=="leaderboard"){
