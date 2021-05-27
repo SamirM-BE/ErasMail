@@ -8,6 +8,7 @@ export const auth = {
         refreshToken: null,
         app_password: null,
         host: null,
+        total: null, //total emails
     },
     getters: {
         loggedIn(state) {
@@ -20,12 +21,14 @@ export const auth = {
             access,
             refresh,
             app_password,
-            host
+            host,
+            total
         }) {
             state.accessToken = access
             state.refreshToken = refresh
             state.app_password = app_password
             state.host = host
+            state.total = total
         },
         updateAccess(state, access) {
             state.accessToken = access
@@ -39,6 +42,7 @@ export const auth = {
             state.refreshToken = null
             state.app_password = null
             state.host = null
+            state.total = null
         }
     },
     actions: {
@@ -125,8 +129,9 @@ export const auth = {
             })
                 .then(response => {
                     context.commit('updateStorage', {
-                        access: response.data.access,
-                        refresh: response.data.refresh,
+                        access: response.data.token['access'],
+                        refresh: response.data.token['refresh'],
+                        total: response.data.total,
                         app_password: usercredentials.app_password,
                         host: usercredentials.host
                     })

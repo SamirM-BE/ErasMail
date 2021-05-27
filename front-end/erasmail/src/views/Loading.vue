@@ -4,7 +4,7 @@
   <section class="section erasmail">
     <div class="columns is-centered is-vcentered">
       <div class="column is-4 has-text-centered logo">
-        <strong> ErasMail </strong>
+        <strong class="has-text-primary"> ErasMail </strong>
       </div>
       <div class="column is-5">
         <div class="content">
@@ -29,6 +29,7 @@
   </section>
 
   <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center">
+    <span class="has-text-weight-bold is-size-2">{{waitingText}}</span>
     <p>Analyzing your emails</p>
     <progress class="progress is-small is-primary my-1" max="100"></progress>
     <p>{{ awareness_messages[index] }}</p>
@@ -96,9 +97,23 @@ export default {
       awareness_messages: awareness_messages,
       features: features,
       feature_counter: 0,
+      waitingText: "",
     };
   },
   created() {
+    let waitingTime = this.getWaitingTime()
+    setInterval(change, 60000);
+    this.waitingText = `Estimated waiting time : ${waitingTime} minute(s)`
+    let that = this
+    function change() {
+      if(waitingTime==0) {
+        that.waitingText = `Don't worry, depending on the email service provider, analyzing your mailbox could take up to 30 minutes. Estimated waiting time : ${waitingTime} minute(s)`
+      }
+      else {
+        that.waitingText = `Estimated waiting time : ${waitingTime} minute(s)`
+        waitingTime--
+      }
+    }
     getAPI
       .post(
         "/api/emails/", {
@@ -169,6 +184,13 @@ export default {
             this.$store.dispatch('success/updateAllSuccess',)
           })
     },
+    getWaitingTime() {
+      let emailsCount = this.$store.state.auth.total
+      let emailRate = 10 // 10emails/second
+      let waitingTime = emailsCount/emailRate //seconds
+      return Math.ceil(waitingTime/60) //minutes
+    },
+
   },
 }
 </script>
@@ -176,10 +198,12 @@ export default {
 
 <style scoped>
 .logo {
-  padding: 5%;
+  padding: 1%;
   border-color: lightgray !important;
   border: solid;
   border-width: thin;
+  font-family: Papyrus;
+  font-size: 60px;
 }
 .progress {
   width: 30vw;
