@@ -1,7 +1,7 @@
 <template>
   <SuccessNotification :notification_message="'You have successfully logged in'">
   </SuccessNotification>
-  <section class="section erasmail">
+  <section class="section erasmail p-0">
     <div class="columns is-centered is-vcentered">
       <div class="column is-4 has-text-centered logo">
         <strong class="has-text-primary"> ErasMail </strong>
@@ -14,36 +14,35 @@
       </div>
     </div>
   </section>
-  <section class="section mx-6">
-    <p class="has-text-centered is-size-4 has-text-black">Explore what you can do</p>
-    <br>
-    <div class="columns">
-      <div class="column is-one-third" v-for="(feature, idx) in featuresToShow" :key="idx">
-        <div class="box content has-background-success-light py-6">
-          <h4 class="has-text-centered has-text-link">{{feature.name}}</h4>
-          <br>
-          <p class="is-uppercase is-size-7 has-text-justified">{{feature.content}}</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center">
     <span class="has-text-weight-bold is-size-2">{{waitingText}}</span>
     <p>Analyzing your emails</p>
     <progress class="progress is-small is-primary my-1" max="100"></progress>
     <p>{{ awareness_messages[index] }}</p>
+  </section>
 
-    <div class="icon-text has-text-grey-light mt-4">
-      <span class="icon">
-        <i class="fa fa-exclamation-triangle"></i>
-      </span>
-      <span>The deleted emails are moved to trash folder !!</span>
-      <span class="icon">
-        <i class="fa fa-exclamation-triangle"></i>
-      </span>
+  <section class="section mx-6">
+    <p class="has-text-centered is-size-4 has-text-black">Explore what you can do</p>
+    <br>
+    <div class="columns is-centered">
+      <div class="column is-one-quarter" v-for="(feature, idx) in featuresToShow" :key="idx">
+        <div class="box content has-background-success-light py-6">
+
+          <div class="is-size-3 has-text-centered has-text-grey-dark">
+            <span class="icon is-large is-right">
+                <i class="fas fa-sm " v-bind:class="feature.icon"></i>
+              </span>
+            {{feature.name}}
+          </div>
+          <br>
+          <p class="is-size-5 has-text-justified has-text-weight-light has-text-grey-dark">{{feature.content}}</p>
+        </div>
+      </div>
     </div>
   </section>
+
+
 
 </template>
 
@@ -62,28 +61,39 @@ const awareness_messages = [
   "Deleting 30 emails is equivalent to saving 24 hours of the consumption of a light bulb",
   "Avoid replying to all recipients when not necessary",
   "Download your attachments and delete associated emails whenever possible",
+    "Emails are never permanently deleted, they are moved to trash"
 ];
 
 const features = [{
     name: 'Threads',
-    content: "Conversations are the best opportunity for duplicating useless attachments, let's clean up to reduce the ecological impact."
+    content: "Get a list of your most polluting conversations and delete the related emails or associated attachments",
+    icon: "fa-comments",
   },
   {
     name: 'Old Emails',
-    content: "You'll probably never read again those old emails again, might as well delete them for the planet"
+    content: "Get a list of your oldest emails and delete them",
+    icon: "fa-calendar-minus",
   },
   {
-    name: 'Heavy Emails',
-    content: "These emails weigh down your email box and ... also for the environment."
+    name: 'Large Emails',
+    content: "Get a list of your largest emails and delete them",
+    icon: "fa-weight-hanging",
   },
   {
-    name: 'Newsletter',
-    content: "Do you really need all your newsletters? Let's see if it's not better to unsubscribe."
+    name: 'Unsubscribe',
+    content: "See the list of all your subscriptions, unsubscribe or delete the related newsletters emails with one click",
+    icon: "fa-unlink",
   },
   {
     name: 'Statistics',
-    content: 'Monitor your progress and share it on your social media'
+    content: 'Monitor your progress and share it on your social media',
+    icon: "fa-chart-pie",
   },
+  {
+    name: 'Useless',
+    content: 'Instantly see a list of your more useless emails based on sophisticated filters',
+    icon: "fa-mail-bulk",
+  }
 ]
 
 export default {
