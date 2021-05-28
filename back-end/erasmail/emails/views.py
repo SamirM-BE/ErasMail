@@ -419,6 +419,31 @@ class Statistics(APIView):
 
 class NewsletterListView(APIView):
     permission_classes = (IsAuthenticated,)
+    pagination_class = BasicPagination
+    serializer_class = NewsletterSerializer
+
+    @property
+    def paginator(self):
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        else:
+            pass
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset,
+                                                self.request, view=self)
+
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
 
     def get(self, request):
         user = request.user
@@ -431,8 +456,17 @@ class NewsletterListView(APIView):
             .with_carbon().order_by('-avg_daily_emails')
         )
 
-        serializer = NewsletterSerializer(newsletters, many=True)
-        return Response(serializer.data)
+        carbon_data = newsletters.get_carbon_stats()
+
+        page = self.paginate_queryset(newsletters)
+        if page is not None:
+            serializer = self.get_paginated_response(
+            self.serializer_class(page, many=True).data)
+        else:
+            serializer = self.serializer_class(newsletters, many=True)
+
+        data = {**carbon_data, **serializer.data}
+        return Response(data, status=status.HTTP_200_OK)
 
     def delete(self, request):
         user = request.user

@@ -332,6 +332,13 @@ class NewsletterQuerySet(models.QuerySet):
             ),
         )
 
+    def get_carbon_stats(self):
+        return self.aggregate(
+            carbon=Coalesce(Sum("generated_carbon"), 0),
+            carbon_yearly_forecast=Coalesce(Sum("forecasted_carbon"), 0),
+        )
+
+
     def get_newsletters_stats(self):
         return self.with_email_counter().with_carbon().with_avg_daily_emails().aggregate(
             newsletters_subscribed_email_daily__sum=Coalesce(
