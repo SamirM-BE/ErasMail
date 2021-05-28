@@ -15,7 +15,7 @@ from .imap.attachments import remove_attachments
 from .imap.delete import move_to_trash
 from .imap.fetch import get_emails
 from .imap.newsletters import send_email, delete_unsub_email
-from .imap.jwzthreading import conversation_threading
+from .imap.jwzthreading import conversation_threading, make_message
 from .models import EmailHeaders, EmailStats, Newsletter
 
 from django.db.models import F
@@ -81,13 +81,13 @@ class EmailView(APIView):
 
             print('save in the DB')
             s = time()
-            [
+            msglist = []
+            for mail in mail_messages:
                 EmailHeaders.objects.create(
                     owner=user,
                     **mail,
                 )
-                for mail in mail_messages
-            ]
+                msglist.append(make_message(mail))
 
             print('finish db saving', time() - s)
 
@@ -100,12 +100,12 @@ class EmailView(APIView):
 
             print('start threading')
             s = time()
-            threads = conversation_threading(mail_messages)
+            threads = conversation_threading(msglist)
             print('finish threading', time() - s)
 
             print('update DB with threads')
             s = time()
-            for idx, thread in enumerate(threads):  # imporove with a generator
+            for idx, thread in enumerate(threads):
                 folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:
                     email_header = EmailHeaders.objects.get(
@@ -419,6 +419,31 @@ class Statistics(APIView):
 
 class NewsletterListView(APIView):
     permission_classes = (IsAuthenticated,)
+    pagination_class = BasicPagination
+    serializer_class = NewsletterSerializer
+
+    @property
+    def paginator(self):
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        else:
+            pass
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset,
+                                                self.request, view=self)
+
+    def get_paginated_response(self, data):
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
 
     def get(self, request):
         user = request.user
@@ -431,8 +456,17 @@ class NewsletterListView(APIView):
             .with_carbon().order_by('-avg_daily_emails')
         )
 
-        serializer = NewsletterSerializer(newsletters, many=True)
-        return Response(serializer.data)
+        carbon_data = newsletters.get_carbon_stats()
+
+        page = self.paginate_queryset(newsletters)
+        if page is not None:
+            serializer = self.get_paginated_response(
+            self.serializer_class(page, many=True).data)
+        else:
+            serializer = self.serializer_class(newsletters, many=True)
+
+        data = {**carbon_data, **serializer.data}
+        return Response(data, status=status.HTTP_200_OK)
 
     def delete(self, request):
         user = request.user

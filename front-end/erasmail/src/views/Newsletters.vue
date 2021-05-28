@@ -119,19 +119,39 @@ export default {
   },
   data() {
     return {
-      newsletters: {},
+      newsletters: [],
       showDeleteButton: [],
       show: true,
       hover: false,
+
+      newslettersCount: 0,
+      totalCarbon: 0,
+      totalForecastedCarbon: 0,
+      nextPageNumber: 1,
+
+      ready: false, // whether ready to fetch new data from the backend
     };
   },
   created() {
-    this.fetchNewsletters()
+    this.fetchNextNewsletters().then(() => {
+      this.ready = true
+    })
+  },
+  mounted() {
+    window.onscroll = () => {
+      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
+      if (bottomOfWindow && this.ready) {
+        this.ready = false
+        let response = this.fetchNextNewsletters()
+        if (response) {
+          response.then(() => {
+            this.ready = true
+          })
+        }
+      }
+    }
   },
   computed: {
-    newslettersCount() {
-      return Object.keys(this.newsletters).length !== 0 ? this.newsletters.length : 0;
-    },
     // unsubscribed_count() {
     //   return this.$store.state.stats.unsubscribed_newsletters_count
     // },
@@ -141,32 +161,38 @@ export default {
     successDetails() {
       return this.$store.state.success.successDetails
     },
-    totalCarbon() {
-      if (this.newsletters) {
-        return Object.values(this.newsletters).reduce((a, b) => a + (b['generated_carbon'] || 0), 0);
-      }
-      return 0
-    },
-    totalForecastedCarbon() {
-      if (this.newsletters) {
-        return Object.values(this.newsletters).reduce((a, b) => a + (b['forecasted_carbon'] || 0), 0);
-      }
-      return 0
-    },
   },
   methods: {
-    fetchNewsletters() {
-      console.log("fetch des newsletters")
-      getAPI
+    fetchNextNewsletters() {
+      if (!this.nextPageNumber) {
+        // if there is no page to retrieve then don't query the backend
+        return
+      }
+      return getAPI
           .get(
               "/api/emails/newsletters", {
                 headers: {
                   Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
                 },
+                params: {
+                  page: this.nextPageNumber,
+                }
               }
           )
           .then((response) => {
-            this.newsletters = response.data
+            this.newslettersCount = response.data.count
+            this.totalCarbon = response.data.carbon
+            this.totalForecastedCarbon = response.data.carbon_yearly_forecast
+            if(this.nextPageNumber === 1){
+              this.newsletters = response.data.results
+            } else {
+              this.newsletters.push(...response.data.results)
+            }
+            if (response.data.next) {
+              this.nextPageNumber = new URL(response.data.next).searchParams.get('page')
+            } else {
+              this.nextPageNumber = null
+            }
           })
           .catch((err) => {
             console.log(err);

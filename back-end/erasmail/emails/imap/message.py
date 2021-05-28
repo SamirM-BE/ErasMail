@@ -153,6 +153,18 @@ def get_email(mailbox, host) -> str:
 
 
 class MailMessage:
+    _slots__ = [
+        'folder',
+        'uid',
+        'flags',
+        'size',
+        'envelope',
+        'references',
+        'list_unsubscribe',
+        'list_unsubscribe_post',
+        'bodystructure',
+    ]
+
     def __init__(
         self,
         folder,

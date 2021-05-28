@@ -4,8 +4,6 @@
 import re
 from collections import deque
 
-from .message import MailMessage
-
 restrip_pat = re.compile("""(
   (Re(\[\d+\])?:) | (\[ [^]]+ \])
 \s*)+
@@ -24,8 +22,8 @@ class Container:
       .parent : Container
         Parent container; may be None.
     """
+    _slots__ = ['message', 'parent', 'children']
 
-    #__slots__ = ['message', 'parent', 'children', 'id']
     def __init__(self):
         self.parent = None
         self.message = None
@@ -79,7 +77,7 @@ class Container:
         folder_uid = []
         if self.message:
             folder_uid.append(
-                (self.message.message.get('folder',''), self.message.message.get('uid','')))
+                (self.message.folder, self.message.uid))
         for child in self.children:
             folder_uid += child.get_folder_uid()
         return folder_uid
@@ -97,19 +95,20 @@ class Message (object):
     .message : any
       Can contain information for the caller's use (e.g. an RFC-822 message object).
     """
-    __slots__ = ['message', 'message_id', 'references', 'subject']
+    __slots__ = ['folder', 'uid', 'subject', 'message_id', 'references',]
 
     def __init__(self, msg=None):
-        self.message = msg
+        self.folder = msg.get('folder','')
+        self.uid = msg.get('uid','')
+        self.subject = msg.get('subject','')
         self.message_id = None
         self.references = []
-        self.subject = None
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.message_id)
 
 
-def make_message(msg: MailMessage) -> Message:
+def make_message(msg):
     """(msg:rfc822.Message) : Message
     Create a Message object for threading purposes from an RFC822
     message.
@@ -119,9 +118,8 @@ def make_message(msg: MailMessage) -> Message:
     m_id = msg.get('message_id', '')
     if m_id is None:
         raise ValueError("Message does not contain a Message-ID: header")
-
     new.message_id = m_id
-    new.subject = msg.get('subject','')
+
 
     # Get list of unique message IDs from the References: header
     new.references = msg.get('references','')
@@ -170,7 +168,7 @@ def prune_container(container: Container):
         return [container]
 
 
-def thread(msglist: Message):
+def thread(msglist):
     """([Message]) : {string:Container}
     The main threading function.  This takes a list of Message
     objects, and returns a dictionary mapping subjects to Containers.
@@ -285,7 +283,6 @@ def thread(msglist: Message):
 
     return subject_table
 
-
 def print_container(ctr, depth=0, debug=0):
     import sys
     sys.stdout.write(depth*' ')
@@ -294,24 +291,13 @@ def print_container(ctr, depth=0, debug=0):
         sys.stdout.write(repr(ctr))
     else:
         sys.stdout.write(repr(ctr.message and ctr.message.subject + " uid: " + str(
-            ctr.message.message.uid) + " folder:" + str(ctr.message.message.folder)))
+            ctr.message.uid) + " folder:" + str(ctr.message.folder)))
 
     sys.stdout.write('\n')
     for c in ctr.children:
         print_container(c, depth+1)
 
-
-def conversation_threading(emails: MailMessage):
-
-    msglist = (make_message(email) for email in emails)
+def conversation_threading(msglist):
     subject_table = thread(msglist)
-
     # Output
-    return (x for x in subject_table.values() if len(x) > 1)
-
-
-
-# from emails.models import EmailHeaders
-# EmailHeaders.objects.filter(owner__pk = 1).count()
-# from django.db.models import Q
-# EmailHeaders.objects.filter(owner__pk = 1).filter(Q(reference__isnull = False) | Q(inreplyto__isnull = False)).count()
+    return (x for x in subject_table.values() if (len(x) > 1 and x.message))

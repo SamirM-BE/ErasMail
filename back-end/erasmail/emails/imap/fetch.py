@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from imapclient import IMAPClient, imapclient
 
 from .message import MailMessage
@@ -18,24 +16,19 @@ def is_undesirable_folder(folder):
     )
 
 
-def fetch_messages_bulk(server, messages):
+def fetch_messages_bulk(server, messages, to_fetch):
+    THRESHOLD = 1600
 
-    all_to_fetch = [
-        "ENVELOPE",
-        "BODYSTRUCTURE",
-        "RFC822.SIZE",
-        "BODY.PEEK[HEADER.FIELDS (References)]",
-        "BODY.PEEK[HEADER.FIELDS (List-Unsubscribe)]",
-        "BODY.PEEK[HEADER.FIELDS (List-Unsubscribe-Post)]",
-        "FLAGS",
-    ]
-    messages_chunked = chunks(messages, 1300)
-    fetched = defaultdict()
-    [
-        fetched.update(server.fetch([i for i in chunk if i], all_to_fetch))
-        for chunk in messages_chunked
-    ]
-    return fetched
+    messages_chunked = chunks(messages, THRESHOLD)
+    for chunk in messages_chunked:
+        fetched = server.fetch([i for i in chunk if i], to_fetch)
+        for uid, data in fetched.items():
+            yield uid, data
+
+def fetch_messages(server, messages, to_fetch):
+
+    fetched = server.fetch(messages, to_fetch)
+    return ((uid, data) for uid, data in fetched.items())
 
 
 def get_emails(host, username, password):
@@ -46,7 +39,6 @@ def get_emails(host, username, password):
     # parser = BytesHeaderParser()  # Creates a header parser
 
     folders = server.list_folders()
-    fetched_emails = []
 
     for folder in folders:
         if is_undesirable_folder(folder):
@@ -57,9 +49,23 @@ def get_emails(host, username, password):
 
         server.select_folder(selected_folder)
         messages = server.search(["All"])
-        fetched = fetch_messages_bulk(server, messages)
 
-        for uid, data in fetched.items():
+        all_to_fetch = [
+            "ENVELOPE",
+            "BODYSTRUCTURE",
+            "RFC822.SIZE",
+            "BODY.PEEK[HEADER.FIELDS (References)]",
+            "BODY.PEEK[HEADER.FIELDS (List-Unsubscribe)]",
+            "BODY.PEEK[HEADER.FIELDS (List-Unsubscribe-Post)]",
+            "FLAGS",
+        ]
+
+        if host == "imap.gmail.com":
+            fetched = fetch_messages(server, messages, all_to_fetch)
+        else:
+            fetched = fetch_messages_bulk(server, messages, all_to_fetch)
+
+        for uid, data in fetched:
             # parsed_header = parser.parsebytes(
             #     data[b"BODY[HEADER]"]
             # )  # Parse a byte structure as a dictionary structure
@@ -76,25 +82,7 @@ def get_emails(host, username, password):
                 data[b"BODYSTRUCTURE"],
             )
 
-            fetched_emails.append(email_headers.to_dict())
+            yield email_headers.to_dict()
         server.unselect_folder()
 
     server.logout()
-
-    return fetched_emails
-
-
-if __name__ == "__main__":
-    # HOST = "imap.gmail.com"
-    # USERNAME = "test.memory.20.21@gmail.com"
-    # PASSWORD = "awdlfovxkfxcbbdb"
-
-    HOST = "outlook.office365.com"
-    USERNAME = "test.memory.20.21@outlook.be"
-    PASSWORD = "ighymaubdccnvjxv"
-
-    emails = get_emails(HOST, USERNAME, PASSWORD)
-
-    # for mail in emails:
-    #     print(mail)
-    #     print("_____________________________________________________")
