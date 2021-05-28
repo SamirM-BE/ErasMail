@@ -15,7 +15,7 @@ from .imap.attachments import remove_attachments
 from .imap.delete import move_to_trash
 from .imap.fetch import get_emails
 from .imap.newsletters import send_email, delete_unsub_email
-from .imap.jwzthreading import conversation_threading
+from .imap.jwzthreading import conversation_threading, make_message
 from .models import EmailHeaders, EmailStats, Newsletter
 
 from django.db.models import F
@@ -81,13 +81,13 @@ class EmailView(APIView):
 
             print('save in the DB')
             s = time()
-            [
+            msglist = []
+            for mail in mail_messages:
                 EmailHeaders.objects.create(
                     owner=user,
                     **mail,
                 )
-                for mail in mail_messages
-            ]
+                msglist.append(make_message(mail))
 
             print('finish db saving', time() - s)
 
@@ -100,12 +100,12 @@ class EmailView(APIView):
 
             print('start threading')
             s = time()
-            threads = conversation_threading(mail_messages)
+            threads = conversation_threading(msglist)
             print('finish threading', time() - s)
 
             print('update DB with threads')
             s = time()
-            for idx, thread in enumerate(threads):  # imporove with a generator
+            for idx, thread in enumerate(threads):
                 folder_uids = thread.get_folder_uid()
                 for folder, uid in folder_uids:
                     email_header = EmailHeaders.objects.get(
