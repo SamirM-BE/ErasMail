@@ -378,7 +378,7 @@ export default {
         let email = this.emails[index]
 
         pks.push(email.id)
-        savedCarbon += email.generated_carbon
+        savedCarbon += email.carbon_yforecast
 
         let selectedUids = uids[email.folder] || []
         selectedUids.push(email.uid)

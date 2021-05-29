@@ -137,13 +137,13 @@ export default {
         if (emails.onlyAttachments) url += 'attachments'
 
         let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature']
-        const generatedCarbonInitial = this.threads.children[this.threadIndex].generated_carbon
+        const carbonYforecast = this.threads.children[this.threadIndex].carbon_yforecast
 
         let deleted = false
         if (!emails.onlyAttachments && this.threads.children[this.threadIndex].children.length === emails.count) {
           // if all emails must me deleted then remove the whole thread
           this.threads.children.splice(this.threadIndex, 1)
-          this.updateStatisticsState(['saved_carbon'], generatedCarbonInitial)
+          this.updateStatisticsState(['saved_carbon'], carbonYforecast)
           deleted = true
         }
 
@@ -178,7 +178,7 @@ export default {
               if (response) {
                 let threadUpdated = response.data
                 this.threads.children[this.threadIndex] = threadUpdated
-                this.updateStatisticsState(['saved_carbon'], generatedCarbonInitial - threadUpdated.generated_carbon)
+                this.updateStatisticsState(['saved_carbon'], carbonYforecast - threadUpdated.carbon_yforecast)
               }
             })
       }

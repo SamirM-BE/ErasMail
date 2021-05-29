@@ -18,6 +18,6 @@ def emailPollution(size, date):
     return (6.57143*year_difference(date)+12.5)*sizeMB
 
 def getYearlyCarbonForecast(size, date):
-    # 1 mb/year <=> 0.144g
-    # 1 byte/year <=> 0.000000144g
-    return 0.000000144 * size * (year_difference(date) + 1)
+    # 1e+6 b/year <=> 0.29 g
+    # 1 byte/year <=> 2.9e-7 g
+    return 2.9e-7 * size * (year_difference(date) + 1)

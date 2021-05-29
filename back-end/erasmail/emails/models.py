@@ -42,11 +42,11 @@ class EmailStats(models.Model):
         self.received = F('received') - emails.get('received', 0)
         self.read = F('read') - emails.get('read', 0)
         self.emailbox_size = F('emailbox_size') - emails.get('emailbox_size', 0)
-        self.saved_carbon = F('saved_carbon') + emails.get('emailbox_carbon', 0)
+        self.saved_carbon = F('saved_carbon') + emails.get('emailbox_carbon_forecast', 0)
         self.emailbox_carbon = F('emailbox_carbon') - emails.get('emailbox_carbon', 0)
 
     def update_deleted_attachments(self, attachments_stats):
-        self.saved_carbon = F('saved_carbon') + attachments_stats['generated_carbon_tot']
+        self.saved_carbon = F('saved_carbon') + attachments_stats['carbon_yforecast_tot']
         self.emailbox_carbon = F('emailbox_carbon') - attachments_stats['generated_carbon_tot']
         self.emailbox_size = F('emailbox_size') - attachments_stats['attachment_size_tot']
 
@@ -95,7 +95,6 @@ class EmailHeaders(models.Model):
 
     def update_deleted_attachments(self, attachments_stats):
         self.size = F('size') - attachments_stats['attachment_size_tot']
-        self.generated_carbon = F('generated_carbon') - attachments_stats['generated_carbon_tot']
 
     def __str__(self):
         return f'from: {self.sender_email}\n\nsubject: {self.subject}'

@@ -270,19 +270,25 @@ class EmailHeadersQuerySet(models.QuerySet):
 
 
 class AttachmentQuerySet(models.QuerySet):
-    def with_generated_carbon(self):
+    def with_carbon(self):
         return self.annotate(
             generated_carbon=ExpressionWrapper(
                 F('size') / Cast(F('email_header__size'),
                                  output_field=FloatField()) * F('email_header__generated_carbon'),
                 output_field=FloatField()
+            ),
+            carbon_yforecast=ExpressionWrapper(
+                F('size') / Cast(F('email_header__size'),
+                                 output_field=FloatField()) * F('email_header__carbon_yforecast'),
+                output_field=FloatField()
             )
         )
 
     def get_attachment_stats(self):
-        attachments_stats = self.with_generated_carbon().aggregate(
-            attachment_size_tot=Sum('size'),
-            generated_carbon_tot=Sum('generated_carbon')
+        attachments_stats = self.with_carbon().aggregate(
+            attachment_size_tot=Coalesce(Sum('size'), 0),
+            generated_carbon_tot=Coalesce(Sum('generated_carbon'),0),
+            carbon_yforecast_tot=Coalesce(Sum('carbon_yforecast'),0),
         )
         email = self.first().email_header
         # need to check consistency because some IMAP server don't give exact size, only an approximation
@@ -293,6 +299,10 @@ class AttachmentQuerySet(models.QuerySet):
         attachments_stats['generated_carbon_tot'] = min(
             email.generated_carbon,
             attachments_stats['generated_carbon_tot']
+        )
+        attachments_stats['carbon_yforecast_tot'] = min(
+            email.carbon_yforecast,
+            attachments_stats['carbon_yforecast_tot']
         )
         return attachments_stats
 

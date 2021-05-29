@@ -273,6 +273,7 @@ class ThreadListView(APIView):
                     "thread_id": mail["thread_id"],
                     "subject": "",
                     "generated_carbon": 0,
+                    "carbon_yforecast": 0,
                     "size": 0,
                     "children": [],
                 },
@@ -284,6 +285,7 @@ class ThreadListView(APIView):
                 data["subject"] = subj.strip()
 
             data["generated_carbon"] += mail["generated_carbon"]
+            data["carbon_yforecast"] += mail["carbon_yforecast"]
             data["size"] += mail["size"]
             data["children"].append(mail)
 
@@ -314,6 +316,7 @@ class ThreadDetailView(APIView):
         subject = restrip_pat.sub("", serializer.data[0]["subject"]).strip()
 
         stats = emails_threads.aggregate(
+            carbon_yforecast=Sum("carbon_yforecast"),
             generated_carbon=Sum("generated_carbon"),
             size=Sum("size"),
         )

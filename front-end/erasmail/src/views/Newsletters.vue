@@ -183,6 +183,7 @@ export default {
             this.newslettersCount = response.data.count
             this.totalCarbon = response.data.carbon
             this.totalForecastedCarbon = response.data.carbon_yearly_forecast
+            console.log(response.data)
             if(this.nextPageNumber === 1){
               this.newsletters = response.data.results
             } else {
@@ -251,7 +252,7 @@ export default {
 
       let statisticID = 'deleted_emails_newsletters_feature'
       this.updateStatisticsState(statisticID, newsletter.emails_cnt)
-      this.updateStatisticsState(['saved_carbon'], newsletter.generated_carbon)
+      this.updateStatisticsState(['saved_carbon'], newsletter.forecasted_carbon)
 
       this.newsletters[clickedNewsletter].emails_cnt = 0
       this.newsletters[clickedNewsletter].seen_emails_cnt = 0
