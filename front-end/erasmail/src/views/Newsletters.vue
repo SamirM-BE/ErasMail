@@ -138,18 +138,10 @@ export default {
     })
   },
   mounted() {
-    window.onscroll = () => {
-      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
-      if (bottomOfWindow && this.ready) {
-        this.ready = false
-        let response = this.fetchNextNewsletters()
-        if (response) {
-          response.then(() => {
-            this.ready = true
-          })
-        }
-      }
-    }
+    window.addEventListener('scroll', this.onScroll);
+  },
+  unmounted(){
+    window.removeEventListener('scroll', this.onScroll);
   },
   computed: {
     // unsubscribed_count() {
@@ -163,6 +155,18 @@ export default {
     },
   },
   methods: {
+    onScroll() {
+      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
+      if (bottomOfWindow && this.ready) {
+        this.ready = false
+        let response = this.fetchNextNewsletters()
+        if (response) {
+          response.then(() => {
+            this.ready = true
+          })
+        }
+      }
+    },
     fetchNextNewsletters() {
       if (!this.nextPageNumber) {
         // if there is no page to retrieve then don't query the backend
@@ -180,10 +184,10 @@ export default {
               }
           )
           .then((response) => {
+            if(response.data.next) console.log('next page number', new URL(response.data.next).searchParams.get('page'))
             this.newslettersCount = response.data.count
             this.totalCarbon = response.data.carbon
             this.totalForecastedCarbon = response.data.carbon_yearly_forecast
-            console.log(response.data)
             if(this.nextPageNumber === 1){
               this.newsletters = response.data.results
             } else {

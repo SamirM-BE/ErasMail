@@ -195,18 +195,10 @@ export default {
     this.refreshURL()
   },
   mounted() {
-    window.onscroll = () => {
-      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
-      if (bottomOfWindow && this.ready) {
-        this.ready = false
-        let response = this.fetchNextEmails(false)
-        if (response) {
-          response.then(() => {
-            this.ready = true
-          })
-        }
-      }
-    }
+    window.addEventListener('scroll', this.onScroll);
+  },
+  unmounted(){
+    window.removeEventListener('scroll', this.onScroll);
   },
   watch: {
     unread() {
@@ -237,6 +229,18 @@ export default {
     }
   },
   methods: {
+    onScroll() {
+      let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
+      if (bottomOfWindow && this.ready) {
+        this.ready = false
+        let response = this.fetchNextEmails(false)
+        if (response) {
+          response.then(() => {
+            this.ready = true
+          })
+        }
+      }
+    },
     selectOrder(order) {
       this.orderedBy = order
       this.refreshURL()
@@ -296,7 +300,7 @@ export default {
               }
           )
           .then((response) => {
-            if(response.data.next) console.log('next page number (first page is 1)', new URL(response.data.next).searchParams.get('page'))
+            if(response.data.next) console.log('next page number', new URL(response.data.next).searchParams.get('page'))
             this.emailCount = response.data.count
             this.generated_carbon = response.data.generated_carbon
             this.carbon_yforecast = response.data.carbon_yforecast
