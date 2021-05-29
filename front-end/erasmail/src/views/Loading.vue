@@ -1,10 +1,10 @@
 <template>
   <SuccessNotification :notification_message="'You have successfully logged in'">
   </SuccessNotification>
-  <section class="section erasmail p-0">
-    <div class="columns is-centered is-vcentered">
-      <div class="column is-4 has-text-centered logo">
-        <strong class="has-text-primary"> ErasMail </strong>
+  <section class="section erasmail">
+    <div class="columns is-centered">
+      <div class="column is-4 has-text-centered">
+        <strong class="has-text-primary logo"> ErasMail </strong>
       </div>
       <div class="column is-5">
         <div class="content">
@@ -15,8 +15,8 @@
     </div>
   </section>
 
-  <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center">
-    <span class="has-text-weight-bold is-size-2">{{waitingText}}</span>
+  <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center mt-5">
+    <span class="has-text-weight-bold is-size-3">{{waitingText}}</span>
     <p>Analyzing your emails</p>
     <progress class="progress is-small is-primary my-1" max="100"></progress>
     <p>{{ awareness_messages[index] }}</p>
@@ -41,9 +41,6 @@
       </div>
     </div>
   </section>
-
-
-
 </template>
 
 <script>
@@ -215,12 +212,8 @@ export default {
 
 <style scoped>
 .logo {
-  padding: 1%;
-  border-color: lightgray !important;
-  border: solid;
-  border-width: thin;
   font-family: Papyrus;
-  font-size: 60px;
+  font-size: 5rem;
 }
 .progress {
   width: 30vw;
