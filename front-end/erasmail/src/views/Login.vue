@@ -138,9 +138,10 @@
           </div>
           
           <div class="column is-half">
-            <button class="button has-text-white has-background-primary-dark is-fullwidth" 
-              :class="{'is-loading': isLookingHost}" :disabled="hideNext" @click="next()">
-              {{ stepIdx === 2 ? "Login" : "Next"}} 
+            <button class="button has-text-white has-background-primary-dark is-fullwidth"
+              :class="{'is-static': isLookingHost}" :disabled="hideNext" @click="next()">
+              <i v-if="isLookingHost" class="fa fa-spinner fa-spin"></i>
+              <p v-else>{{ stepIdx === 2 ? "Login" : "Next"}}</p>
             </button>
           </div>
         </div>
