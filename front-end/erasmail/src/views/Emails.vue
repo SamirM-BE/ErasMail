@@ -1,4 +1,5 @@
 <template>
+  <SuccessNotification :notificationMessage="'Email(s) successfully deleted!'" :trigger="trigger"/>
   <AwarenessMessage :co2="generated_carbon" :forecastCarbon="carbon_yforecast"
                     :forecastMsg="`Keeping these emails for one more additional year will generate as much CO2 as `"
                     :itemCount="emailCount"
@@ -77,17 +78,20 @@
 
 <script>
 import {getAPI} from "../axios-api";
+import {useToast} from "vue-toastification";
+
 import AwarenessMessage from "../components/AwarenessMessage";
 import EmailForm from "../components/EmailForm";
 import Dropdown from "../components/Dropdown";
-import {useToast} from "vue-toastification";
+import SuccessNotification from "../components/SuccessNotification";
 
 export default {
   name: "Emails",
   components: {
     AwarenessMessage,
     EmailForm,
-    Dropdown
+    Dropdown,
+    SuccessNotification
   },
   data() {
     return {
@@ -141,6 +145,8 @@ export default {
 
       initializationDone: false, // to check if all variables used for the backend request are correctly initialized or not
       ready: true, // whether ready to fetch new data from the backend
+
+      trigger: true, // SuccessNotification
     }
   },
   created() {
@@ -410,6 +416,7 @@ export default {
             }
           })
           .then(() => {
+            this.trigger = !this.trigger
             this.fetchNextEmails(true)
           })
           .catch((err) => {

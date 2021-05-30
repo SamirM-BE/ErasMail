@@ -1,10 +1,7 @@
 <template>
-  <div class="notification is-success is-light" v-show="notification_show">
-    <button
-      class="delete"
-      @click="notification_show = !notification_show"
-    ></button>
-    <p>{{ notification_message }}</p>
+  <div class="notification is-success is-light p-0 " v-show="show">
+    <p class="m-4">{{ notificationMessage }}</p>
+    <button class="delete" @click="show = !show"/>
   </div>
 </template>
 
@@ -12,23 +9,52 @@
 export default {
   data() {
     return {
-      notification_show: true,
+      show: false,
     };
   },
-  props: ["notification_message"],
-
-  mounted() {
-    setTimeout(() => {
-      this.notification_show = false;
-    }, 2000);
+  props: {
+    notificationMessage: {
+      type: String,
+      required: true,
+    },
+    trigger: {
+      type: Boolean,
+      default: false,
+    },
+    delay: {
+      type: Number,
+      default: 2000,
+    },
   },
+  created() {
+    if (!this.trigger) {
+      this.showNotification()
+    }
+  },
+  watch:{
+    trigger() {
+      this.showNotification()
+    }
+  },
+  methods: {
+    showNotification(){
+      this.show = true
+      setTimeout(
+        () => {
+          this.show = false
+        },
+        this.delay
+      )
+    }
+  }
 };
 </script>
 
 <style scoped>
 .notification{
-  position: absolute;
+  position: fixed;
   top: 0;
   width: 100%;
+  z-index: 999;
 }
 </style>

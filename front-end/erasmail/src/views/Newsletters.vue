@@ -1,4 +1,5 @@
 <template>
+  <SuccessNotification :notificationMessage="notificationMessage" :trigger="trigger"/>
   <AwarenessMessage :co2="totalCarbon" :forecastCarbon="totalForecastedCarbon"
                     :forecastMsg="`Keeping these newsletters for one more additional year will generate as much CO2 as `"
                     :itemCount="newslettersCount"
@@ -81,7 +82,7 @@
               <button v-if="(!newsletter.unsubscribed && newsletter.emails_cnt !== 0)"
                       :class="{ 'is-hidden': newsletter.emails_cnt === 0 }"
                       class="button is-fullwidth is-small  is-success mt-1"
-                      @click="unsubscribe(index); deleteEmails(index); fadeMe()">Unsubscribe & Delete
+                      @click=" deleteEmails(index); unsubscribe(index); fadeMe()">Unsubscribe & Delete
               </button>
 
 
@@ -107,15 +108,19 @@
 
 <script>
 import {getAPI} from "@/axios-api";
+import {useToast} from "vue-toastification";
+
 import AwarenessMessage from "../components/AwarenessMessage";
 import ThreeBestComparison from "../components/ThreeBestComparison";
-import {useToast} from "vue-toastification";
+import SuccessNotification from "../components/SuccessNotification";
+
 
 export default {
   name: "Newsletters",
   components: {
     AwarenessMessage,
     ThreeBestComparison,
+    SuccessNotification
   },
   data() {
     return {
@@ -130,6 +135,9 @@ export default {
       nextPageNumber: 1,
 
       ready: false, // whether ready to fetch new data from the backend
+
+      trigger: true, // SuccessNotification
+      notificationMessage: '', // SuccessNotification
     };
   },
   created() {
@@ -155,6 +163,10 @@ export default {
     },
   },
   methods: {
+    showNotification(message){
+      this.notificationMessage = message
+      this.trigger = !this.trigger
+    },
     onScroll() {
       let bottomOfWindow = Math.max(window.pageYOffset, document.documentElement.scrollTop, document.body.scrollTop) + window.innerHeight >= Math.round(document.documentElement.offsetHeight * 0.95)
       if (bottomOfWindow && this.ready) {
@@ -279,6 +291,7 @@ export default {
               }
           )
           .then(() => {
+            this.showNotification('Email(s) successfully deleted!')
             delete this.newsletters[clickedNewsletter].uids_folders
           })
           .catch((err) => {
@@ -356,6 +369,7 @@ export default {
               }
           )
           .then(() => {
+            this.showNotification('Successfully unsubscribed!')
             console.log("Successfull unsubscribe")
           })
           .catch((err) => {

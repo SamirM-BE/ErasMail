@@ -4,6 +4,7 @@
   <EmailModal :emails="emails" :showModal="showModalFlag" :threadSubject="threadSubject"
               @delete="deleteEmailsOrAttachments" @hide-modal="showModalFlag = false">
   </EmailModal>
+  <SuccessNotification :notificationMessage="notificationMessage" :trigger="trigger"/>
   <AwarenessMessage :co2="totalPollution" :itemCount="threadsSorted.length"
                     :itemName="'conversation' + (threadsSorted.length > 1 ? 's' : '')"/>
   <div :class="{'is-clipped': showModalFlag}" class="columns mx-4 mt-4">
@@ -28,11 +29,14 @@
 <script>
 import {getAPI} from "../axios-api";
 import {mapGetters} from "vuex";
+import {useToast} from "vue-toastification";
+
+
 import AwarenessMessage from "../components/AwarenessMessage";
 import ThreadBox from "../components/ThreadBox";
 import Treemap from "../components/Treemap";
 import EmailModal from "../components/EmailModal";
-import {useToast} from "vue-toastification";
+import SuccessNotification from "../components/SuccessNotification";
 
 
 export default {
@@ -41,7 +45,8 @@ export default {
     ThreadBox,
     EmailModal,
     Treemap,
-    AwarenessMessage
+    AwarenessMessage,
+    SuccessNotification
   },
   data() {
     return {
@@ -51,6 +56,9 @@ export default {
       threadSubject: '',
       emails: [],
       loaderIsActive: 'is-active',
+
+      trigger: true, // SuccessNotification
+      notificationMessage: '', // SuccessNotification
     }
   },
   created() {
@@ -134,7 +142,12 @@ export default {
     deleteEmailsOrAttachments(emails) {
       if (emails.count) {
         let url = '/api/emails/'
-        if (emails.onlyAttachments) url += 'attachments'
+        this.notificationMessage = 'Email(s) successfully deleted!'
+
+        if (emails.onlyAttachments) {
+          url += 'attachments'
+          this.notificationMessage = 'Attachment(s) successfully deleted!'
+        }
 
         let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature']
         const carbonYforecast = this.threads.children[this.threadIndex].carbon_yforecast
@@ -163,6 +176,7 @@ export default {
               }
             })
             .then(() => {
+              this.trigger = !this.trigger
               if (!deleted) {
                 return getAPI
                     .get(

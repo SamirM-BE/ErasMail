@@ -53,7 +53,7 @@ class EmailStatsQuerySet(models.QuerySet):
     def with_score(self):
         return self.annotate(
             score=ExpressionWrapper(
-                F("shared_stats") * 1000
+                F("shared_badges") * 1000
                 + F("shared_stats") * 1000
                 + F("user__connected_count") * 25
                 + (F("saved_carbon")), # the amount of CO2 saved in kg
