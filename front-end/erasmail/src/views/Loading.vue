@@ -7,7 +7,7 @@
         <strong class="has-text-primary logo"> ErasMail </strong>
       </div>
       <div class="column is-5">
-        <div class="content">
+        <div class="content has-text-black">
           <h1><strong>Welcome to <span class="has-text-primary">ErasMail &#127758;</span></strong></h1>
           <p>Erasmail comes with a bunch of tools and features that will help you quickly and efficiently reduce the environmental impact of your mailboxes</p>
         </div>
@@ -15,8 +15,8 @@
     </div>
   </section>
 
-  <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center mt-5">
-    <span class="has-text-weight-bold is-size-3">{{waitingText}}</span>
+  <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center mt-5 has-text-black">
+    <span class="has-text-weight-bold is-size-3 ">{{waitingText}}</span>
     <p>Analyzing your emails</p>
     <progress class="progress is-small is-primary my-1" max="100"></progress>
     <p>{{ awareness_messages[index] }}</p>
@@ -27,16 +27,16 @@
     <br>
     <div class="columns is-centered">
       <div class="column is-one-quarter" v-for="(feature, idx) in featuresToShow" :key="idx">
-        <div class="box content has-background-success-light py-6">
+        <div class="box content py-6">
 
-          <div class="is-size-3 has-text-centered has-text-grey-dark">
+          <div class="is-size-3 has-text-centered has-text-black">
             <span class="icon is-large is-right">
                 <i class="fas fa-sm " v-bind:class="feature.icon"></i>
               </span>
             {{feature.name}}
           </div>
           <br>
-          <p class="is-size-5 has-text-justified has-text-weight-light has-text-grey-dark">{{feature.content}}</p>
+          <p class="is-size-5 has-text-justified has-text-weight-light has-text-black">{{feature.content}}</p>
         </div>
       </div>
     </div>
@@ -157,6 +157,12 @@ export default {
     setInterval(() => {
       this.feature_counter++;
     }, 1000 * display_time_features);
+
+    document.body.style.backgroundImage = "url('https://i.imgur.com/rfsKDrP.jpg')"
+    document.body.style.backgroundSize = "100% auto"
+  },
+  unmounted() {
+    document.body.style.backgroundImage = ""
   },
   computed: {
     index() {
@@ -210,7 +216,10 @@ export default {
 </script>
 
 
-<style scoped>
+<style lang="scss" scoped>
+$innercolor : rgb(230, 240, 223, 0.9);
+$outercolor : rgb(230, 240, 223, 0.7);
+
 .logo {
   font-family: Papyrus;
   font-size: 5rem;
@@ -220,5 +229,12 @@ export default {
 }
 .box{
   height: 100%;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  background: $innercolor;
+  background: -webkit-radial-gradient(center, $innercolor, $outercolor);
+  background: -moz-radial-gradient(center, $innercolor, $outercolor);
+  background: radial-gradient(ellipse at center, $innercolor, $outercolor);
 }
 </style>
