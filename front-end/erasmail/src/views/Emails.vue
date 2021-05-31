@@ -40,7 +40,7 @@
 
         <div class="filter-item">
           <p><strong>Useless emails:</strong></p>
-          <form class="mt-2">
+          <form class="mt-2 filters-useless has-background-success-light py-3 px-5">
             <div v-for="(filterName, idx) in filterNames" :key="idx" class="field">
               <div class="control">
                 <label class="checkbox">
@@ -48,6 +48,7 @@
                   {{ filterName }}
                 </label>
               </div>
+              <hr v-if="filterName !== 'No reply'" class="dropdown-divider">
             </div>
           </form>
         </div>
@@ -428,12 +429,25 @@ export default {
 </script>
 
 <style scoped>
+
 .toolbox{
   position: -webkit-sticky; /* Safari */
   position: sticky;
   z-index: 2;
   top: 3.25rem;
   background-color: rgb(255, 255, 255);
+}
+
+.filters-useless{
+  border: solid;
+  border-color: hsl(0, 0%, 86%);
+  border-width: thin;
+  border-radius: 6px;
+}
+
+
+hr.dropdown-divider {
+  border-top: 1px solid hsl(0, 0%, 86%);
 }
 
 </style>
