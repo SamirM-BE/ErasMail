@@ -26,39 +26,49 @@
                     @checked-emails="updateCheckedEmails">
                 </EmailForm>
             </div>
-            <footer class="modal-card-foot has-background-primary-dark">
-
-                <div class="dropdown is-up" :class="{'is-active': showDropdown}">
-                    <div class="dropdown-trigger" @click="showDropdown = !showDropdown">
-                        <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
-                            <span>{{selectedAction}}</span>
-                            <span class="icon is-small">
-                                <i class="fas fa-angle-down" aria-hidden="true"></i>
-                            </span>
-                        </button>
-                    </div>
-                    <div class="dropdown-menu" id="dropdown-menu" role="menu">
-                        <div class="dropdown-content">
-                            <a class="dropdown-item" :class="{'is-active': selectedAction === removeEmail}"
-                                @click="selectAction(removeEmail)">
-                                <p>{{removeEmail}}</p>
-                            </a>
-                            <!-- <hr class="dropdown-divider"> -->
-                            <a class="dropdown-item" :class="{'is-active': selectedAction === removeAttachment}"
-                                v-if="selectedEmailsHasAttachment != false" @click="selectAction(removeAttachment)">
-                                <p>{{removeAttachment}}</p>
-                            </a>
+            <footer class="modal-card-foot has-background-primary-dark is-flex-direction-column is-align-items-start">
+                <div id="top-row" class="is-flex">
+                    <div class="dropdown is-up" :class="{'is-active': showDropdown}">
+                        <div class="dropdown-trigger" @click="showDropdown = !showDropdown">
+                            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu">
+                                <span>{{selectedAction}}</span>
+                                <span class="icon is-small">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                            </button>
                         </div>
+                        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                            <div class="dropdown-content">
+                                <a class="dropdown-item" :class="{'is-active': selectedAction === removeEmail}"
+                                    @click="selectAction(removeEmail)">
+                                    <p>{{removeEmail}}</p>
+                                </a>
+                                <!-- <hr class="dropdown-divider"> -->
+                                <a class="dropdown-item" :class="{'is-active': selectedAction === removeAttachment}"
+                                    v-if="selectedEmailsHasAttachment != false" @click="selectAction(removeAttachment)">
+                                    <p>{{removeAttachment}}</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="button is-danger ml-1"
+                        :disabled="selectedAction === 'Select an action' || !checkedEmails.length"
+                        @click="executeAction()">Execute</button>
+                    <div>
+                        <p class="has-text-white"> Selected size : {{readableSize(selectedSize)}} /
+                            {{readableSize(maxSize)}}</p>
+                        <!-- / ==> out of -->
+                        <progress class="progress is-small is-primary" :value="selectedSize" :max="maxSize"></progress>
                     </div>
                 </div>
 
-                <button class="button is-danger ml-1" :disabled="selectedAction === 'Select an action' || !checkedEmails.length"
-                    @click="executeAction()">Execute</button>
-                <div>
-                    <p class="has-text-white"> Selected size : {{readableSize(selectedSize)}} /
-                        {{readableSize(maxSize)}}</p>
-                    <!-- / ==> out of -->
-                    <progress class="progress is-small is-primary" :value="selectedSize" :max="maxSize"></progress>
+                <div id="bottom-row" class="icon-text has-text-grey-lighter mt-3" v-if="selectedAction === removeAttachment">
+                    <span class="icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </span>
+                    <span>
+                        Deleting attachments may take some time to be reflected in your mailbox
+                    </span>
                 </div>
             </footer>
         </div>
