@@ -1,5 +1,5 @@
 <template>
-  <div class="notification is-success is-light p-0 " v-show="show">
+  <div class="notification is-success is-light py-3" :style="positionStyle" v-show="show">
     <p class="m-4">{{ notificationMessage }}</p>
     <button class="delete" @click="show = !show"/>
   </div>
@@ -24,6 +24,10 @@ export default {
     delay: {
       type: Number,
       default: 2000,
+    },
+    positionStyle: {
+      type: Object,
+      default: () => ({ top: '3.25rem'}),
     },
   },
   created() {
@@ -53,7 +57,6 @@ export default {
 <style scoped>
 .notification{
   position: fixed;
-  top: 0;
   width: 100%;
   z-index: 999;
 }

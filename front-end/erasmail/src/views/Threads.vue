@@ -176,7 +176,6 @@ export default {
               }
             })
             .then(() => {
-              this.trigger = !this.trigger
               if (!deleted) {
                 return getAPI
                     .get(
@@ -189,6 +188,7 @@ export default {
               }
             })
             .then((response) => {
+              this.trigger = !this.trigger
               if (response) {
                 let threadUpdated = response.data
                 this.threads.children[this.threadIndex] = threadUpdated

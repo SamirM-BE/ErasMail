@@ -1,5 +1,5 @@
 <template>
-  <SuccessNotification :notificationMessage="'You have successfully logged in!'" :delay="3000"/>
+  <SuccessNotification :notificationMessage="'You have successfully logged in!'" :delay="3000" :positionStyle="{top: 0}"/>
   <section class="section erasmail">
     <div class="columns is-centered">
       <div class="column is-4 has-text-centered">
