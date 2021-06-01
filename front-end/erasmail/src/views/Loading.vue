@@ -1,5 +1,5 @@
 <template>
-  <SuccessNotification :notificationMessage="'You have successfully logged in!'" delay="3000"/>
+  <SuccessNotification :notificationMessage="'You have successfully logged in!'" :delay="3000"/>
   <section class="section erasmail">
     <div class="columns is-centered">
       <div class="column is-4 has-text-centered">
@@ -26,7 +26,7 @@
     <br>
     <div class="columns is-centered">
       <div class="column is-one-quarter" v-for="(feature, idx) in featuresToShow" :key="idx">
-        <div class="box content py-6">
+        <div class="box is-shadowless content py-6">
 
           <div class="is-size-3 has-text-centered has-text-black">
             <span class="icon is-large is-right">
@@ -228,9 +228,6 @@ $outercolor : rgb(230, 240, 223, 0.7);
 }
 .box{
   height: 100%;
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
   background: $innercolor;
   background: -webkit-radial-gradient(center, $innercolor, $outercolor);
   background: -moz-radial-gradient(center, $innercolor, $outercolor);
