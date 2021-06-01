@@ -61,12 +61,23 @@ export default {
             this.showDropdown = false
         }
     },
-    methods:{
-        onClick(value){
+    methods: {
+        onClick(value) {
             this.showDropdown = false
             this.$emit('on-click', value)
+        },
+        close(e) {
+            if (!this.$el.contains(e.target)) {
+                this.showDropdown = false
+            }
         }
-    } 
+    },
+    mounted() {
+        document.addEventListener('click', this.close)
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this.close)
+    }
 }
 </script>
 
