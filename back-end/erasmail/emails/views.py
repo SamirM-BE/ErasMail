@@ -484,7 +484,7 @@ class NewsletterListView(APIView):
         for folder in uids_to_delete:
             uids_cnt += len(uids_to_delete[folder]) # get nb of emails to delete
 
-        email_stats.add(deleted_emails_newsletters_feature=uids_cnt)
+        email_stats.add(deleted_emails_newsletters_feature=uids_cnt, deleted_emails=uids_cnt)
         email_stats.save()
 
         move_to_trash(host, user.email, app_password, uids_to_delete)

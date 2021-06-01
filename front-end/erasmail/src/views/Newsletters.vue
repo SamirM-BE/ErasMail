@@ -266,8 +266,8 @@ export default {
       newsletter = this.newsletters[clickedNewsletter]
       sender_emails.push(newsletter.sender_email)
 
-      let statisticID = 'deleted_emails_newsletters_feature'
-      this.updateStatisticsState(statisticID, newsletter.emails_cnt)
+      let statisticIDs = ['deleted_emails_newsletters_feature', 'deleted_emails']
+      this.updateStatisticsState(statisticIDs, newsletter.emails_cnt)
       this.updateStatisticsState(['saved_carbon'], newsletter.forecasted_carbon)
 
       this.newsletters[clickedNewsletter].emails_cnt = 0
@@ -306,16 +306,19 @@ export default {
         this.newsletters[clickedNewsletter].unsubscribed = true
     },
     //Update the state that keeps the statistics to add the number of deleted emails or unsunscribed newsletters by user.
-    updateStatisticsState(statisticID, value) {
-      this.$store.dispatch("stats/updateStatistics", {ids: [statisticID], value: value})
+    updateStatisticsState(statisticsIDs, value) {
+      this.$store
+          .dispatch("stats/updateStatistics", {ids: statisticsIDs, value: value})
           .then(() => {
-            // if no success is linked to statisticID then skip it
-            if (!this.successDetails[statisticID]) return
-            for (const success of this.successDetails[statisticID]) {
-              if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
-                this.showSuccess(success.todo)
+            for (const statisticID of statisticsIDs) {
+              // if no success is linked to statisticID then skip it
+              if(!this.successDetails[statisticID]) continue
+              for (const success of this.successDetails[statisticID]) {
+                if (this.$store.state.stats.statistics.erasmail[statisticID] >= success.minValue && !success.done)
+                  this.showSuccess(success.todo)
+              }
+              this.$store.dispatch('success/setSuccessDone', statisticID)
             }
-            this.$store.dispatch('success/setSuccessDone', statisticID)
           })
           .catch((err) => {
             console.log(err)

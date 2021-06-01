@@ -149,7 +149,7 @@ export default {
           this.notificationMessage = 'Attachment(s) successfully deleted!'
         }
 
-        let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature']
+        let statisticID = emails.onlyAttachments ? ['deleted_attachments'] : ['deleted_emails_threads_feature', 'deleted_emails']
         const carbonYforecast = this.threads.children[this.threadIndex].carbon_yforecast
 
         let deleted = false
