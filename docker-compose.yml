@@ -1,11 +1,18 @@
 version: '3.7'
 
 services:
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    ports:
+      - 8080:80
+    depends_on:
+      - web
   web:
     container_name: web
-    build:
-        context: ./back-end/erasmail
-        dockerfile: Dockerfile
+    build: ./back-end/erasmail
     command: ["sh", "-c", 
                 "python manage.py migrate; 
                 gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000"
