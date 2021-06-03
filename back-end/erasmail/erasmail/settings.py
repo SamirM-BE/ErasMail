@@ -68,6 +68,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:8080',
     'http://172.20.231.145:8080',
     'http://192.168.1.31:8080',
+    'http://tfe-imap.info.ucl.ac.be:8080'
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
