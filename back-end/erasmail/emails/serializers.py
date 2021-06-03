@@ -23,7 +23,6 @@ class EmailHeadersSerializer(serializers.ModelSerializer):
         try:
             return obj.owner.email == obj.receiver_email
         except:
-            print('hello')
             return False
 
     class Meta:

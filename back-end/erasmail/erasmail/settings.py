@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+import os
 import datetime
 from pathlib import Path
 
@@ -24,12 +24,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", default=config("SECRET_KEY"))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = int(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", default="localhost 127.0.0.1 [::1]").split(" ")
 
 
 # Application definition
@@ -68,6 +68,7 @@ CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:8080',
     'http://172.20.231.145:8080',
     'http://192.168.1.31:8080',
+    'http://tfe-imap.info.ucl.ac.be:8080'
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -105,15 +106,15 @@ DATABASES = {
 
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
 
-        'NAME': config("DB_NAME"),
+        'NAME': os.environ.get("SQL_DATABASE", config("DB_NAME")),
 
-        'USER': config("DB_USER"),
+        'USER': os.environ.get("SQL_USER", config("DB_USER")),
 
-        'PASSWORD': config("DB_PASSWORD"),
+        'PASSWORD': os.environ.get("SQL_PASSWORD", config("DB_PASSWORD")),
 
-        'HOST': config("DB_HOST"),
+        'HOST': os.environ.get("SQL_HOST", config("DB_HOST")),
 
-        'PORT': 5432,
+        'PORT': os.environ.get("SQL_PORT", 5432),
 
     }
 
@@ -171,6 +172,10 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=50),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=3),
 }
+
+CELERY_BROKER_URL = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
+
 
 # INTERNAL_IPS = ('127.0.0.1', '0.0.0.0', 'localhost',)
 

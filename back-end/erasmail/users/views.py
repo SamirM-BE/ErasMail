@@ -11,8 +11,6 @@ from .token import get_tokens_for_user
 
 from django.db.models import F
 
-from .utils import is_undesirable_folder
-
 class LoginView(APIView):
     permission_classes = (AllowAny,)
     
@@ -25,26 +23,17 @@ class LoginView(APIView):
         try:
             server = IMAPClient(host)
             server.login(email, app_password)
-            total = 0
-
-            for folder in server.list_folders():
-                if is_undesirable_folder(folder):
-                    continue
-                
-                res = server.select_folder(folder[2], readonly=True)
-                total += int(res[b'EXISTS'])     
             server.logout()
 
             user, is_created = CustomUser.objects.get_or_create(email=email)
             CustomUser.objects.filter(email=email).update(connected_count=F('connected_count')+1)
 
-
             token = get_tokens_for_user(user)
 
             if is_created:
-                return Response({"token": token, "total":total}, status=status.HTTP_201_CREATED)
-            return Response({"token": token, "total":total}, status=status.HTTP_200_OK)
-        except Exception as e:
+                return Response({"token": token}, status=status.HTTP_201_CREATED)
+            return Response({"token": token}, status=status.HTTP_200_OK)
+        except Exception:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 # Create your views here.

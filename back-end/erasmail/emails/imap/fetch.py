@@ -31,6 +31,23 @@ def fetch_messages(server, messages, to_fetch):
     return ((uid, data) for uid, data in fetched.items())
 
 
+def get_emails_count(host, username, password):
+    server = IMAPClient(host)
+    server.login(username, password)
+
+    total = 0
+    for folder in server.list_folders():
+        if is_undesirable_folder(folder):
+            continue
+        
+        res = server.select_folder(folder[2], readonly=True)
+        total += int(res[b'EXISTS'])     
+
+    server.logout()
+
+    return total
+
+
 def get_emails(host, username, password):
     server = IMAPClient(host)
     server.normalise_times = False
@@ -47,7 +64,7 @@ def get_emails(host, username, password):
 
         selected_folder = folder[2]  # (b'\\HasNoChildren',), b'/', 'INBOX')
 
-        server.select_folder(selected_folder)
+        server.select_folder(selected_folder, readonly=True)
         messages = server.search(["All"])
 
         all_to_fetch = [

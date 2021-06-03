@@ -15,9 +15,8 @@
   </section>
 
   <section class="section progress-bar is-flex is-flex-direction-column is-align-items-center mt-5 has-text-black">
-    <span class="has-text-weight-bold is-size-3 ">{{waitingText}}</span>
-    <p>Analyzing your emails</p>
-    <progress class="progress is-small is-primary my-1" max="100"></progress>
+    <p>{{fetchMessage + "..."}}</p>
+    <progress class="progress is-small is-primary my-1" :value="fetchProgress" max="100"></progress>
     <p>{{ awareness_messages[index] }}</p>
   </section>
 
@@ -92,6 +91,7 @@ const features = [{
   }
 ]
 
+
 export default {
   name: "Loading",
   components: {
@@ -103,23 +103,12 @@ export default {
       awareness_messages: awareness_messages,
       features: features,
       feature_counter: 0,
-      waitingText: "",
+
+      fetchMessage: "Fetching your emails",
+      fetchProgress: 0,
     };
   },
   created() {
-    let waitingTime = this.getWaitingTime()
-    setInterval(change, 60000);
-    this.waitingText = `Estimated waiting time : ${waitingTime} minute(s)`
-    let that = this
-    function change() {
-      if(waitingTime==0) {
-        that.waitingText = `Don't worry, depending on the email service provider, analyzing your mailbox could take up to 30 minutes. Estimated waiting time : ${waitingTime} minute(s)`
-      }
-      else {
-        that.waitingText = `Estimated waiting time : ${waitingTime} minute(s)`
-        waitingTime--
-      }
-    }
     getAPI
       .post(
         "/api/emails/", {
@@ -131,6 +120,45 @@ export default {
           },
         }
       )
+      .then((response) => {
+        return new Promise((resolve, reject) => {
+          let checkState = setInterval(() => {
+            getAPI
+              .get("/api/emails/", {
+                headers: {
+                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                },
+                params: {
+                  task_id: response.data.task_id,
+                },
+              })
+              .then((response) => {
+                console.log('checkState', response.data)
+                let state = response.data.state
+                let info = response.data.info
+                if(state === "PROGRESS"){
+                  if(info.step == "init"){
+                    this.fetchProgress = 10
+                  } else if(info.step == "fetch"){
+                    this.fetchProgress = 10 + (info.done / info.total) * 60
+                  } else if(info.step == "stats"){
+                    this.fetchMessage = "Updating your statistics"
+                    this.fetchProgress = 75
+                  } else if(info.step == "Analyzing your threads"){
+                    this.fetchProgress = 80
+                  }
+                } else if (state === "SUCCESS") {
+                  this.fetchProgress = 100
+                  clearInterval(checkState)
+                  resolve()
+                } else if (state === "FAILURE" || state === "REVOKED") {
+                  clearInterval(checkState)
+                  reject(new Error('task failed! (loading)'))
+                }
+              })
+          }, 6000)
+        })
+      })
       .then(() => {
         return this.fetchUserStats()
       })
@@ -196,20 +224,6 @@ export default {
             this.$store.dispatch('success/updateAllSuccess',)
           })
     },
-    getWaitingTime() {
-      let emailsCount = this.$store.state.auth.total
-      let emailRate = 0
-      if (emailsCount<5000)
-        emailRate = 10
-      else if (emailsCount<10000)
-        emailRate = 15
-      else
-        emailRate = 20
-       // 10emails/second
-      let waitingTime = emailsCount/emailRate //seconds
-      return Math.ceil(waitingTime/60) //minutes
-    },
-
   },
 }
 </script>

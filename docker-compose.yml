@@ -1,0 +1,48 @@
+version: '3.7'
+
+services:
+  nginx:
+    container_name: nginx
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    command: [nginx, '-g', 'daemon off;']
+    ports:
+      - 8080:80
+    environment:
+      - SERVER_NAME=localhost
+    depends_on:
+      - web
+  web:
+    container_name: web
+    build: ./back-end/erasmail
+    command: ["sh", "-c", 
+                "python manage.py migrate; 
+                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=debug"
+             ]
+    expose:
+      - 8000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+      - redis
+  db:
+    container_name: db
+    image: postgres:alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.db
+  celery:
+    build: ./back-end/erasmail
+    command: celery -A erasmail worker -l debug
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - redis
+  redis:
+    image: redis:alpine
+
+volumes:
+  postgres_data:
