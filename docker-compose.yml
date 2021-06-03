@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  web:
+    container_name: web
+    build:
+        context: ./back-end/erasmail
+        dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./back-end/erasmail:/usr/src/app/
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env.dev
+    depends_on:
+        - db
+  db:
+    container_name: db
+    image: postgres:12.0-alpine
+    volumes:
+        - postgres_data:/var/lib/postgresql/data/
+    env_file:
+        - ./.env.db
+
+volumes:
+  postgres_data:
