@@ -3,7 +3,7 @@ import store from './store'
 
 const TIME_OUT = 30000000
 
-const APIUrl = 'http://127.0.0.1:8000'
+const APIUrl = ''
 const axiosBase = axios.create({
     baseURL: APIUrl,
     timeout: TIME_OUT,

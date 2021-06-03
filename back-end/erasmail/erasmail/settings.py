@@ -113,7 +113,7 @@ DATABASES = {
 
         'HOST': os.environ.get("SQL_HOST", config("DB_HOST")),
 
-        'PORT': 5432,
+        'PORT': os.environ.get("SQL_PORT", 5432),
 
     }
 

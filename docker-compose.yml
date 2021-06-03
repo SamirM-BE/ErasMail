@@ -6,11 +6,12 @@ services:
     build:
         context: ./back-end/erasmail
         dockerfile: Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - ./back-end/erasmail:/usr/src/app/
+    command: ["sh", "-c", 
+                "python manage.py migrate; 
+                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000"
+             ] # python manage.py flush --no-input;
     ports:
-      - 8000:8000
+        - 8000:8000
     env_file:
       - ./.env.dev
     depends_on:
