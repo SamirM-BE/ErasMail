@@ -10,7 +10,8 @@ def fetch_emails(current_task, user_pk, email, app_password, host):
     current_task.update_state(state='STARTED')
 
     user = User.objects.get(pk=user_pk)
-    # Get the emails from the service layer
+    
+    current_task.update_state(state='PROGRESS', meta={'step':'init'})
     emails_count = get_emails_count(host, email, app_password)
 
     mail_messages = get_emails(host, email, app_password)
