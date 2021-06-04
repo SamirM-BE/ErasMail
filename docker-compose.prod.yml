@@ -6,6 +6,8 @@ services:
     image: edgargevorgyan/erasmail_nginx
     ports:
       - 80:80
+    environment:
+      - SERVER_NAME=tfe-imap.info.ucl.ac.be
     depends_on:
       - web
   web:
@@ -16,18 +18,34 @@ services:
                 gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000"
              ] # python manage.py flush --no-input;
     ports:
-        - 8000:8000
+      - 8000:8000
     env_file:
-        - ./.env.prod
+      - ./.env.prod
     depends_on:
-        - db
+      - db
   db:
     container_name: db
     image: postgres:12.0-alpine
     volumes:
-        - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
-        - ./.env.db
+      - ./.env.db
+  celery:
+    image: edgargevorgyan/erasmail_web
+    command: celery -A erasmail worker -l info
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - redis
+  celery-beat:
+    image: edgargevorgyan/erasmail_web
+    command: celery -A erasmail beat -l info
+    env_file:
+      - ./.env.prod
+    depends_on:
+      - redis
+  redis:
+    image: redis:alpine
 
 volumes:
   postgres_data:

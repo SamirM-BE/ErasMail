@@ -92,6 +92,33 @@ const features = [{
   }
 ]
 
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function fetchingStatus(task_id, accessToken) {
+  let fetchContinue = true
+  while (fetchContinue) {
+    const response = await getAPI
+        .get(`/api/emails/`, {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+              params: {
+                task_id: task_id,
+              },
+            }
+        )
+    let state = response.data.state === "SUCCESS";
+    console.log('state', response.data.state)
+    if (state) {
+      fetchContinue = false
+      return state
+    }
+    await sleep(10000);
+  }
+}
+
 export default {
   name: "Loading",
   components: {
@@ -131,6 +158,10 @@ export default {
           },
         }
       )
+      .then((response) => {
+        let that = this
+        return fetchingStatus(response.data.task_id, that.$store.state.auth.accessToken)
+      })
       .then(() => {
         return this.fetchUserStats()
       })

@@ -13,9 +13,7 @@ from rest_framework.pagination import PageNumberPagination
 
 from .imap.attachments import remove_attachments
 from .imap.delete import move_to_trash
-from .imap.fetch import get_emails
 from .imap.newsletters import send_email, delete_unsub_email
-from .imap.jwzthreading import conversation_threading, make_message
 from .models import EmailHeaders, EmailStats, Newsletter
 
 from django.db.models import F
@@ -26,12 +24,13 @@ from .serializers import (
     NewsletterSerializer,
 )
 
+from celery.result import AsyncResult
+from .tasks.analyze_tasks import fetch_emails_task
+
 User = get_user_model()
 
 class BasicPagination(PageNumberPagination):
     page_size = 10
-
-from time import time
 
 class EmailView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -73,49 +72,8 @@ class EmailView(APIView):
         EmailHeaders.objects.filter(owner=user).delete()
 
         try:
-            print('start imap fetching')
-            s1 = time()
-            # Get the emails from the service layer
-            mail_messages = get_emails(host, email, app_password)
-            print('finish imap fetching', time() - s1)
-
-            print('save in the DB')
-            s = time()
-            msglist = []
-            for mail in mail_messages:
-                EmailHeaders.objects.create(
-                    owner=user,
-                    **mail,
-                )
-                msglist.append(make_message(mail))
-
-            print('finish db saving', time() - s)
-
-            print('start stats')
-            s = time()
-            stats = EmailHeaders.objects.filter(
-                owner=user).get_statistics()
-            EmailStats.objects.update_or_create(user=user, defaults=stats)
-            print('finish stats', time() - s)
-
-            print('start threading')
-            s = time()
-            threads = conversation_threading(msglist)
-            print('finish threading', time() - s)
-
-            print('update DB with threads')
-            s = time()
-            for idx, thread in enumerate(threads):
-                folder_uids = thread.get_folder_uid()
-                for folder, uid in folder_uids:
-                    email_header = EmailHeaders.objects.get(
-                        owner=user, uid=uid, folder=folder
-                    )
-                    email_header.thread_id = idx
-                    email_header.save()
-            print('finish', time() - s, time() - s1)
-
-            return Response(status=status.HTTP_201_CREATED)
+            task_analyze = fetch_emails_task.delay(user.pk, email, app_password, host)
+            return Response(data={"task_id": task_analyze.id}, status=status.HTTP_201_CREATED)
         except Exception as e:
             print(e)
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -129,8 +87,13 @@ class EmailView(APIView):
         ordered_by = request.query_params.get("ordered_by")
         folder = request.query_params.get("folder")
 
-        user = request.user
+        task_id = request.query_params.get("task_id")
+        if task_id:
+            result = AsyncResult(id=task_id, app=fetch_emails_task)
+            print("result.state (get): ", result.state)
+            return Response(data = {"state": result.state}, status=status.HTTP_200_OK)
 
+        user = request.user
         emails_headers = EmailHeaders.objects.filter(owner=user)
 
         if before_than:
