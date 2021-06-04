@@ -93,32 +93,6 @@ const features = [{
 ]
 
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-async function fetchingStatus(task_id, accessToken) {
-  let fetchContinue = true
-  while (fetchContinue) {
-    const response = await getAPI
-        .get(`/api/emails/`, {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-              params: {
-                task_id: task_id,
-              },
-            }
-        )
-    let state = response.data.state === "SUCCESS";
-    console.log('state', response.data.state)
-    if (state) {
-      fetchContinue = false
-      return state
-    }
-    await sleep(10000);
-  }
-}
-
 export default {
   name: "Loading",
   components: {
@@ -159,8 +133,30 @@ export default {
         }
       )
       .then((response) => {
-        let that = this
-        return fetchingStatus(response.data.task_id, that.$store.state.auth.accessToken)
+        return new Promise((resolve, reject) => {
+          let checkState = setInterval(() => {
+            getAPI
+              .get("/api/emails/", {
+                headers: {
+                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                },
+                params: {
+                  task_id: response.data.task_id,
+                },
+              })
+              .then((response) => {
+                console.log('checkState', response.data)
+                let state = response.data.state;
+                if (state === "SUCCESS") {
+                  clearInterval(checkState)
+                  resolve()
+                } else if (state === "FAILURE" || state === "REVOKED") {
+                  clearInterval(checkState)
+                  reject(new Error('task failed! (loading)'))
+                }
+              })
+          }, 10000)
+        })
       })
       .then(() => {
         return this.fetchUserStats()
@@ -228,7 +224,7 @@ export default {
           })
     },
     getWaitingTime() {
-      let emailsCount = this.$store.state.auth.total
+      let emailsCount = 432503
       let emailRate = 0
       if (emailsCount<5000)
         emailRate = 10

@@ -8,7 +8,6 @@ export const auth = {
         refreshToken: null,
         app_password: null,
         host: null,
-        total: null, //total emails,
         smtpHost: null,
         smtpPort: null
     },
@@ -24,7 +23,6 @@ export const auth = {
             refresh,
             app_password,
             host,
-            total,
             smtpHost,
             smtpPort
         }) {
@@ -32,7 +30,6 @@ export const auth = {
             state.refreshToken = refresh
             state.app_password = app_password
             state.host = host
-            state.total = total
             state.smtpHost = smtpHost
             state.smtpPort = smtpPort
         },
@@ -48,7 +45,6 @@ export const auth = {
             state.refreshToken = null
             state.app_password = null
             state.host = null
-            state.total = null
             state.smtpHost = null
             state.smtpPort = null
         }
@@ -139,7 +135,6 @@ export const auth = {
                     context.commit('updateStorage', {
                         access: response.data.token['access'],
                         refresh: response.data.token['refresh'],
-                        total: response.data.total,
                         app_password: usercredentials.app_password,
                         host: usercredentials.host,
                         smtpHost: usercredentials.smtpHost,

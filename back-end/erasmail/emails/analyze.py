@@ -1,43 +1,38 @@
 from .models import EmailHeaders, EmailStats
 from .imap.jwzthreading import conversation_threading
-from time import time
-from .imap.fetch import get_emails
+from .imap.fetch import get_emails, get_emails_count
 from .imap.jwzthreading import conversation_threading, make_message
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-def fetch_emails(user_pk, email, app_password, host):
+def fetch_emails(current_task, user_pk, email, app_password, host):
+    current_task.update_state(state='STARTED')
 
-    print('start imap fetching')
-    s1 = time()
-    
     user = User.objects.get(pk=user_pk)
     # Get the emails from the service layer
-    mail_messages = get_emails(host, email, app_password)
+    emails_count = get_emails_count(host, email, app_password)
 
-    print('save in the DB')
+    mail_messages = get_emails(host, email, app_password)
     msglist = []
+   
+    
+    fetched_emails_count = 0
     for mail in mail_messages:
         EmailHeaders.objects.create(
             owner=user,
             **mail,
         )
         msglist.append(make_message(mail))
+        fetched_emails_count += 1
+        current_task.update_state(state='PROGRESS', meta={'step':'fetch', 'done': fetched_emails_count, 'total': emails_count})
 
-    print('finish db saving', time() - s1)
-
-    s = time()
-    stats = EmailHeaders.objects.filter(
-        owner=user).get_statistics()
+    current_task.update_state(state='PROGRESS', meta={'step':'stats'})
+    stats = EmailHeaders.objects.filter(owner=user).get_statistics()
     EmailStats.objects.update_or_create(user=user, defaults=stats)
-    print('finish stats', time() - s)
 
-    s = time()
+    current_task.update_state(state='PROGRESS', meta={'step':'threads'})
     threads = conversation_threading(msglist)
-    print('finish threading', time() - s)
-
-    s = time()
     for idx, thread in enumerate(threads):
         folder_uids = thread.get_folder_uid()
         for folder, uid in folder_uids:
@@ -46,4 +41,3 @@ def fetch_emails(user_pk, email, app_password, host):
             )
             email_header.thread_id = idx
             email_header.save()
-    print('finish', time() - s, time() - s1)

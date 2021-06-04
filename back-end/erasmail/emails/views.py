@@ -71,12 +71,8 @@ class EmailView(APIView):
         # Remove all old history if the logout was not done successfully
         EmailHeaders.objects.filter(owner=user).delete()
 
-        try:
-            task_analyze = fetch_emails_task.delay(user.pk, email, app_password, host)
-            return Response(data={"task_id": task_analyze.id}, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            print(e)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        task_analyze = fetch_emails_task.delay(user.pk, email, app_password, host)
+        return Response(data={"task_id": task_analyze.id}, status=status.HTTP_201_CREATED)
 
     def get(self, request):
         before_than = int(request.query_params.get("before_than", 0))
@@ -90,7 +86,7 @@ class EmailView(APIView):
         task_id = request.query_params.get("task_id")
         if task_id:
             result = AsyncResult(id=task_id, app=fetch_emails_task)
-            return Response(data = {"state": result.state}, status=status.HTTP_200_OK)
+            return Response(data = {"state": result.state, "info": result.info}, status=status.HTTP_200_OK)
 
         user = request.user
         emails_headers = EmailHeaders.objects.filter(owner=user)
