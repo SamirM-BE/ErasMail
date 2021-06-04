@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
+    command: [nginx, '-g', 'daemon off;']
     ports:
       - 8080:80
     environment:
@@ -17,10 +18,10 @@ services:
     build: ./back-end/erasmail
     command: ["sh", "-c", 
                 "python manage.py migrate; 
-                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=critical"
-             ] # python manage.py flush --no-input;
-    ports:
-      - 8000:8000
+                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=debug"
+             ]
+    expose:
+      - 8000
     env_file:
       - ./.env.dev
     depends_on:
@@ -28,7 +29,7 @@ services:
       - redis
   db:
     container_name: db
-    image: postgres:12.0-alpine
+    image: postgres:alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
@@ -40,15 +41,8 @@ services:
       - ./.env.dev
     depends_on:
       - redis
-  celery-beat:
-    build: ./back-end/erasmail
-    command: celery -A erasmail beat -l info
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - redis
   redis:
-    image: redis:alpine 
+    image: redis:alpine
 
 volumes:
   postgres_data:

@@ -90,7 +90,6 @@ class EmailView(APIView):
         task_id = request.query_params.get("task_id")
         if task_id:
             result = AsyncResult(id=task_id, app=fetch_emails_task)
-            print("result.state (get): ", result.state)
             return Response(data = {"state": result.state}, status=status.HTTP_200_OK)
 
         user = request.user
@@ -321,8 +320,6 @@ class Statistics(APIView):
                 ** emails_headers.get_larger_1MB_stats(),
                 ** emails_headers.get_useless_stats(),
             }
-
-            print("samir:", emails_stats)
 
             newsletters = Newsletter.objects.filter(receiver=user)
             newsletters_stats = {
