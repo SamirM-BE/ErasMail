@@ -30,7 +30,6 @@
     "vue-router": "^4.0.0-0",
     "vue-toastification": "^2.0.0-rc.1",
     "vue3-apexcharts": "^1.2.1",
-    "vueperslides": "^3.2.0",
     "vuex": "^4.0.0-0",
     "vuex-persistedstate": "*"
   },
