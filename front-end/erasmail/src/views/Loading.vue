@@ -148,6 +148,7 @@ export default {
                     this.fetchProgress = 80
                   }
                 } else if (state === "SUCCESS") {
+                  this.fetchProgress = 100
                   clearInterval(checkState)
                   resolve()
                 } else if (state === "FAILURE" || state === "REVOKED") {

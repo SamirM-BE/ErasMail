@@ -26,6 +26,7 @@ from .serializers import (
 
 from celery.result import AsyncResult
 from .tasks.analyze_tasks import fetch_emails_task
+from .tasks.threads_tasks import get_threads_task
 
 User = get_user_model()
 
@@ -72,7 +73,7 @@ class EmailView(APIView):
         EmailHeaders.objects.filter(owner=user).delete()
 
         task_analyze = fetch_emails_task.delay(user.pk, email, app_password, host)
-        return Response(data={"task_id": task_analyze.id}, status=status.HTTP_201_CREATED)
+        return Response(data={"task_id": task_analyze.id}, status=status.HTTP_202_ACCEPTED)
 
     def get(self, request):
         before_than = int(request.query_params.get("before_than", 0))
@@ -212,46 +213,14 @@ class ThreadListView(APIView):
     def get(self, request):
         user = request.user
 
-        emails_threads = EmailHeaders.objects.filter(
-            owner=user, thread_id__isnull=False
-        ).order_by("received_at")
+        task_id = request.query_params.get("task_id")
+        if task_id:
+            result = AsyncResult(id=task_id, app=get_threads_task)
+            threads = result.get() if result.state == "SUCCESS" else {}
+            return Response(data = {"state": result.state, "threads": threads}, status=status.HTTP_200_OK)
 
-        serializer = self.serializer_class(emails_threads, many=True)
-        threads = {}
-
-        restrip_pat = re.compile(
-            """((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+""", re.IGNORECASE | re.VERBOSE
-        )
-
-        for mail in serializer.data:
-
-            data = threads.get(
-                mail["thread_id"],
-                {
-                    "thread_id": mail["thread_id"],
-                    "subject": "",
-                    "generated_carbon": 0,
-                    "carbon_yforecast": 0,
-                    "size": 0,
-                    "children": [],
-                },
-            )
-
-            if not data["subject"]:
-                subj = restrip_pat.sub("", mail["subject"])
-                # remove space at the beginning. This is exactly the space between RE: and the subject name
-                data["subject"] = subj.strip()
-
-            data["generated_carbon"] += mail["generated_carbon"]
-            data["carbon_yforecast"] += mail["carbon_yforecast"]
-            data["size"] += mail["size"]
-            data["children"].append(mail)
-
-            threads[mail["thread_id"]] = data
-
-        response = {"subject": "Threads", "children": threads.values()}
-
-        return Response(data=response, status=status.HTTP_200_OK)
+        task_threads = get_threads_task.delay(user.pk)
+        return Response(data={"task_id": task_threads.id}, status=status.HTTP_202_ACCEPTED)
 
 
 class ThreadDetailView(APIView):

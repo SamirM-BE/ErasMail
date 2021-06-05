@@ -1,5 +1,5 @@
 <template>
-  <div :class="loaderIsActive" class="pageloader"><span class="title">Preparing the page, this will take a few
+  <div :class="{'is-active': loaderIsActive}" class="pageloader"><span class="title">Preparing the page, this will take a few
       seconds</span></div>
   <EmailModal :emails="emails" :showModal="showModalFlag" :threadSubject="threadSubject"
               @delete="deleteEmailsOrAttachments" @hide-modal="showModalFlag = false">
@@ -55,7 +55,7 @@ export default {
       threadIndex: -1,
       threadSubject: '',
       emails: [],
-      loaderIsActive: 'is-active',
+      loaderIsActive: true,
 
       trigger: true, // SuccessNotification
       notificationMessage: '', // SuccessNotification
@@ -64,30 +64,55 @@ export default {
   created() {
     if (this.loggedIn) {
       getAPI
-          .get(
-              "/api/emails/threads", {
-                headers: {
-                  Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
-                },
-              }
-          )
-          .then((response) => {
-            this.threads = response.data
-
-            //We limit the quantity of threads to show
-            //TODO: Should not be done in this way, use pagination instead
-            let totalThreads = this.threads.children.length
-            if(totalThreads>150){
-              this.threads.children = this.threads.children.slice(0,150)
-            }
+        .get(
+          "/api/emails/threads", {
+            headers: {
+              Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+            },
+          }
+        )
+        .then((response) => {
+          return new Promise((resolve, reject) => {
+            let checkState = setInterval(() => {
+              getAPI
+                .get("/api/emails/threads", {
+                  headers: {
+                    Authorization: `Bearer ${this.$store.state.auth.accessToken}`,
+                  },
+                  params: {
+                    task_id: response.data.task_id,
+                  },
+                })
+                .then((response) => {
+                  console.log('checkState', response.data)
+                  let state = response.data.state 
+                  if (state === "SUCCESS") {
+                    clearInterval(checkState)
+                    resolve(response.data.threads)
+                  } else if (state === "FAILURE" || state === "REVOKED") {
+                    clearInterval(checkState)
+                    reject(new Error('task failed! (threads)'))
+                  }
+                })
+            }, 2000)
           })
-          .catch((err) => {
-            console.log(err);
-          });
+        })
+        .then((response) => {
+          this.threads = response
+          //We limit the quantity of threads to show
+          let totalThreads = this.threads.children.length
+          if (totalThreads > 150) {
+            this.threads.children = this.threads.children.slice(0, 150)
+          }
+          this.loaderIsActive = false
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$router.push({
+            name: 'home'
+          })
+        });
     }
-  },
-  updated() {
-    this.loaderIsActive = ''
   },
   computed: {
     ...mapGetters("auth", ["loggedIn"]),

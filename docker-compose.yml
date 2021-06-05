@@ -36,7 +36,7 @@ services:
       - ./.env.db
   celery:
     build: ./back-end/erasmail
-    command: celery -A erasmail worker -l info
+    command: celery -A erasmail worker -l debug
     env_file:
       - ./.env.dev
     depends_on:
