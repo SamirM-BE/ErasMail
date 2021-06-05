@@ -121,7 +121,7 @@
                 <i class="fas fa-2x fa-user-shield"></i>
               </span>
               <h3 class="subtitle is-4 features-subtitle m-0">Secure</h3>
-              <h4 class="subtitle is-7 features-subtitle has-text-weight-light">ErasMail do not have access to your e-mail account outside of the browser. All access is made here on your browser using a temporary password </h4>
+              <h4 class="subtitle is-7 features-subtitle has-text-weight-light">ErasMail does not have access to your email account outside of the browser. All access is made here on your browser using a temporary password </h4>
             </div>
             <div class="column has-text-centered">
               <span class="icon is-large is-right">

@@ -15,7 +15,7 @@ const toastOptions = {
     timeout: 5000,
     icon: "fas fa-trophy",
     closeOnClick: false,
-    onClick: () => router.push({name: 'user'})
+    onClick: () => router.push({name: 'user', query: {view: 'success'}})
 }
 
 createApp(App).use(store).use(router).use(Toast, toastOptions).mount('#app')

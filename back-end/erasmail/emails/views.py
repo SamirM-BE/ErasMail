@@ -441,8 +441,8 @@ class NewsletterListView(APIView):
             app_password = request.data["app_password"]
             smtp_host = request.data.get("smtp_host", host)
             smtp_port = request.data.get("smtp_port", 587)
-            print(smtp_host, "aaaaaaaaaa")
-            print(smtp_port, "aaaaaaaaaa")
+            print("smtp_host", smtp_host)
+            print("smtp_port", smtp_port)
             send_email(sender=user.email, smtp_host=smtp_host, smtp_port=smtp_port, password=app_password, to=to, subject=subject)
             delete_unsub_email(host=host, sender=user.email, password=app_password, to=to)
             return Response(status=status.HTTP_200_OK)

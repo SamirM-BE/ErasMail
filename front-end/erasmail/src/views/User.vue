@@ -5,8 +5,8 @@
       <aside class="menu mt-5">
         <ul class="menu-list">
           <li>
-            <a :class="{'is-on': selectedView=='Profile'}" class="icon-text has-text-white"
-               @click="selectedView = 'Profile'">
+            <a :class="{'is-on': selectedView == 'badges'}" class="icon-text has-text-white"
+               @click="$router.replace({name: $route.name, query: {view: 'badges'}})">
               <span class="icon">
                 <i class="fas fa-id-badge"></i>
               </span>
@@ -15,8 +15,8 @@
           </li>
 
           <li>
-            <a :class="{'is-on': selectedView=='Success'}" class="icon-text has-text-white"
-               @click="selectedView = 'Success'">
+            <a :class="{'is-on': selectedView == 'success'}" class="icon-text has-text-white"
+               @click="$router.replace({name: $route.name, query: {view: 'success'}})">
               <span class="icon">
                 <i class="fas fa-trophy"></i>
               </span>
@@ -25,8 +25,8 @@
           </li>
 
           <li>
-            <a :class="{'is-on': selectedView=='Leaderboard'}" class="icon-text has-text-white"
-               @click="selectedView = 'Leaderboard'">
+            <a :class="{'is-on': selectedView == 'leaderboard'}" class="icon-text has-text-white"
+               @click="$router.replace({name: $route.name, query: {view: 'leaderboard'}})">
               <span class="icon">
                 <i class="fas fa-list-ol"></i>
               </span>
@@ -84,8 +84,9 @@
           </div>
 
           <div class="congratulation has-text-centered">
-            <h3 class="is-size-3">Congratulations you deleted {{ deletedEmails }} emails</h3>
-            <h3 class="is-size-3"> and saved more than {{ readableCo2(savedCarbon) }} of CO<sub>2</sub> !</h3>
+            <h3 class="is-size-3" v-if="deletedEmails">Congratulations you deleted {{ deletedEmails }} email<span v-if="deletedEmails > 1">s</span></h3>
+            <h3 class="is-size-3" v-else>Reduce your ecological impact by deleting some emails</h3>
+            <h3 class="is-size-3" v-if="savedCarbon >= 0.5"> and saved more than {{ readableCo2(savedCarbon) }} of CO<sub>2</sub> !</h3>
             <h4 v-if="pollutionComparison.comparison" class="is-size-4">This is equivalent to
               <strong>{{ pollutionComparison.comparison.msg }}</strong></h4>
           </div>
@@ -97,9 +98,9 @@
 
 
       <!-- BADGES -->
-      <section v-if="selectedView == 'Profile'" class="section badges-section">
+      <section v-if="selectedView == 'badges'" class="section badges-section">
         <div class="container grid-badges-container has-background-success-light">
-          <div v-for="(badge, idx) in badges" v-bind:key="idx" :class="{'is-lock': badge.minValue > savedCarbon}"
+          <div v-for="(badge, idx) in badges" :key="idx" :class="{'is-lock': badge.minValue > savedCarbon}"
                :title="badge.minValue ? `Save ${readableCo2(badge.minValue)} of CO2`: 'Connect for the first time to ErasMail'">
             <figure class="image p-3 has-background-green-light">
               <img :src="require(`../assets/badges/sunflower-600/Sunflower${idx+1}.png`)">
@@ -133,7 +134,7 @@
       </section>
 
       <!-- SUCCESS -->
-      <section v-else-if="selectedView == 'Success'" class="section success-section">
+      <section v-else-if="selectedView == 'success'" class="section success-section">
         <div class="container success-container has-background-success-light">
           <div v-for="(success, idx) in successList" v-bind:key="idx"
                :class="{'is-lock': successData[success.id]<success.minValue}"
@@ -197,7 +198,7 @@
               <td>{{ data.nickname }}</td>
               <td>{{ data.deleted_emails }}</td>
               <td>{{ readableCo2(data.saved_carbon) }}</td>
-              <td>{{ data.score }}</td>
+              <td>{{ Math.round(data.score) }}</td>
             </tr>
             </tbody>
           </table>
@@ -241,7 +242,6 @@ export default {
   name: "User",
   data() {
     return {
-      selectedView: "Profile",
       showSettings: false,
 
       currentEmail: "",
@@ -260,11 +260,20 @@ export default {
 
       facebookLink: 'https://www.facebook.com/sharer/sharer.php?u=@u&title=@t&description=@d&quote=@q&hashtag=@h',
       twitterLink: 'https://twitter.com/intent/tweet?text=@t&url=@u&hashtags=@h@tu',
+
+      selectedView: 'badges',
+      allowedViews: ['badges', 'success', 'leaderboard']
     }
   },
   created() {
+    this.updateSelectedView()
     this.fetchCurrentUser()
     this.fetchUsersStats()
+  },
+  watch: {
+    $route() {
+      this.updateSelectedView() 
+    }
   },
   computed: {
     ...mapGetters("success", ["successList"]),
@@ -292,7 +301,7 @@ export default {
       return 0
     },
     pollutionComparison() {
-      return getOptimalComparison(this.savedCarbon)
+      return getOptimalComparison(Math.round(this.savedCarbon))
     },
     lockedSuccessCount() {
       // return the number of success to unlock
@@ -308,6 +317,12 @@ export default {
     },
   },
   methods: {
+    updateSelectedView() {
+      let queryView = this.$route.query.view
+      if (this.allowedViews.includes(queryView)) {
+        this.selectedView = queryView
+      }
+    },
     fetchCurrentUser() {
       getAPI
           .get(

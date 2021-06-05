@@ -36,7 +36,7 @@
             :backTitle="`These emails have so far polluted as much as ${getCO2equivalent(userStats.emails.emails_larger_1MB_carbon)}`"
             :frontData="`You have ${userStats.emails.emails_larger_1MB_count} emails larger than 1 MB.`"
             :frontTitle="'Large emails'"
-            @click="$router.push({name: 'emails', query: {greater_than: 2}})"/>
+            @click="$router.push({name: 'emails', query: {greater_than: 1}})"/>
       </div>
       <div class="column c5 is-3 is-offset-1"> <!--TODO ! -->
         <FlippingCard

@@ -35,10 +35,13 @@
       <div class="navbar-end">
 
         <div v-if="loggedIn" class="navbar-item badges">
-          <div class="container is-flex is-justify-content-space-around py-1 is-clickable" @click="$router.push({name: 'user'})">
-            <figure v-for="(badge, idx) in badges" v-bind:key="idx" class="image is-32x32" :class="{'is-lock': badge.minValue > savedCarbon}">
-              <img class="is-rounded" :src="require(`../assets/badges/sunflower-36/Sunflower${idx+1}.png`)">
-            </figure>
+          <div class="container is-flex is-justify-content-space-around py-1 is-clickable" @click="$router.push({name: 'user', query: {view: 'badges'}})">
+            <div v-for="(badge, idx) in badges" :key="idx" :class="{'is-lock': badge.minValue > savedCarbon}"
+              :title="badge.minValue ? `Save ${readableCo2(badge.minValue)} of CO2`: 'Connect for the first time to ErasMail'">
+              <figure class="image is-32x32">
+                <img class="is-rounded" :src="require(`../assets/badges/sunflower-36/Sunflower${idx+1}.png`)">
+              </figure>
+            </div>
           </div>
         </div>
 
@@ -62,6 +65,9 @@
 <script>
 import {mapGetters} from "vuex";
 import badgesData from "@/data/badges-data.json";
+
+const convert = require('convert-units');
+
 export default {
   name: "Navbar",
   data() {
@@ -91,6 +97,12 @@ export default {
             name: 'landingpage'
           })
         })
+    },
+    readableCo2(co2) {
+      co2 = convert(co2).from('g').toBest({
+        exclude: ['mcg', 'mg', 'oz', 'lb', 'mt']
+      })
+      return `${Math.round(co2.val)} ${co2.unit}`
     },
   }
 }

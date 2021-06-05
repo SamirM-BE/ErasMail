@@ -332,9 +332,7 @@ export default {
       this.newsletters[clickedNewsletter].unsubscribed = true
       this.newsletters[clickedNewsletter].forecasted_carbon = 0
 
-      let statisticID = 'unsubscribed_newsletters'
-      this.updateStatisticsState(statisticID, 1)
-
+      this.updateStatisticsState(['unsubscribed_newsletters'], 1)
 
       newsletter = this.newsletters[clickedNewsletter]
       request_data["id"] = newsletter.id

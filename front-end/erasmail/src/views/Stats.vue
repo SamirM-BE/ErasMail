@@ -339,9 +339,8 @@ export default {
         this.radialBarPotentialImpact.labels.push("Newsletters")
         this.radialBarPotentialImpact.series.push(Math.round(this.unsubNewslettersPercentage))
       }
-      console.log("AAAAAAAAAAAAAAAAAAAAAAAA")
-      console.log(this.erasmailStats.emails.emails_count)
-      console.log(this.erasmailStats.erasmail.deleted_emails)
+      console.log('emails_count', this.erasmailStats.emails.emails_count)
+      console.log('deleted_emails', this.erasmailStats.erasmail.deleted_emails)
       //Emails
       if (this.erasmailStats.emails.emails_count !== 0 && this.erasmailStats.erasmail.deleted_emails !== 0) {
         radialBarPotentialImpact.labels.push("Emails")
