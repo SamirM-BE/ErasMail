@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
+    image: ${DOCKERHUB_USERNAME}/erasmail_nginx
     command: [nginx, '-g', 'daemon off;']
     ports:
       - 8080:80
@@ -16,6 +17,7 @@ services:
   web:
     container_name: web
     build: ./back-end/erasmail
+    image: ${DOCKERHUB_USERNAME}/erasmail_web
     command: ["sh", "-c", 
                 "python manage.py migrate; 
                 gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=debug"
