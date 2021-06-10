@@ -10,8 +10,6 @@ services:
       - 443:443
     environment:
       - SERVER_NAME=tfe-imap.info.ucl.ac.be
-    volumes: 
-      - ./certs:/etc/nginx/certs
     depends_on:
       - web
   web:
@@ -19,7 +17,7 @@ services:
     image: ${DOCKERHUB_USERNAME}/erasmail_web:latest
     command: ["sh", "-c", 
                 "python manage.py migrate; 
-                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=info"
+                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=info;"
              ]
     expose:
       - 8000
@@ -36,6 +34,7 @@ services:
     env_file:
       - ./.env.db
   celery:
+    container_name: celery
     image: ${DOCKERHUB_USERNAME}/erasmail_web:latest
     command: celery -A erasmail worker -l info
     env_file:

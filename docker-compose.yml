@@ -1,15 +1,14 @@
 version: '3.7'
 
 services:
-  nginx:
-    container_name: nginx
-    build:
-      context: .
-      dockerfile: ./nginx/Dockerfile
-    image: ${DOCKERHUB_USERNAME}/erasmail_nginx
-    command: [nginx, '-g', 'daemon off;']
+  frontend:
+    container_name: frontend
+    build: ./front-end/erasmail
+    command: ["sh", "-c", "npm run serve;"]
+    volumes:
+      - ./front-end/erasmail:/app
     ports:
-      - 8080:80
+      - 8080:8080
     environment:
       - SERVER_NAME=localhost
     depends_on:
@@ -17,11 +16,12 @@ services:
   web:
     container_name: web
     build: ./back-end/erasmail
-    image: ${DOCKERHUB_USERNAME}/erasmail_web
     command: ["sh", "-c", 
                 "python manage.py migrate; 
-                gunicorn erasmail.wsgi:application -t 0 -b 0.0.0.0:8000 --log-level=debug"
+                python manage.py runserver 0.0.0.0:8000;"
              ]
+    volumes:
+      - ./back-end/erasmail:/home/app/web
     expose:
       - 8000
     env_file:
@@ -37,6 +37,7 @@ services:
     env_file:
       - ./.env.db
   celery:
+    container_name: celery
     build: ./back-end/erasmail
     command: celery -A erasmail worker -l info
     env_file:
