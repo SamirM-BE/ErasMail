@@ -46,20 +46,21 @@ if [ $CMD = "up" ]; then
     docker-compose build
     docker-compose push
 
-    scp -i ~/.ssh/id_rsa ./.env.db  $UCL_USERNAME@studssh.info.ucl.ac.be:~
-    scp -i ~/.ssh/id_rsa ./.env.prod  $UCL_USERNAME@studssh.info.ucl.ac.be:~
-    scp -i ~/.ssh/id_rsa ./.env  $UCL_USERNAME@studssh.info.ucl.ac.be:~
-    scp -i ~/.ssh/id_rsa ./docker-compose.prod.yml  $UCL_USERNAME@studssh.info.ucl.ac.be:~
+    scp ./.env*  $UCL_USERNAME@studssh.info.ucl.ac.be:~
+    scp ./docker-compose.prod.yml  $UCL_USERNAME@studssh.info.ucl.ac.be:~
+    scp -r ./certs  $UCL_USERNAME@studssh.info.ucl.ac.be:~
 
-    ssh -i ~/.ssh/id_rsa $UCL_USERNAME@studssh.info.ucl.ac.be "
-        scp ~/.env.db  student@tfe-imap.info.ucl.ac.be:~
-        scp ~/.env.prod  student@tfe-imap.info.ucl.ac.be:~
-        scp ~/.env  student@tfe-imap.info.ucl.ac.be:~
-        scp ~/docker-compose.prod.yml  student@tfe-imap.info.ucl.ac.be:~
+    ssh $UCL_USERNAME@studssh.info.ucl.ac.be "
+        scp ~/.env*  student@tfe-imap.info.ucl.ac.be:~
+        scp ~/docker-compose.prod.yml  student@tfe-imap.info.ucl.ac.be:~/
+        scp -r ./certs  student@tfe-imap.info.ucl.ac.be:~ 
+
+        rm -rf .env* docker-compose.prod.yml certs/
+
         ssh  student@tfe-imap.info.ucl.ac.be 'docker-compose -f docker-compose.prod.yml pull; docker-compose -f docker-compose.prod.yml up -d'
     "
 elif [ $CMD = "down" ]; then
-    ssh -i ~/.ssh/id_rsa $UCL_USERNAME@studssh.info.ucl.ac.be "
+    ssh $UCL_USERNAME@studssh.info.ucl.ac.be "
         ssh  student@tfe-imap.info.ucl.ac.be 'docker-compose -f docker-compose.prod.yml down'
     "
 else
