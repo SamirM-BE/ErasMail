@@ -81,7 +81,6 @@ function getOptimalComparison(emailCO2){
     return {level}
 }
 
-//SAMIR: pas bon, j'ai besoin de la date du thread
 function getYearlyCarbonForecast(received_at_date, size) {
     const yearAsMs = 31556952000
     let today = new Date()

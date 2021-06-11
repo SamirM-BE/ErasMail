@@ -230,7 +230,6 @@ export default {
           function(){
             that.isLookingHost = false
             that.askForHost = true
-            console.log("fetch failed")
           }
       )
 

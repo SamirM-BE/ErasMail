@@ -82,7 +82,6 @@ export default {
     },
   },
   created() {
-    console.log(this.userStats)
   },
   methods: {
     routePage(path) {

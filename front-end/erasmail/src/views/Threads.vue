@@ -84,8 +84,7 @@ export default {
                   },
                 })
                 .then((response) => {
-                  console.log('checkState', response.data)
-                  let state = response.data.state 
+                  let state = response.data.state
                   if (state === "SUCCESS") {
                     clearInterval(checkState)
                     resolve(response.data.threads)

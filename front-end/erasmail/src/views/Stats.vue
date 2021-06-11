@@ -93,7 +93,7 @@
                 user.
               </div>
             </article>
-            <article class="tile is-child notification is-danger">
+            <article class="tile is-child notification is-info">
               <p class="title">Your email box uses {{ getStrMailboxSize() }}</p>
               <p class="subtitle">
                 {{ getCO2equivalent(erasmailStats.emailbox.carbon) }}
@@ -166,7 +166,7 @@
             </div>
           </div>
         </article>
-        <article class="tile is-child notification is-success">
+        <article class="tile is-child notification is-danger">
           <div class="content">
             <p class="title">You pollute
               {{ getStrEcoComparison(erasmailStats.emailbox.carbon, websiteStats.avg_carbon_eq) }}
@@ -339,8 +339,6 @@ export default {
         this.radialBarPotentialImpact.labels.push("Newsletters")
         this.radialBarPotentialImpact.series.push(Math.round(this.unsubNewslettersPercentage))
       }
-      console.log('emails_count', this.erasmailStats.emails.emails_count)
-      console.log('deleted_emails', this.erasmailStats.erasmail.deleted_emails)
       //Emails
       if (this.erasmailStats.emails.emails_count !== 0 && this.erasmailStats.erasmail.deleted_emails !== 0) {
         radialBarPotentialImpact.labels.push("Emails")

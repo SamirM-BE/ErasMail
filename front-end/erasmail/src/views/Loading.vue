@@ -133,7 +133,6 @@ export default {
                 },
               })
               .then((response) => {
-                console.log('checkState', response.data)
                 let state = response.data.state
                 let info = response.data.info
                 if(state === "PROGRESS"){

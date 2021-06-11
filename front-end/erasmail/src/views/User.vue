@@ -289,7 +289,6 @@ export default {
     savedCarbon() {
       let statistics = this.$store.state.stats.statistics
       if (statistics.erasmail) {
-        console.log('statistics.erasmail.saved_carbon', statistics.erasmail.saved_carbon)
         return statistics.erasmail.saved_carbon
       }
       return 0
