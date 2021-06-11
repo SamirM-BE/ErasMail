@@ -64,7 +64,7 @@ def get_emails(host, username, password):
 
         selected_folder = folder[2]  # (b'\\HasNoChildren',), b'/', 'INBOX')
 
-        server.select_folder(selected_folder, readonly=True)
+        server.select_folder(selected_folder)
         messages = server.search(["All"])
 
         all_to_fetch = [
