@@ -31,12 +31,13 @@ Code released under Apache License 2.0
 * Install docker and docker-compose
 * Set an environment file called .env.dev with :
   * SECRET KEY : django secret key
+  * DJANGO_ALLOWED_HOSTS : **localhost**
   * SQL_DATABASE : the postgres database name
   * SQL_USER : postgres username
   * SQL_PASSWORD : postgres database password
-  * SQL_HOST : db (mandatory)
-  * SQL_PORT : 5432
-  * DATABASE : postgres
+  * SQL_HOST : **db** (mandatory)
+  * SQL_PORT : **5432**
+  * DATABASE : **postgres**
 ### Run :
 >docker-compose up -d --build
 
