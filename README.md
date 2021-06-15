@@ -36,7 +36,7 @@ Code released under Apache License 2.0
   * SQL_PASSWORD : postgres database password
   * SQL_HOST : db (mandatory)
   * SQL_PORT : 5432
-  * DATABASE : the postgres database name
+  * DATABASE : postgres
 ### Run :
 >docker-compose up -d --build
 
