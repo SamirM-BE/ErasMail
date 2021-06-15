@@ -25,7 +25,18 @@ ErasMail uses IMAP which makes it compatible with all email providers.
 ## Licence
 Code released under Apache License 2.0
 
-## Development
+## Development 
 
-## Build
+### Requirements : 
+* Install docker and docker-compose
+* Set an environment file called .env.dev with :
+  * SECRET KEY : django secret key
+  * SQL_DATABASE : the postgres database name
+  * SQL_USER : postgres username
+  * SQL_PASSWORD : postgres database password
+  * SQL_HOST : db (mandatory)
+  * SQL_PORT : 5432
+  * DATABASE : the postgres database name
+### Run :
+>docker-compose up -d --build
 
