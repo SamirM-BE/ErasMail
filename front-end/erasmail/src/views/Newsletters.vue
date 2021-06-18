@@ -52,7 +52,7 @@
               </span>
               <p class="has-text-weight-bold">Last received email: {{ newsletter.received_at }}</p>
               <ThreeBestComparison :co2="newsletter.generated_carbon" :show="hover===index"
-                                   title="The carbon footprint of this conversation is the same as:"/>
+                                   title="The carbon footprint of this newsletter is the same as:"/>
             </div>
 
             <div class="buttontop">
