@@ -124,6 +124,7 @@
               </span>
               <input id="host" class="input" type="text" placeholder="imap.gmail.com" v-model="host" />
             </div>
+            <p class="help is-danger">We could not auto-configure your settings, please specify your host. For more information <a href="https://www.arclab.com/en/kb/email/list-of-smtp-and-imap-servers-mailserver-list.html" target="_blank">click here</a></p>
           </div>
         </div>
 
